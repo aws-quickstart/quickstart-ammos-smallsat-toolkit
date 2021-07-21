@@ -1,0 +1,16 @@
+Parameters:
+  ProjectName:
+    Description: Name of your project
+    Type: String
+
+Resources:
+  ConfigBucket:
+    DeletionPolicy: Retain
+    Type: AWS::S3::Bucket
+    UpdateReplacePolicy: Retain
+
+Outputs:
+  ExportsOutputRefConfigBucket2112C5EC685752CB:
+    Export:
+      Name: !Sub "${ProjectName}-ConfigBucketName"
+    Value: !Ref ConfigBucket
