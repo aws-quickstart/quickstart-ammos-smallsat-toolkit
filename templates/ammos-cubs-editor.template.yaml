@@ -1,0 +1,364 @@
+Parameters:
+  ProjectName:
+    Description: Name of your project
+    Type: String
+  ConfigBucketName:
+    Description: Name of the S3 bucket used to store project-specific configuration files.
+    Type: String
+  FQDN:
+    Description: Fully Qualified Domain Name to use for project resources root.
+    Type: String
+  PrivateSubnetIds:
+    Description: Private Subnet IDs for deploying application server Instances
+    Type: List<AWS::EC2::Subnet::Id>
+  VpcId:
+    Description: VPC ID for deploying project resources
+    Type: AWS::EC2::VPC::Id
+  AMI:
+    Description: AMI used for the AIT Editor instance; must be RHEL 7/8 base
+    Type: AWS::EC2::Image::Id
+    # TODO: Prescribe allowed AMI's? Allow BYO?
+    # AllowedValues:
+    # - ""
+  InstanceType:
+    Description: Instance type to be used for AIT Server instances; see deployment guide for recommendations
+    Type: String
+    # TODO: Prescribe allowed Instance Types?
+    # AllowedValues:
+    # - ""
+  SshKeyName:
+    Description: Name of created SSH Key for instance access - must use SSM sessions if no key supplied
+    Type: AWS::EC2::KeyPair::KeyName
+  # NOTE: This will be obsolete once AIT Editor is open sourced and publicly available
+  EditorEcrRepoArn:
+    Type: String
+
+Resources:
+  AitEditorSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription:
+        Security group to manage connections to ammos-ait-editor AIT
+        Editor
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !ImportValue
+            Fn::Sub: "${ProjectName}-AlbSecurityGroupId"
+      VpcId: !Ref VpcId
+
+  EditorTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 443
+      Protocol: HTTPS
+      TargetType: instance
+      Targets:
+        - Id: !Ref Instance
+          Port: 80
+      VpcId: !Ref VpcId
+  EditorListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      # TODO: Add authenticate action
+      Actions:
+        - TargetGroupArn:
+            Ref: EditorTargetGroup
+          Type: forward
+      Conditions:
+        - Field: host-header
+          HostHeaderConfig:
+            Values:
+              - !Sub "editor.${FQDN}"
+      ListenerArn: !ImportValue
+            Fn::Sub: "${ProjectName}-HttpsListenerArn"
+      Priority: 125
+  Instance:
+    Type: AWS::EC2::Instance
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT1H
+    DependsOn:
+      - InstanceRoleDefaultPolicy
+      - InstanceRole
+    Properties:
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            DeleteOnTermination: true
+            VolumeSize: 32
+      IamInstanceProfile: !Ref InstanceOneInstanceProfile
+      ImageId: !Ref AMI
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref SshKeyName
+      SecurityGroupIds:
+        - !GetAtt AitEditorSecurityGroup.GroupId
+      SubnetId: !Select [0, !Ref PrivateSubnetIds]
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+            - ""
+            - - "#!/bin/bash
+
+                function exitTrap(){
+
+                exitCode=$?
+
+                /opt/aws/bin/cfn-signal --stack "
+              - !Ref AWS::StackName
+              - " --resource AitAutoScalingGroup --region"
+              - !Ref AWS::Region
+              - " -e
+                $exitCode || echo 'Failed to send Cloudformation Signal'
+
+                }
+
+                trap exitTrap EXIT
+
+                CONFIG_BUCKET_NAME="
+              - !Ref ConfigBucketName
+              - '
+
+                yum install -y python3
+
+                yum install -y wget
+
+                yum install -y unzip
+
+                mkdir -p /opt/aws/bin
+
+                wget -nv https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+
+                pip3 install aws-cfn-bootstrap-py3-latest.tar.gz
+
+                ln -s /usr/local/bin/cfn-* /opt/aws/bin
+
+                wget -nv https://s3.amazonaws.com/amazoncloudwatch-agent/redhat/amd64/latest/amazon-cloudwatch-agent.rpm
+
+                sudo rpm -U ./amazon-cloudwatch-agent.rpm
+
+                yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+
+                # Set variables for system install
+
+                USER=ec2-user
+
+                PROJECT_HOME=/home/$USER
+
+                SETUP_DIR=$PROJECT_HOME/setup
+
+                AWS_REGION=us-gov-west-1
+
+                AWS_ACCOUNT_ID=314095565155
+
+                EDITOR_IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/aerie/aerie-editor
+
+                # EDITOR_IMAGE_TAG=release-0.8.0
+
+                EDITOR_IMAGE_TAG=latest
+
+
+                echo "Starting user data"
+
+                # General tools
+
+                yum install -y yum-utils git vim
+
+                curl -SL https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
+                -o /usr/bin/jq
+
+                chmod +x /usr/bin/jq
+
+
+
+                # Install AWS CLI
+
+                echo "Installing AWS CLI"
+
+                curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+
+                unzip -qq awscliv2.zip
+
+                ./aws/install
+
+
+
+                # Pull assets, config, and secrets from s3/sm
+
+                mkdir -p $SETUP_DIR
+
+                cd $SETUP_DIR
+
+                /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 cp s3://$CONFIG_BUCKET_NAME/editor/cloudwatch-agent-editor.json
+                $SETUP_DIR/cloudwatch-agent-editor.json
+
+
+                # /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION secretsmanager
+                get-secret-value --secret-id "$AIT_SSL_KEY_SECRET_NAME" \
+
+                #   | jq -r ''.SecretString'' > $SETUP_DIR/server_ssl_key.pem
+
+
+
+                # Docker + Docker-Compose
+
+                echo "Installing Docker components"
+
+                yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+                yum install -y docker-ce docker-ce-cli containerd.io
+
+                groupadd docker
+
+                usermod -aG docker $USER
+
+                systemctl enable docker
+
+                systemctl start docker
+
+                echo "Authenticating to ECR"
+
+                /usr/local/aws-cli/v2/current/bin/aws ecr get-login-password --region
+                $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
+                # docker-compose up --detach
+
+
+                echo "Creating Editor Users"
+
+                groupadd editor-users
+
+                EDITOR_GID=$(tail -1 /etc/group | cut -d : -f3)
+
+                PORT=8080
+
+                for USERNAME in editor-user-0;
+
+                do
+
+                # Create user in editor-users group
+
+                useradd -m -g editor-users -G docker $USERNAME
+
+                EDITOR_UID=$(id -u $USERNAME)
+
+
+                # Aerie Editor Config
+
+                mkdir -p /home/$USERNAME/.aerie-editor-config/code-server
+
+                mkdir /home/$USERNAME/.aerie-editor-data
+
+                tee /home/$USERNAME/.aerie-editor-config/code-server/config.yaml <<
+                EOF
+
+                auth: none
+
+                bind-addr: 127.0.0.1:8080
+
+                cert: false
+
+                disable-telemetry: true
+
+                disable-update-check: true
+
+                extra-extensions-dir: [''/home/coder/extra-extensions'']
+
+                username: $USERNAME
+
+                EOF
+
+
+                chown -R $USERNAME: /home/$USERNAME
+
+                # Aerie Editor startup
+
+                docker run --name aerie-editor-$USERNAME -d -p $PORT:8080 \
+
+                -v /home/$USERNAME/.aerie-editor-data:/home/coder/.local/share/code-server
+                \
+
+                -v /home/$USERNAME/.aerie-editor-config:/home/coder/.config \
+
+                -v /home/$USERNAME:/home/coder/project \
+
+                -u $EDITOR_UID:$EDITOR_GID \
+
+                $EDITOR_IMAGE_URI:$EDITOR_IMAGE_TAG;
+
+                ((++PORT))
+
+                done;
+
+
+                /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+
+                -a fetch-config -m ec2 -s -c file:$SETUP_DIR/cloudwatch-agent-editor.json
+
+                '
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+        Version: "2012-10-17"
+      Description: IAM Role to be used by the AIT Editor Servers
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy"
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      Path: /am-ec2/
+      PermissionsBoundary: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/Security_Boundary_NoIAM"
+  InstanceRoleDefaultPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: ecr:GetAuthorizationToken
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - ecr:BatchCheckLayerAvailability
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchGetImage
+            Effect: Allow
+            Resource:
+              - !Ref EditorEcrRepoArn
+          - Action:
+              - s3:GetBucketAcl
+              - s3:GetBucketLocation
+              - s3:GetObject
+              - s3:GetObjectAcl
+              - s3:GetObjectTagging
+              - s3:GetObjectVersion
+              - s3:ListBucket
+            Effect: Allow
+            Resource:
+              - !Ref ConfigBucketName
+              - !Sub "${ConfigBucketName}/*"
+        Version: "2012-10-17"
+      PolicyName: InstanceRoleDefaultPolicy
+      Roles:
+        - !Ref InstanceRole
+  InstanceOneInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref InstanceRole
+
+Outputs:
+  InstanceId:
+    Value: !Ref Instance
+  InstancePrivateIp:
+    Value: !GetAtt Instance.PrivateIp
+  SecurityGroupId:
+    Value: !GetAtt AitEditorSecurityGroup.GroupId

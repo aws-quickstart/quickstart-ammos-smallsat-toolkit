@@ -1,0 +1,207 @@
+Parameters:
+  ProjectName:
+    Description: Project name
+    Type: String
+  FQDN:
+    Description: FQDN to use for load balancer
+    Type: String
+  CertificateArn:
+    Description: ARN to Certifictate in ACM valid for specified FQDN and relevant subdomains
+    Type: String
+  VpcId:
+    Description: VPC ID for deploying project resources
+    Type: AWS::EC2::VPC::Id
+  PublicSubnetIds:
+    Description: Comma-separated list of Pulbic Subnet ID's for ALB deployment
+    Type: List<AWS::EC2::Subnet::Id>
+  IngressCidrBlock:
+    Description: Cidr Block to allow ingress to ALB
+    Type: String
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
+  HostedZoneId:
+    Description: ID of Route53 Hosted Zone in which to create records for discovery
+    Type: String
+
+Conditions:
+  DeployR53Records: !Not [!Equals ["", !Ref HostedZoneId]]
+
+Resources:
+  ################# ALB #################
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group to manage connections to ALB
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        # TODO: Convert to SourcePrefixListId ?
+        - CidrIp: !Ref IngressCidrBlock
+          Description: Allow traffic to ALB
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+        - CidrIp: !Ref IngressCidrBlock
+          Description: Allow traffic to ALB
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+        - CidrIp: !Ref IngressCidrBlock
+          Description: Allow traffic to ALB
+          IpProtocol: tcp
+          FromPort: 8082
+          ToPort: 8082
+      VpcId: !Ref VpcId
+
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      IpAddressType: ipv4
+      LoadBalancerAttributes:
+        - Key: deletion_protection.enabled
+          Value: "false"
+        - Key: idle_timeout.timeout_seconds
+          Value: "300"
+      Name: !Sub "${ProjectName}-alb"
+      Scheme: internet-facing
+      SecurityGroups:
+        - !GetAtt AlbSecurityGroup.GroupId
+      Subnets: !Ref PublicSubnetIds
+      Type: application
+
+  ########### Route53 Records ###########
+  AlbCNAME:
+    Type: AWS::Route53::RecordSet
+    Condition: DeployR53Records
+    Properties:
+      Name: !Ref FQDN
+      Type: CNAME
+      HostedZoneId: !Ref HostedZoneId
+      ResourceRecords:
+        - !GetAtt ApplicationLoadBalancer.DNSName
+  AitAlias:
+    Type: AWS::Route53::RecordSet
+    Condition: DeployR53Records
+    Properties:
+      Name: !Sub "ait.${FQDN}"
+      Type: CNAME
+      AliasTarget:
+        DNSName: !Ref FQDN
+        HostedZoneId: !Ref HostedZoneId
+      HostedZoneId: !Ref HostedZoneId
+  MctAlias:
+    Type: AWS::Route53::RecordSet
+    Condition: DeployR53Records
+    Properties:
+      Name: !Sub "mct.${FQDN}"
+      Type: CNAME
+      AliasTarget:
+        DNSName: !Ref FQDN
+        HostedZoneId: !Ref HostedZoneId
+      HostedZoneId: !Ref HostedZoneId
+  EditorAlias:
+    Type: AWS::Route53::RecordSet
+    Condition: DeployR53Records
+    Properties:
+      Name: !Sub "editor.${FQDN}"
+      Type: CNAME
+      AliasTarget:
+        DNSName: !Ref FQDN
+        HostedZoneId: !Ref HostedZoneId
+      HostedZoneId: !Ref HostedZoneId
+
+  ########### Cognito  Client ###########
+  UserPoolAlbClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - openid
+        - aws.cognito.signin.user.admin
+        - profile
+        - email
+      CallbackURLs:
+        - !Sub https://${FQDN}/oauth2/idpresponse
+      GenerateSecret: true
+      LogoutURLs:
+        - !Sub https://${FQDN}/
+      SupportedIdentityProviders:
+        - COGNITO
+      UserPoolId: !ImportValue
+        Fn::Sub: "${ProjectName}-CognitoUserPoolId"
+
+  AlbClientProps:
+    Type: AWS::CloudFormation::CustomResource
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      ServiceToken: !ImportValue
+        Fn::Sub: "${ProjectName}-CognitoInspectFunctionArn"
+      ClientId: !Ref UserPoolAlbClient
+      UserPoolId: !ImportValue
+        Fn::Sub: "${ProjectName}-CognitoUserPoolId"
+
+  ############ ALB Listeners ############
+  HttpsListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      Certificates:
+        - CertificateArn: !Ref CertificateArn
+      DefaultActions:
+        # This serves as a simple landing page redirecting to the available apps at various subdomains
+        - FixedResponseConfig:
+            ContentType: text/html
+            MessageBody:
+              !Sub "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"\
+              UTF-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"\
+              >\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"\
+              >\n    <title>AMMOS CUBS</title>\n</head>\n<body>\n    <p><a href=\"https://ait.${FQDN}\"\
+              >AIT</a></p>\n    <p><a href=\"https://mct.${FQDN}\">OpenMCT</a></p>\n    <p><a\
+              \ href=\"https://editor.${FQDN}\">Editor</a></p>\n</body>\n</html>"
+            StatusCode: "200"
+          Type: fixed-response
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-FS-1-2-2019-08
+  HttpListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - RedirectConfig:
+            Protocol: HTTPS
+            StatusCode: HTTP_302
+          Type: redirect
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+Outputs:
+  AlbDnsName:
+    Description: amazonaws.com DNS name of the deployed Load Balancer
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+    Export:
+      Name: !Sub "${ProjectName}-AlbDnsName"
+  AlbArn:
+    Description: ARN of the deployed Load Balancer
+    Value: !Ref ApplicationLoadBalancer
+    Export:
+      Name: !Sub "${ProjectName}-AlbArn"
+  HttpsListenerArn:
+    Description: ARN for the HTTPS Listener attached to the deployed Load Balancer
+    Value: !Ref HttpsListener
+    Export:
+      Name: !Sub "${ProjectName}-HttpsListenerArn"
+  CognitoClientId:
+    Description: desc
+    Value: !Ref UserPoolAlbClient
+    Export:
+      Name: !Sub "${ProjectName}-CognitoClientId"
+  AlbSecurityGroupId:
+    Description: SG ID for the deployed Load Balancer's attached security group
+    Value: !GetAtt AlbSecurityGroup.GroupId
+    Export:
+      Name: !Sub "${ProjectName}-AlbSecurityGroupId"
