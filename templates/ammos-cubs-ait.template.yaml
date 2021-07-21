@@ -430,9 +430,13 @@ Resources:
             Effect: Allow
             Resource: !Ref AWS::StackId
           - Action:
-              - s3:GetObject*
-              - s3:GetBucket*
-              - s3:List*
+              - s3:GetBucketAcl
+              - s3:GetBucketLocation
+              - s3:GetObject
+              - s3:GetObjectAcl
+              - s3:GetObjectTagging
+              - s3:GetObjectVersion
+              - s3:ListBucket
             Effect: Allow
             Resource:
               - !Ref ConfigBucketName

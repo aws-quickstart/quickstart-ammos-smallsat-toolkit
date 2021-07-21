@@ -26,7 +26,8 @@ Resources:
             Principal:
               Service: lambda.amazonaws.com
         Version: "2012-10-17"
-      ManagedPolicyArns: !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
       Path: /am-lambda/
       PermissionsBoundary: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/Security_Boundary_NoIAM"
       Policies:
