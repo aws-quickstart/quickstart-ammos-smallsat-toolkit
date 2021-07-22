@@ -14,10 +14,9 @@ Parameters:
   PublicSubnetIds:
     Description: Comma-separated list of Pulbic Subnet ID's for ALB deployment
     Type: List<AWS::EC2::Subnet::Id>
-  IngressCidrBlock:
+  AccesSgId:
     Description: Cidr Block to allow ingress to ALB
-    Type: String
-    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
+    Type: AWS::EC2::SecurityGroup::Id
   HostedZoneId:
     Description: ID of Route53 Hosted Zone in which to create records for discovery
     Type: String
@@ -30,28 +29,11 @@ Resources:
   AlbSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Security group to manage connections to ALB
+      GroupDescription: Security group to manage extra connections to ALB
       SecurityGroupEgress:
         - CidrIp: 0.0.0.0/0
           Description: Allow all outbound traffic by default
           IpProtocol: "-1"
-      SecurityGroupIngress:
-        # TODO: Convert to SourcePrefixListId ?
-        - CidrIp: !Ref IngressCidrBlock
-          Description: Allow traffic to ALB
-          IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-        - CidrIp: !Ref IngressCidrBlock
-          Description: Allow traffic to ALB
-          IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-        - CidrIp: !Ref IngressCidrBlock
-          Description: Allow traffic to ALB
-          IpProtocol: tcp
-          FromPort: 8082
-          ToPort: 8082
       VpcId: !Ref VpcId
 
   ApplicationLoadBalancer:
@@ -66,6 +48,7 @@ Resources:
       Name: !Sub "${ProjectName}-alb"
       Scheme: internet-facing
       SecurityGroups:
+        - !Ref AccesSgId
         - !GetAtt AlbSecurityGroup.GroupId
       Subnets: !Ref PublicSubnetIds
       Type: application
