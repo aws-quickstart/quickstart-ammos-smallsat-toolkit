@@ -28,10 +28,13 @@ Parameters:
     # - ""
   SshKeyName:
     Description: Name of created SSH Key for instance access - must use SSM sessions if no key supplied
-    Type: AWS::EC2::KeyPair::KeyName
+    Type: String
   # NOTE: This will be obsolete once AIT Editor is open sourced and publicly available
   EditorEcrRepoArn:
     Type: String
+
+Conditions:
+  SshEnabled: !Not [!Equals ["", !Ref SshKeyName]]
 
 Resources:
   AitEditorSecurityGroup:
@@ -96,7 +99,7 @@ Resources:
       IamInstanceProfile: !Ref InstanceOneInstanceProfile
       ImageId: !Ref AMI
       InstanceType: !Ref InstanceType
-      KeyName: !Ref SshKeyName
+      KeyName: !If [SshEnabled, !Ref SshKeyName, !Ref AWS::NoValue]
       SecurityGroupIds:
         - !GetAtt AitEditorSecurityGroup.GroupId
       SubnetId: !Select [0, !Ref PrivateSubnetIds]
@@ -343,8 +346,8 @@ Resources:
               - s3:ListBucket
             Effect: Allow
             Resource:
-              - !Ref ConfigBucketName
-              - !Sub "${ConfigBucketName}/*"
+              - !Sub "arn:${AWS::Partition}:s3:::${ConfigBucketName}"
+              - !Sub "arn:${AWS::Partition}:s3:::${ConfigBucketName}/*"
         Version: "2012-10-17"
       PolicyName: InstanceRoleDefaultPolicy
       Roles:

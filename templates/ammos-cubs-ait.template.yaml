@@ -28,7 +28,7 @@ Parameters:
     # - ""
   SshKeyName:
     Description: Name of created SSH Key for instance access - must use SSM sessions if no key supplied
-    Type: AWS::EC2::KeyPair::KeyName
+    Type: String
 
 Conditions:
   SshEnabled: !Not [!Equals ["", !Ref SshKeyName]]
@@ -358,7 +358,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: PT1H
+        Timeout: PT30M
     Properties:
       LaunchConfigurationName: !Ref AitAutoScalingGroupLaunchConfig
       MaxSize: "1"
@@ -439,8 +439,8 @@ Resources:
               - s3:ListBucket
             Effect: Allow
             Resource:
-              - !Ref ConfigBucketName
-              - !Sub "${ConfigBucketName}/*"
+              - !Sub "arn:${AWS::Partition}:s3:::${ConfigBucketName}"
+              - !Sub "arn:${AWS::Partition}:s3:::${ConfigBucketName}/*"
         Version: "2012-10-17"
       PolicyName: InstanceRoleDefaultPolicy
       Roles:

@@ -40,7 +40,7 @@ Resources:
           PolicyName: cognito-client-describe
   UserPool:
     Type: AWS::Cognito::UserPool
-    DeletionPolicy: Retain
+    DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
       AccountRecoverySetting:
@@ -53,9 +53,6 @@ Resources:
       EmailVerificationSubject: Verify your new account
       SmsVerificationMessage: The verification code to your new account is {####}
       UserPoolName: !Sub "${ProjectName}-users"
-      MfaConfiguration: OPTIONAL
-      EnabledMfas:
-        - SOFTWARE_TOKEN_MFA
       VerificationMessageTemplate:
         DefaultEmailOption: CONFIRM_WITH_CODE
         EmailMessage: The verification code to your new account is {####}
