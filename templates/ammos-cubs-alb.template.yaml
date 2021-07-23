@@ -138,12 +138,22 @@ Resources:
         - FixedResponseConfig:
             ContentType: text/html
             MessageBody:
-              !Sub "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"\
-              UTF-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"\
-              >\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"\
-              >\n    <title>AMMOS CUBS</title>\n</head>\n<body>\n    <p><a href=\"https://ait.${FQDN}\"\
-              >AIT</a></p>\n    <p><a href=\"https://mct.${FQDN}\">OpenMCT</a></p>\n    <p><a\
-              \ href=\"https://editor.${FQDN}\">Editor</a></p>\n</body>\n</html>"
+              !Sub |
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>AMMOS CUBS</title>
+                </head>
+                <body>
+                    <p><a href="https://ait.${FQDN}">AIT</a></p>
+                    <p><a href="https://mct.${FQDN}">OpenMCT</a></p>
+                    <p><href="https://editor.${FQDN}">Editor</a></p>
+                </body>
+                </html>
+
             StatusCode: "200"
           Type: fixed-response
       LoadBalancerArn: !Ref ApplicationLoadBalancer
