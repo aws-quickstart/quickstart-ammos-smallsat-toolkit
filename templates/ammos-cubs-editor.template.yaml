@@ -17,7 +17,7 @@ Parameters:
   InstanceType:
     Description: Instance type to be used for AIT Server instances; see deployment guide for recommendations
     Type: String
-    # TODO: Prescribe allowed Instance Types?
+    # TODO: Prescribe allowed Instance Types
     # AllowedValues:
     # - ""
   SshKeyName:
@@ -39,25 +39,24 @@ Mappings:
       RHEL76HVM: example
 
 Conditions:
-  SshEnabled: !Not [!Equals ["", !Ref SshKeyName]]
+  SshEnabled: !Not [!Equals ['', !Ref SshKeyName]]
 
 Resources:
   AitEditorSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription:
-        Security group to manage connections to ammos-ait-editor AIT
+      GroupDescription: Security group to manage connections to ammos-ait-editor AIT
         Editor
       SecurityGroupEgress:
         - CidrIp: 0.0.0.0/0
           Description: Allow all outbound traffic by default
-          IpProtocol: "-1"
+          IpProtocol: '-1'
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
           SourceSecurityGroupId: !ImportValue
-            Fn::Sub: "${ProjectName}-AlbSecurityGroupId"
+            Fn::Sub: '${ProjectName}-AlbSecurityGroupId'
       VpcId: !Ref VpcId
 
   EditorTargetGroup:
@@ -82,9 +81,9 @@ Resources:
         - Field: host-header
           HostHeaderConfig:
             Values:
-              - !Sub "editor.${FQDN}"
+              - !Sub 'editor.${FQDN}'
       ListenerArn: !ImportValue
-            Fn::Sub: "${ProjectName}-HttpsListenerArn"
+        Fn::Sub: '${ProjectName}-HttpsListenerArn'
       Priority: 125
   Instance:
     Type: AWS::EC2::Instance
@@ -111,106 +110,106 @@ Resources:
       SecurityGroupIds:
         - !GetAtt AitEditorSecurityGroup.GroupId
       SubnetId: !Select [0, !Ref PrivateSubnetIds]
-      UserData: !Sub |
-        #!/bin/bash
-        function exitTrap(){
-          exitCode=$?
-          /opt/aws/bin/cfn-signal --stack ${AWS::StackName} --resource AitAutoScalingGroup --region ${AWS::Region} -e $!exitCode || echo 'Failed to send Cloudformation Signal'
-        }
-        trap exitTrap EXIT
-        CONFIG_BUCKET_NAME=${ConfigBucketName}
+      UserData:
+        Fn::Base64:
+          !Sub |
+          #!/bin/bash
+          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 
-        yum install -y python3 wget unzip
-        mkdir -p /opt/aws/bin
-        wget -nv https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
-        pip3 install aws-cfn-bootstrap-py3-latest.tar.gz
-        ln -s /usr/local/bin/cfn-* /opt/aws/bin
-        wget -nv https://s3.amazonaws.com/amazoncloudwatch-agent/redhat/amd64/latest/amazon-cloudwatch-agent.rpm
-        sudo rpm -U ./amazon-cloudwatch-agent.rpm
-        yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+          function exitTrap(){
+            exitCode=$?
+            /opt/aws/bin/cfn-signal \
+              --stack ${AWS::StackName} \
+              --resource Instance \
+              --region ${AWS::Region} -e $!exitCode || echo 'Failed to send Cloudformation Signal'
+          }
+          trap exitTrap EXIT
+          CONFIG_BUCKET_NAME=${ConfigBucketName}
 
-        # Set variables for system install
-        USER=ec2-user
-        PROJECT_HOME=/home/$USER
-        SETUP_DIR=$PROJECT_HOME/setup
-        AWS_REGION=us-gov-west-1
-        AWS_ACCOUNT_ID=314095565155
-        EDITOR_IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/aerie/aerie-editor
+          yum install -y -q python3 wget unzip
+          mkdir -p /opt/aws/bin
+          wget -nv https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+          pip3 install aws-cfn-bootstrap-py3-latest.tar.gz
+          ln -s /usr/local/bin/cfn-* /opt/aws/bin
+          wget -nv https://s3.amazonaws.com/amazoncloudwatch-agent/redhat/amd64/latest/amazon-cloudwatch-agent.rpm
+          sudo rpm -U ./amazon-cloudwatch-agent.rpm
+          yum install -y -q https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
 
-        # EDITOR_IMAGE_TAG=release-0.8.0
-        EDITOR_IMAGE_TAG=latest
-        echo "Starting user data"
+          # Set variables for system install
+          USER=ec2-user
+          PROJECT_HOME=/home/$USER
+          SETUP_DIR=$PROJECT_HOME/setup
+          AWS_REGION=${AWS::Region}
+          AWS_ACCOUNT_ID=${AWS::AccountId}
+          EDITOR_IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/aerie/aerie-editor
 
-        # General tools
-        yum install -y yum-utils git vim
-        curl -SL https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 -o /usr/bin/jq
-        chmod +x /usr/bin/jq
+          # EDITOR_IMAGE_TAG=release-0.8.0
+          EDITOR_IMAGE_TAG=latest
+          echo "Starting user data"
 
-        # Install AWS CLI
+          # General tools
+          yum install -y -q yum-utils git vim
+          curl -SL https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 -o /usr/bin/jq
+          chmod +x /usr/bin/jq
 
-        echo "Installing AWS CLI"
-        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-        unzip -qq awscliv2.zip
-        ./aws/install
+          # Install AWS CLI
+          echo "Installing AWS CLI"
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip -qq awscliv2.zip
+          ./aws/install
 
+          # Pull assets, config, and secrets from s3/sm
+          mkdir -p $SETUP_DIR
+          cd $SETUP_DIR
+          /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 cp s3://$CONFIG_BUCKET_NAME/editor/cloudwatch-agent-editor.json
+          $SETUP_DIR/cloudwatch-agent-editor.json
 
+          # Docker + Docker-Compose
+          echo "Installing Docker components"
+          yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+          yum install -y -q docker-ce docker-ce-cli containerd.io
+          groupadd docker
+          usermod -aG docker $USER
+          systemctl enable docker
+          systemctl start docker
 
-        # Pull assets, config, and secrets from s3/sm
-        mkdir -p $SETUP_DIR
-        cd $SETUP_DIR
-        /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 cp s3://$CONFIG_BUCKET_NAME/editor/cloudwatch-agent-editor.json
-        $SETUP_DIR/cloudwatch-agent-editor.json
+          echo "Authenticating to ECR"
+          /usr/local/aws-cli/v2/current/bin/aws ecr get-login-password --region
+          $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
+          # docker-compose up --detach
 
-        # /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION secretsmanager
-        get-secret-value --secret-id "$AIT_SSL_KEY_SECRET_NAME" | jq -r ''.SecretString'' > $SETUP_DIR/server_ssl_key.pem
+          echo "Creating Editor Users"
+          groupadd editor-users
+          EDITOR_GID=$(tail -1 /etc/group | cut -d : -f3)
+          PORT=8080
+          for USERNAME in editor-user-0; do
+            # Create user in editor-users group
+            useradd -m -g editor-users -G docker $USERNAME
+            EDITOR_UID=$(id -u $USERNAME)
 
-        # Docker + Docker-Compose
-        echo "Installing Docker components"
-        yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-        yum install -y docker-ce docker-ce-cli containerd.io
-        groupadd docker
-        usermod -aG docker $USER
-        systemctl enable docker
-        systemctl start docker
-        echo "Authenticating to ECR"
-
-        /usr/local/aws-cli/v2/current/bin/aws ecr get-login-password --region
-        $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-
-        # docker-compose up --detach
-
-        echo "Creating Editor Users"
-        groupadd editor-users
-        EDITOR_GID=$(tail -1 /etc/group | cut -d : -f3)
-        PORT=8080
-        for USERNAME in editor-user-0; do
-          # Create user in editor-users group
-          useradd -m -g editor-users -G docker $USERNAME
-          EDITOR_UID=$(id -u $USERNAME)
-          # Aerie Editor Config
-          mkdir -p /home/$USERNAME/.aerie-editor-config/code-server
-          mkdir /home/$USERNAME/.aerie-editor-data
-          tee /home/$USERNAME/.aerie-editor-config/code-server/config.yaml <<
+            # Aerie Editor Config
+            mkdir -p /home/$USERNAME/.aerie-editor-config/code-server
+            mkdir /home/$USERNAME/.aerie-editor-data
+            tee /home/$USERNAME/.aerie-editor-config/code-server/config.yaml << EOF
+              auth: none
+              bind-addr: 127.0.0.1:8080
+              cert: false
+              disable-telemetry: true
+              disable-update-check: true
+              extra-extensions-dir: [''/home/coder/extra-extensions'']
+              username: $USERNAME
           EOF
-          auth: none
-          bind-addr: 127.0.0.1:8080
-          cert: false
-          disable-telemetry: true
-          disable-update-check: true
-          extra-extensions-dir: [''/home/coder/extra-extensions'']
-          username: $USERNAME
-          EOF
+            chown -R $USERNAME: /home/$USERNAME
 
-          chown -R $USERNAME: /home/$USERNAME
-          # Aerie Editor startup
-          docker run --name aerie-editor-$USERNAME -d -p $PORT:8080 -v /home/$USERNAME/.aerie-editor-data:/home/coder/.local/share/code-server -v /home/$USERNAME/.aerie-editor-config:/home/coder/.config \
-          -v /home/$USERNAME:/home/coder/project \
-          -u $EDITOR_UID:$EDITOR_GID \
-          $EDITOR_IMAGE_URI:$EDITOR_IMAGE_TAG;
-          ((++PORT))
-        done;
-        /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:$SETUP_DIR/cloudwatch-agent-editor.json
+            # Aerie Editor startup
+            docker run --name aerie-editor-$USERNAME -d -p $PORT:8080 -v /home/$USERNAME/.aerie-editor-data:/home/coder/.local/share/code-server -v /home/$USERNAME/.aerie-editor-config:/home/coder/.config \
+            -v /home/$USERNAME:/home/coder/project \
+            -u $EDITOR_UID:$EDITOR_GID \
+            $EDITOR_IMAGE_URI:$EDITOR_IMAGE_TAG;
+            ((++PORT))
+          done;
+          /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:$SETUP_DIR/cloudwatch-agent-editor.json
   InstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -220,13 +219,13 @@ Resources:
             Effect: Allow
             Principal:
               Service: ec2.amazonaws.com
-        Version: "2012-10-17"
+        Version: '2012-10-17'
       Description: IAM Role to be used by the AIT Editor Servers
       ManagedPolicyArns:
-        - !Sub "arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy"
-        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy'
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
       Path: /am-ec2/
-      PermissionsBoundary: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/Security_Boundary_NoIAM"
+      PermissionsBoundary: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/Security_Boundary_NoIAM'
   InstanceRoleDefaultPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -234,7 +233,7 @@ Resources:
         Statement:
           - Action: ecr:GetAuthorizationToken
             Effect: Allow
-            Resource: "*"
+            Resource: '*'
           - Action:
               - ecr:BatchCheckLayerAvailability
               - ecr:GetDownloadUrlForLayer
@@ -252,9 +251,9 @@ Resources:
               - s3:ListBucket
             Effect: Allow
             Resource:
-              - !Sub "arn:${AWS::Partition}:s3:::${ConfigBucketName}"
-              - !Sub "arn:${AWS::Partition}:s3:::${ConfigBucketName}/*"
-        Version: "2012-10-17"
+              - !Sub 'arn:${AWS::Partition}:s3:::${ConfigBucketName}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${ConfigBucketName}/*'
+        Version: '2012-10-17'
       PolicyName: InstanceRoleDefaultPolicy
       Roles:
         - !Ref InstanceRole
