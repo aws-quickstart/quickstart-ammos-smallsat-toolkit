@@ -2,6 +2,7 @@
 # - more parameterization
 # - move to private subnets
 # - cognito based authentication for access to kibana
+# - can service-linked role be created in this template?
 
 AWSTemplateFormatVersion: 2010-09-09
 Description: Logging resources for an AMMOS Cubs Deployment
@@ -10,9 +11,9 @@ Parameters:
   ElasticsearchDomainName:
     Description: Elasticsearch Domain Name
     Type: String
-  # AmiId:
-  #   Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
-  #   Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+  AmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
 
 Resources:
   ElasticsearchSecurityGroup:
@@ -23,18 +24,18 @@ Resources:
       SecurityGroupIngress: # TODO: parameterize?
         - CidrIp: 128.149.0.0/16
           Description: JPL Internal
-          FromPort: 443
           IpProtocol: tcp
+          FromPort: 443
           ToPort: 443
         - CidrIp: 137.78.0.0/16
           Description: JPL Internal
-          FromPort: 443
           IpProtocol: tcp
+          FromPort: 443
           ToPort: 443
         - CidrIp: 137.79.0.0/16
           Description: JPL Internal
-          FromPort: 443
           IpProtocol: tcp
+          FromPort: 443
           ToPort: 443
 
   ElasticsearchSecurityGroupIngress:
@@ -414,51 +415,68 @@ Resources:
       SourceArn: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/cloudwatch-agent/ait-server/agent:*
       SourceAccount: !Ref AWS::AccountId
 
-  # CloudWatchLogsRole:
-  #   Type: AWS::IAM::Role
-  #   Properties:
-  #     AssumeRolePolicyDocument:
-  #       Version: 2012-10-17
-  #       Statement:
-  #         - Effect: Allow
-  #           Principal:
-  #             Service:
-  #               - logs.amazonaws.com
-  #           Action:
-  #             - sts:AssumeRole
-  #     Path: /am-logs/
-  #     PermissionsBoundary: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/Security_Boundary_NoIAM"
-  #     Policies:
-  #       - PolicyName: logging-invoke-lambda
-  #         PolicyDocument:
-  #           Statement:
-  #             - Effect: Allow
-  #               Action:
-  #                 - lambda:invokeFunction
-  #               Resource: !Ref
+  SyslogLogGroupSubscriptionFilter:
+    DependsOn:
+      - AgentLoggingLambdaInvokePermission
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      LogGroupName: /cloudwatch-agent/ait-server/syslog
+      DestinationArn: !GetAtt LoggingLambda.Arn
+      FilterPattern: ""
+
+  SyslogLoggingLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt LoggingLambda.Arn
+      Action: lambda:InvokeFunction
+      Principal: logs.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/cloudwatch-agent/ait-server/syslog:*
+      SourceAccount: !Ref AWS::AccountId
 
 
 
 
+  Ec2SecurityGroupSsh:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: vpc-03456b468daa53da4 # TODO: parameterize
+      GroupDescription: Security group for access to bastion.
+      SecurityGroupIngress: # TODO: parameterize?
+        - CidrIp: 128.149.0.0/16
+          Description: JPL Internal
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+        - CidrIp: 137.78.0.0/16
+          Description: JPL Internal
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+        - CidrIp: 137.79.0.0/16
+          Description: JPL Internal
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
 
-  # ElasticsearchBastion:
-  #   Type: AWS::EC2::Instance
-  #   Properties:
-  #     # ImageId: !Ref LatestAmiId
-  #     ImageId: !Ref AmiId
-  #     InstanceType: t3.small
-  #     IamInstanceProfile: !Ref DbBastionHostInstanceProfile
-  #     NetworkInterfaces:
-  #       - AssociatePublicIpAddress: true
-  #         DeleteOnTermination: true
-  #         DeviceIndex: "0"
-  #         GroupSet:
-  #           - !Ref Ec2SecurityGroupSsh
-  #           - !Ref DbBastionHostSecurityGroupPostgres
-  #         SubnetId: subnet-0cdbb2c82e6a0595b # Public - 1A
-  #     Tags:
-  #       - Key: Name
-  #         Value: ammo-cubs-logging-bastion
+  ElasticsearchBastion:
+    Type: AWS::EC2::Instance
+    Properties:
+      # ImageId: !Ref LatestAmiId
+      ImageId: !Ref AmiId
+      InstanceType: t2.micro
+      # IamInstanceProfile: !Ref DbBastionHostInstanceProfile
+      KeyName: steveliu-test
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeleteOnTermination: true
+          DeviceIndex: "0"
+          GroupSet:
+            - !Ref Ec2SecurityGroupSsh
+            - !Ref ElasticsearchSecurityGroup
+          SubnetId: subnet-0cdbb2c82e6a0595b # Public - 1A
+      Tags:
+        - Key: Name
+          Value: ammo-cubs-logging-bastion
 
   # DbBastionHostInstanceProfile:
   #   Type: AWS::IAM::InstanceProfile
@@ -493,135 +511,3 @@ Resources:
   #                 - s3:*
   #               Resource: !Join ["", [!GetAtt ExportBucket.Arn, /*]]
   #     PermissionsBoundary: !Sub arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:policy/Security_Boundary_NoIAM
-
-
-
-
-
-
-
-
-# ---
-# ESDomainB45006DA:
-#   Type: AWS::Elasticsearch::Domain
-#   Properties:
-#     AccessPolicies:
-#       Version: '2012-10-17'
-#       Statement:
-#       - Effect: Allow
-#         Action:
-#         - es:ESHttpGet
-#         - es:ESHttpDelete
-#         - es:ESHttpPut
-#         - es:ESHttpPost
-#         - es:ESHttpHead
-#         - es:ESHttpPatch
-#         Principal:
-#           AWS:
-#             Fn::GetAtt:
-#             - CognitoAuthRole7B7E27C0
-#             - Arn
-#         Resource:
-#           Fn::Join:
-#           - ''
-#           - - 'arn:'
-#             - Ref: AWS::Partition
-#             - ":es:"
-#             - Ref: AWS::Region
-#             - ":"
-#             - Ref: AWS::AccountId
-#             - ":domain/"
-#             - Ref: DomainName
-#             - "/*"
-#       - Effect: Allow
-#         Action:
-#         - es:DescribeElasticsearchDomain
-#         - es:DescribeElasticsearchDomains
-#         - es:DescribeElasticsearchDomainConfig
-#         - es:ESHttpPost
-#         - es:ESHttpPut
-#         - es:HttpGet
-#         Principal:
-#           AWS:
-#             Fn::GetAtt:
-#             - FirehoseRoleAA67C190
-#             - Arn
-#         Resource:
-#           Fn::Join:
-#           - ''
-#           - - 'arn:'
-#             - Ref: AWS::Partition
-#             - ":es:"
-#             - Ref: AWS::Region
-#             - ":"
-#             - Ref: AWS::AccountId
-#             - ":domain/"
-#             - Ref: DomainName
-#             - "/*"
-#     CognitoOptions:
-#       Enabled: true
-#       IdentityPoolId:
-#         Ref: ESIdentityPool
-#       RoleArn:
-#         Fn::GetAtt:
-#         - ESCognitoRole0FB5690B
-#         - Arn
-#       UserPoolId:
-#         Ref: ESUserPool7DC126A8
-#     DomainEndpointOptions:
-#       EnforceHTTPS: true
-#       TLSSecurityPolicy: Policy-Min-TLS-1-0-2019-07
-#     DomainName:
-#       Ref: DomainName
-#     EBSOptions:
-#       EBSEnabled: true
-#       VolumeSize: 10
-#       VolumeType: gp2
-#     ElasticsearchClusterConfig:
-#       DedicatedMasterCount: 3
-#       DedicatedMasterEnabled: true
-#       DedicatedMasterType:
-#         Fn::FindInMap:
-#         - ESMap
-#         - MasterSize
-#         - Ref: ClusterSize
-#       InstanceCount:
-#         Fn::FindInMap:
-#         - ESMap
-#         - NodeCount
-#         - Ref: ClusterSize
-#       InstanceType:
-#         Fn::FindInMap:
-#         - ESMap
-#         - InstanceSize
-#         - Ref: ClusterSize
-#       ZoneAwarenessConfig:
-#         AvailabilityZoneCount: 2
-#       ZoneAwarenessEnabled: true
-#     ElasticsearchVersion: '7.7'
-#     EncryptionAtRestOptions:
-#       Enabled: true
-#     LogPublishingOptions:
-#       ES_APPLICATION_LOGS:
-#         Enabled: false
-#       SEARCH_SLOW_LOGS:
-#         Enabled: false
-#       INDEX_SLOW_LOGS:
-#         Enabled: false
-#     NodeToNodeEncryptionOptions:
-#       Enabled: true
-#     VPCOptions:
-#       SecurityGroupIds:
-#       - Fn::GetAtt:
-#         - ESSGE420B5A1
-#         - GroupId
-#       SubnetIds:
-#       - Ref: ESVPCESIsolatedSubnetSubnet1SubnetBC48A527
-#       - Ref: ESVPCESIsolatedSubnetSubnet2SubnetF8D4DB34
-#   DependsOn:
-#   - ESUserPoolESCognitoDomain4E1D658B
-#   Metadata:
-#     cfn_nag:
-#       rules_to_suppress:
-#       - id: W28
-#         reason: using customer provided domain name
