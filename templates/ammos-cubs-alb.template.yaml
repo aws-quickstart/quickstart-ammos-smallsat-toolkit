@@ -198,3 +198,8 @@ Outputs:
     Value: !GetAtt AlbSecurityGroup.GroupId
     Export:
       Name: !Sub "${ProjectName}-AlbSecurityGroupId"
+  CognitoClientSecret:
+    Description: OIDC Secret for ALB Cognito Client
+    Value: !GetAtt AlbClientProps.ClientSecret
+    Export:
+      Name: !Sub "${ProjectName}-CognitoClientSecret"
