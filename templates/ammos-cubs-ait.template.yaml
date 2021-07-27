@@ -25,12 +25,20 @@ Parameters:
   SshKeyName:
     Description: Name of created SSH Key for instance access - must use SSM sessions if no key supplied
     Type: String
+  SessionTimeout:
+    Description: The maximum duration of the authentication session, in seconds.
+    Type: Number
+    Default: 604800  # One day
+    MinValue: 60
+    MaxValue: 604800
 
 Conditions:
   SshEnabled: !Not
     - !Equals
       - ''
       - !Ref 'SshKeyName'
+  IsGovCloud: !Not [!Equals ['aws', !Ref AWS::Partition]]
+
 Resources:
   AitServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -275,9 +283,49 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
       Actions:
-        - TargetGroupArn: !Ref 'AitWebTargetGroup'
-          Type: forward
-      Conditions:
+        - Type: authenticate-oidc
+          Order: 1
+          AuthenticateOidcConfig:
+            ClientId: !ImportValue
+              Fn::Sub: ${ProjectName}-CognitoClientId
+            ClientSecret: !ImportValue
+              Fn::Sub: ${ProjectName}-CognitoClientSecret
+            Issuer: !ImportValue
+              Fn::Sub: ${ProjectName}-CognitoProviderUrl
+            UserInfoEndpoint:
+              Fn::Join:
+                - ""
+                - - "https://"
+                  - !ImportValue
+                    Fn::Sub: ${ProjectName}-CognitoDomainName
+                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
+                  - !Ref AWS::Region
+                  - ".amazoncognito.com/oauth2/userInfo"
+            AuthorizationEndpoint:
+              Fn::Join:
+                - ""
+                - - "https://"
+                  - !ImportValue
+                    Fn::Sub: ${ProjectName}-CognitoDomainName
+                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
+                  - !Ref AWS::Region
+                  - ".amazoncognito.com/oauth2/authorize"
+            TokenEndpoint:
+              Fn::Join:
+                - ""
+                - - "https://"
+                  - !ImportValue
+                    Fn::Sub: ${ProjectName}-CognitoDomainName
+                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
+                  - !Ref AWS::Region
+                  - ".amazoncognito.com/oauth2/token"
+            OnUnauthenticatedRequest: authenticate
+            Scope: openid
+            SessionTimeout: !Ref SessionTimeout
+        - Type: forward
+          Order: 2
+          TargetGroupArn: !Ref 'AitWebTargetGroup'
+      Conditions:  # One day
         - Field: host-header
           HostHeaderConfig:
             Values:
@@ -289,8 +337,48 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
       Actions:
-        - TargetGroupArn: !Ref 'AitMctTargetGroup'
-          Type: forward
+        - Type: authenticate-oidc
+          Order: 1
+          AuthenticateOidcConfig:
+            ClientId: !ImportValue
+              Fn::Sub: ${ProjectName}-CognitoClientId
+            ClientSecret: !ImportValue
+              Fn::Sub: ${ProjectName}-CognitoClientSecret
+            Issuer: !ImportValue
+              Fn::Sub: ${ProjectName}-CognitoProviderUrl
+            UserInfoEndpoint:
+              Fn::Join:
+                - ""
+                - - "https://"
+                  - !ImportValue
+                    Fn::Sub: ${ProjectName}-CognitoDomainName
+                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
+                  - !Ref AWS::Region
+                  - ".amazoncognito.com/oauth2/userInfo"
+            AuthorizationEndpoint:
+              Fn::Join:
+                - ""
+                - - "https://"
+                  - !ImportValue
+                    Fn::Sub: ${ProjectName}-CognitoDomainName
+                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
+                  - !Ref AWS::Region
+                  - ".amazoncognito.com/oauth2/authorize"
+            TokenEndpoint:
+              Fn::Join:
+                - ""
+                - - "https://"
+                  - !ImportValue
+                    Fn::Sub: ${ProjectName}-CognitoDomainName
+                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
+                  - !Ref AWS::Region
+                  - ".amazoncognito.com/oauth2/token"
+            OnUnauthenticatedRequest: authenticate
+            Scope: openid
+            SessionTimeout: !Ref SessionTimeout
+        - Type: forward
+          Order: 2
+          TargetGroupArn: !Ref 'AitMctTargetGroup'
       Conditions:
         - Field: host-header
           HostHeaderConfig:
@@ -340,5 +428,7 @@ Resources:
       Roles:
         - !Ref 'InstanceRole'
 Outputs:
+  GovCloudCondition:
+    Value: !If [IsGovCloud, "yes", "no"]
   AitSecurityGroupId:
     Value: !GetAtt 'AitServerSecurityGroup.GroupId'
