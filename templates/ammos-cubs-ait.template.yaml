@@ -31,6 +31,14 @@ Parameters:
     Default: 604800  # One day
     MinValue: 60
     MaxValue: 604800
+  # TODO: Enforce AllowedValues
+  RolePath:
+    Description: Will be attached to all created IAM Roles to satisfy security requirements.
+    Type: String
+  # TODO: Enforce AllowedValues
+  PermissionsBoundaryArn:
+    Description: Will be attached to all created IAM Roles to satisfy security requirements.
+    Type: String
 
 Conditions:
   SshEnabled: !Not
@@ -38,6 +46,8 @@ Conditions:
       - ''
       - !Ref 'SshKeyName'
   IsGovCloud: !Not [!Equals ['aws', !Ref AWS::Partition]]
+  RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
+  PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
 
 Resources:
   AitServerSecurityGroup:
@@ -126,7 +136,7 @@ Resources:
           function bootstrap_ait(){
             # Install basic system tools needed for AIT Server
             # install python 3.7
-            yum install -y -q @development gcc openssl-devel bzip2-devel libffi-devel sqlite-devel httpd mod_ssl vim
+            yum install -y -q @development gcc openssl-devel bzip2-devel libffi-devel sqlite-devel httpd mod_ssl policycoreutils-python-utils vim
             cd /opt
             wget https://www.python.org/ftp/python/3.7.9/Python-3.7.9.tgz
             tar xzf Python-3.7.9.tgz
@@ -404,8 +414,8 @@ Resources:
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy'
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
-      Path: /am-ec2/
-      PermissionsBoundary: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/Security_Boundary_NoIAM'
+      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
+      PermissionsBoundary:  !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
   InstanceRoleDefaultPolicy:
     Type: AWS::IAM::Policy
     Properties:
