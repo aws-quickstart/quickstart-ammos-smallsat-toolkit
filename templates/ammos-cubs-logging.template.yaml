@@ -1,19 +1,41 @@
 # TODO:
 # - more parameterization
-# - move to private subnets for ES instance
 # - cognito based authentication for access to kibana
 # - can service-linked role be created in this template?
 
 AWSTemplateFormatVersion: 2010-09-09
 Description: Logging resources for an AMMOS Cubs Deployment
 
+
 Parameters:
-  ElasticsearchDomainName:
-    Description: Elasticsearch Domain Name
-    Type: String
-  AmiId:
+  BastionAmiId:
+    Description: AMI to use for the Elasticsearch bastion host
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+  ElasticsearchDomainName:
+    Description: Name of the Elasticsearch domain
+    Type: String
+  CloudWatchLogsRetentionPeriod:
+    Description: The number of days to retain log events in CloudWatch log groups
+    Type: Number
+    Default: 30
+  # TODO: Enforce AllowedValues
+  PermissionsBoundaryArn:
+    Description: Will be attached to all created IAM Roles to satisfy security requirements
+    Type: String
+  # TODO: Enforce AllowedValues
+  RolePath:
+    Description: Will be attached to all created IAM Roles to satisfy security requirements
+    Type: String
+  SshKeyName:
+    Description: SSH key to use for access to bastion host
+    Type: String
+
+
+Conditions:
+  RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
+  PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
+
 
 Resources:
   ElasticsearchSecurityGroup:
@@ -47,7 +69,6 @@ Resources:
       ToPort: 443
       SourceSecurityGroupId: !GetAtt ElasticsearchSecurityGroup.GroupId
 
-
   ElasticsearchDomain:
     Type: AWS::Elasticsearch::Domain
     Properties:
@@ -74,8 +95,8 @@ Resources:
         TLSSecurityPolicy: Policy-Min-TLS-1-2-2019-07
       VPCOptions:
         SubnetIds:
-          - subnet-0cdbb2c82e6a0595b # Public - 1A TODO: parameterize
-          - subnet-0bd7d47dd301ee0c0 # Public - 1B TODO: parameterize
+          - subnet-03a1ec6be37d72106 # Private - 1A TODO: parameterize
+          - subnet-09abda62751c89495 # Private - 1B TODO: parameterize
         SecurityGroupIds:
           - !GetAtt ElasticsearchSecurityGroup.GroupId
       AccessPolicies:
@@ -124,9 +145,9 @@ Resources:
         SecurityGroupIds:
           - !GetAtt ElasticsearchSecurityGroup.GroupId
         SubnetIds:
-          - subnet-0cdbb2c82e6a0595b # Public - 1A # TODO: parameterize
-          - subnet-0bd7d47dd301ee0c0 # Public - 1B # TODO: parameterize
-          - subnet-0861ffe1a36e97951 # Public - 1C # TODO: parameterize
+          - subnet-09abda62751c89495 # Private - 1B # TODO: parameterize
+          - subnet-03a1ec6be37d72106 # Private - 1A # TODO: parameterize
+          - subnet-0dd1d301a34b4db58 # Private - 1C # TODO: parameterize
       Environment:
         Variables:
           ES_DOMAIN_URL: !GetAtt ElasticsearchDomain.DomainEndpoint
@@ -397,44 +418,101 @@ Resources:
               }
           }
 
-  AgentLogGroupSubscriptionFilter:
-    DependsOn:
-      - AgentLoggingLambdaInvokePermission
-    Type: AWS::Logs::SubscriptionFilter
+  AitEditorAgentLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /cloudwatch-agent/ait-editor/agent
+      RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
+
+  AitEditorSyslogLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /cloudwatch-agent/ait-editor/syslog
+      RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
+
+  AitServerAgentLogGroup:
+    Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: /cloudwatch-agent/ait-server/agent
-      DestinationArn: !GetAtt LoggingLambda.Arn
-      FilterPattern: ""
+      RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
 
-  AgentLoggingLambdaInvokePermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !GetAtt LoggingLambda.Arn
-      Action: lambda:InvokeFunction
-      Principal: logs.amazonaws.com
-      SourceArn: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/cloudwatch-agent/ait-server/agent:*
-      SourceAccount: !Ref AWS::AccountId
-
-  SyslogLogGroupSubscriptionFilter:
-    DependsOn:
-      - AgentLoggingLambdaInvokePermission
-    Type: AWS::Logs::SubscriptionFilter
+  AitServerSyslogLogGroup:
+    Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: /cloudwatch-agent/ait-server/syslog
+      RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
+
+  AitEditorAgentSubscriptionFilter:
+    DependsOn:
+      - AitEditorAgentInvokePermission
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      LogGroupName: !Ref AitEditorAgentLogGroup
       DestinationArn: !GetAtt LoggingLambda.Arn
       FilterPattern: ""
 
-  SyslogLoggingLambdaInvokePermission:
+  AitEditorSyslogSubscriptionFilter:
+    DependsOn:
+      - AitEditorSyslogInvokePermission
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      LogGroupName: !Ref AitEditorSyslogLogGroup
+      DestinationArn: !GetAtt LoggingLambda.Arn
+      FilterPattern: ""
+
+  AitServerAgentSubscriptionFilter:
+    DependsOn:
+      - AitServerAgentInvokePermission
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      LogGroupName: !Ref AitServerAgentLogGroup
+      DestinationArn: !GetAtt LoggingLambda.Arn
+      FilterPattern: ""
+
+  AitServerSyslogSubscriptionFilter:
+    DependsOn:
+      - AitServerSyslogInvokePermission
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      LogGroupName: !Ref AitServerSyslogLogGroup
+      DestinationArn: !GetAtt LoggingLambda.Arn
+      FilterPattern: ""
+
+  AitEditorAgentInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName: !GetAtt LoggingLambda.Arn
       Action: lambda:InvokeFunction
       Principal: logs.amazonaws.com
-      SourceArn: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/cloudwatch-agent/ait-server/syslog:*
+      SourceArn: !GetAtt AitEditorAgentLogGroup.Arn
       SourceAccount: !Ref AWS::AccountId
 
+  AitEditorSyslogInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt LoggingLambda.Arn
+      Action: lambda:InvokeFunction
+      Principal: logs.amazonaws.com
+      SourceArn: !GetAtt AitEditorSyslogLogGroup.Arn
+      SourceAccount: !Ref AWS::AccountId
 
+  AitServerAgentInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt LoggingLambda.Arn
+      Action: lambda:InvokeFunction
+      Principal: logs.amazonaws.com
+      SourceArn: !GetAtt AitServerAgentLogGroup.Arn
+      SourceAccount: !Ref AWS::AccountId
 
+  AitServerSyslogInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt LoggingLambda.Arn
+      Action: lambda:InvokeFunction
+      Principal: logs.amazonaws.com
+      SourceArn: !GetAtt AitServerSyslogLogGroup.Arn
+      SourceAccount: !Ref AWS::AccountId
 
   Ec2SecurityGroupSsh:
     Type: AWS::EC2::SecurityGroup
@@ -461,11 +539,9 @@ Resources:
   ElasticsearchBastion:
     Type: AWS::EC2::Instance
     Properties:
-      # ImageId: !Ref LatestAmiId
-      ImageId: !Ref AmiId
+      ImageId: !Ref BastionAmiId
       InstanceType: t2.micro
-      # IamInstanceProfile: !Ref DbBastionHostInstanceProfile
-      KeyName: steveliu-test
+      KeyName: !Ref SshKeyName
       NetworkInterfaces:
         - AssociatePublicIpAddress: true
           DeleteOnTermination: true
@@ -473,41 +549,7 @@ Resources:
           GroupSet:
             - !Ref Ec2SecurityGroupSsh
             - !Ref ElasticsearchSecurityGroup
-          SubnetId: subnet-0cdbb2c82e6a0595b # Public - 1A
+          SubnetId: subnet-03a1ec6be37d72106 # Private - 1A
       Tags:
         - Key: Name
           Value: ammo-cubs-logging-bastion
-
-  # DbBastionHostInstanceProfile:
-  #   Type: AWS::IAM::InstanceProfile
-  #   Properties:
-  #     Path: /account-managed/
-  #     Roles:
-  #       - !Ref DbBastionHostRole
-
-  # DbBastionHostRole:
-  #   Type: AWS::IAM::Role
-  #   Properties:
-  #     AssumeRolePolicyDocument:
-  #       Version: 2012-10-17
-  #       Statement:
-  #         - Effect: Allow
-  #           Principal:
-  #             Service:
-  #               - ec2.amazonaws.com
-  #           Action:
-  #             - sts:AssumeRole
-  #     Path: /am-ec2/
-  #     Policies:
-  #       - PolicyName: TaskPolicy
-  #         PolicyDocument:
-  #           Statement:
-  #             - Effect: Allow
-  #               Action:
-  #                 - s3:*
-  #               Resource: !GetAtt ExportBucket.Arn
-  #             - Effect: Allow
-  #               Action:
-  #                 - s3:*
-  #               Resource: !Join ["", [!GetAtt ExportBucket.Arn, /*]]
-  #     PermissionsBoundary: !Sub arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:policy/Security_Boundary_NoIAM
