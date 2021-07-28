@@ -549,7 +549,7 @@ Resources:
           GroupSet:
             - !Ref Ec2SecurityGroupSsh
             - !Ref ElasticsearchSecurityGroup
-          SubnetId: subnet-03a1ec6be37d72106 # Private - 1A
+          SubnetId: subnet-0cdbb2c82e6a0595b # Public - 1A
       Tags:
         - Key: Name
           Value: ammo-cubs-logging-bastion
