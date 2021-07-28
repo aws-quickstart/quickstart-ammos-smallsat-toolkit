@@ -1,6 +1,6 @@
 # TODO:
 # - more parameterization
-# - move to private subnets
+# - move to private subnets for ES instance
 # - cognito based authentication for access to kibana
 # - can service-linked role be created in this template?
 
