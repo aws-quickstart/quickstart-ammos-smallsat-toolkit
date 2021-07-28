@@ -29,6 +29,15 @@ Parameters:
     Default: 604800  # One day
     MinValue: 60
     MaxValue: 604800
+  # TODO: Enforce AllowedValues
+  RolePath:
+    Description: Will be attached to all created IAM Roles to satisfy security requirements.
+    Type: String
+  # TODO: Enforce AllowedValues
+  PermissionsBoundaryArn:
+    Description: Will be attached to all created IAM Roles to satisfy security requirements.
+    Type: String
+
   # NOTE: This will be obsolete once AIT Editor is open sourced and publicly available
   EditorEcrRepoArn:
     Type: String
@@ -47,6 +56,8 @@ Mappings:
 Conditions:
   SshEnabled: !Not [!Equals ['', !Ref SshKeyName]]
   IsGovCloud: !Not [!Equals ['aws', !Ref AWS::Partition]]
+  RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
+  PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
 
 Resources:
   AitEditorSecurityGroup:
@@ -271,8 +282,8 @@ Resources:
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy'
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
-      Path: /am-ec2/
-      PermissionsBoundary: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/Security_Boundary_NoIAM'
+      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
+      PermissionsBoundary:  !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
   InstanceRoleDefaultPolicy:
     Type: AWS::IAM::Policy
     Properties:

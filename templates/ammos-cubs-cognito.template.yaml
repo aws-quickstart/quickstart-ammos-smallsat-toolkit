@@ -24,8 +24,20 @@ Parameters:
   ProjectName:
     Description: Name of your project
     Type: String
+  # TODO: Enforce AllowedValues
+  RolePath:
+    Description: Will be attached to all created IAM Roles to satisfy security requirements.
+    Type: String
+  # TODO: Enforce AllowedValues
+  PermissionsBoundaryArn:
+    Description: Will be attached to all created IAM Roles to satisfy security requirements.
+    Type: String
+
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
+  RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
+  PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
+
 Resources:
   CognitoClientInspectionFunction:
     Type: AWS::Lambda::Function
@@ -51,7 +63,8 @@ Resources:
         Version: "2012-10-17"
       ManagedPolicyArns:
         - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-      Path: /am-lambda/
+      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
+      PermissionsBoundary:  !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
       Policies:
         - PolicyDocument:
             Statement:
