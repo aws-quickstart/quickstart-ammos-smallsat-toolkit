@@ -14,12 +14,6 @@ Parameters:
   VpcId:
     Description: VPC ID for deploying project resources
     Type: AWS::EC2::VPC::Id
-  AMI:
-    Description: AMI used for the AIT Editor instance; must be RHEL 7/8 base
-    Type: AWS::EC2::Image::Id
-    # TODO: Prescribe allowed AMI's? Allow BYO?
-    # AllowedValues:
-    # - ""
   InstanceType:
     Description: Instance type to be used for AIT Server instances; see deployment guide for recommendations
     Type: String
@@ -33,6 +27,17 @@ Parameters:
   EditorEcrRepoArn:
     Type: String
 
+
+Mappings:
+  AWSAMIRegionMap:
+    us-east-1:
+      RHEL76HVM: example
+    us-east-2:
+      RHEL76HVM: example
+    us-west-1:
+      RHEL76HVM: example      
+    us-west-2:
+      RHEL76HVM: example
 Resources:
   AitEditorSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -94,7 +99,10 @@ Resources:
             DeleteOnTermination: true
             VolumeSize: 32
       IamInstanceProfile: !Ref InstanceOneInstanceProfile
-      ImageId: !Ref AMI
+      ImageId: !FindInMap
+        - AWSAMIRegionMap
+        - !Ref AWS::Region
+        - RHEL76HVM
       InstanceType: !Ref InstanceType
       KeyName: !Ref SshKeyName
       SecurityGroupIds:
