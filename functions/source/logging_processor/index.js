@@ -143,7 +143,7 @@ exports.handler = async (event, context, callback) => {
       transformedRecords.push(o.value);
     }
   }
-  console.log("transformedRecords");
-  console.log(transformedRecords)
+  // console.log("transformedRecords");
+  // console.log(transformedRecords)
   return callback(null, { records: transformedRecords });
 };
