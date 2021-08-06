@@ -1,6 +1,4 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Logging resources for an AMMOS Cubs Deployment
-
 Parameters:
   BastionAmiId:
     Description: AMI to use for the Elasticsearch bastion host
@@ -17,13 +15,15 @@ Parameters:
   PermissionsBoundaryArn:
     Description: Will be attached to all created IAM Roles to satisfy security requirements
     Type: String
+    Default: ''
   # TODO: Enforce AllowedValues
   RolePath:
     Description: Will be attached to all created IAM Roles to satisfy security requirements
     Type: String
+    Default: ''
   SshKeyName:
     Description: SSH key to use for access to bastion host
-    Type: String
+    Type: AWS::EC2::KeyPair::KeyName
 
 Conditions:
   RolePathProvided: !Not [!Equals ["", !Ref RolePath]]

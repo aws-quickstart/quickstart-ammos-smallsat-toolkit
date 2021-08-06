@@ -24,14 +24,14 @@ Parameters:
   ProjectName:
     Description: Name of your project
     Type: String
-  # TODO: Enforce AllowedValues
   RolePath:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
-  # TODO: Enforce AllowedValues
+    Default: ''
   PermissionsBoundaryArn:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
+    Default: ''
 
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']

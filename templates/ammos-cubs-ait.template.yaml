@@ -63,10 +63,12 @@ Parameters:
   RolePath:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
+    Default: ''
   # TODO: Enforce AllowedValues
   PermissionsBoundaryArn:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
+    Default: ''
 
 Conditions:
   SshEnabled: !Not

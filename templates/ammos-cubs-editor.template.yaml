@@ -22,7 +22,7 @@ Parameters:
     # - ""
   SshKeyName:
     Description: Name of created SSH Key for instance access - must use SSM sessions if no key supplied
-    Type: String
+    Type: AWS::EC2::KeyPair::KeyName
   SessionTimeout:
     Description: The maximum duration of the authentication session, in seconds.
     Type: Number
@@ -33,10 +33,12 @@ Parameters:
   RolePath:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
+    Default: ''
   # TODO: Enforce AllowedValues
   PermissionsBoundaryArn:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
+    Default: ''
 
   # NOTE: This will be obsolete once AIT Editor is open sourced and publicly available
   EditorEcrRepoArn:
