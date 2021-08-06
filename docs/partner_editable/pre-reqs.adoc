@@ -4,6 +4,13 @@
 
 _Describe any setup required in the AWS account prior to template launch_
 
+TODO:
+
+* pre-deploy stacks (vpc and config)
+* deploy ES service-linked role
+* import ssl cert to ACM
+* import domain to R53 (optional)
+
 ==== Prepare your {partner-company-name} account
 
 _Describe any setup required in the partner portal/account prior to template launch_
@@ -11,3 +18,7 @@ _Describe any setup required in the partner portal/account prior to template lau
 ==== Prepare for the deployment
 
 _Describe any preparation required to complete the product build, such as obtaining licenses or placing files in S3_
+
+TODO:
+
+* modify applicaiton config in S3

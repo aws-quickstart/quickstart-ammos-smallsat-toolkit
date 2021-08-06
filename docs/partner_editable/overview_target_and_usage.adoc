@@ -4,4 +4,7 @@
 
 This guide provides instructions for deploying the {partner-product-short-name} Quick Start reference architecture on the AWS Cloud.
 
-This Quick Start is for users who <target audience and usage scenario>
+// Following pulled from AIT-Core readthedocs
+// https://ait-core.readthedocs.io/en/latest/index.html#welcome-to-the-ammos-instrument-toolkit-ait-documentation
+
+The AMMOS Instrument Toolkit (Formerly the Bespoke Links to Instruments for Surface and Space (BLISS)) is a Python-based software suite developed to handle Ground Data System (GDS), Electronic Ground Support Equipment (EGSE), commanding, telemetry uplink/downlink, and sequencing for JPL International Space Station and CubeSat Missions. It is a generalization and expansion of tools developed for a number of JPL ISS missions.

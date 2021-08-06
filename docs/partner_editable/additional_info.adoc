@@ -6,8 +6,47 @@
 == Test the deployment
 // If steps are required to test the deployment, add them here. If not, remove the heading
 
+- navigate to {FQDN} (app subdomains?) and check GUI availability
+- connect to the AIT Server EC2 Instance and verify services running
+- check logs in CW
+
+_Awaiting input from testing lead_
+
 == Post-deployment steps
 // If post-deployment steps are required, add them here. If not, remove the heading
+
+=== DNS Management
+If the user has opted to not use Route53 for domain management and prefers to manage their domain using some other DNS service, they will be responsible for deploying the appropriate name records to their DNS. Refer to your DNS provider’s documentation for guidance on this process. The following records must be deployed (more information can be found in TODO):
+
+    `{fqdn}`           →    `{ALB}`
+    `ait.{fqdn}`       →    `{fqdn}`
+    `mct.{fqdn}`       →    `{fqdn}`
+    `editor.{fqdn}`    →    `{fqdn}`
+    `logs.{fqdn}`      →    `{fqdn}`
+
+=== Cognito User Management
+Each of the applications is protected by a basic authentication action on the Application Load Balancer. In order for users to access the deployed web applications (AIT, OpenMCT, or Editor), they will need to authenticate using an identity managed by Cognito. It is up to the system administrator to create appropriate user identities in the Cognito User Pool, or set up federation with an existing identity provider.
+
+https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html[Creating User Accounts as Administrator - Amazon Cognito]
+https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-federation.html[Adding User Pool Sign-in Through a Third Party - Amazon Cognito]
+
+AIT Server Management
+TODO
+
+Modifying the CloudWatch Agent
+The CloudWatch Agent monitors specified log files and pipes their content to AWS CloudWatch Logs. This file can be found on each server at:
+/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
+If you wish to monitor additional files, or change the configuration settings, this file can be modified directly according to:
+Manually create or edit the CloudWatch agent configuration file - Amazon CloudWatch 
+
+Upon editing the file, restart the agent and apply the changes with the following command:
+[source,bash]
+----
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+    -a fetch-config -s -m ec2 \
+    -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+----
 
 == Best practices for using {partner-product-short-name} on AWS
 // Provide post-deployment best practices for using the technology on AWS, including considerations such as migrating data, backups, ensuring high performance, high availability, etc. Link to software documentation for detailed information.
@@ -19,7 +58,32 @@ _Add any best practices for using the software._
 
 _Add any security-related information._
 
+_To be discussed:_
+
+- Security groups
+- Private subnet deployment
+- Auth actions on ALB
+- SELinux
+- ES/Kibana access policy
+- Code Server user-binding / auth
+- SSL terminates at ALB, for ALB, byo
+- SSM for instance access
+
+
 == Other useful information
 //Provide any other information of interest to users, especially focusing on areas where AWS or cloud usage differs from on-premises usage.
 
 _Add any other details that will help the customer use the software on AWS._
+
+=== Resources:
+
+- https://ait-core.readthedocs.io/en/latest/[AIT-Core 2.3.5 documentation]
+- https://ait-gui.readthedocs.io/en/latest/index.html[AIT-GUI 2.3.1 documentation]
+- https://ait-dsn.readthedocs.io/en/latest/index.html[AIT-DSN 2.0.0 documentation]
+- https://nasa.github.io/openmct/[Open MCT - Open Source Mission Control Software]
+
+
+Software version requirements
+
+_TODO_: Document version requirements
+

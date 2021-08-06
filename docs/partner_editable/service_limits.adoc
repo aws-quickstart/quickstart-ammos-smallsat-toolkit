@@ -1,14 +1,23 @@
 // Replace the <n> in each row to specify the number of resources used in this deployment. Remove the rows for resources that aren’t used.
+
 |===
 |Resource |This deployment uses
 
-// Space needed to maintain table headers
-|VPCs |<n>
-|Elastic IP addresses |<n>
-|Security groups |<n>
-|AWS Identity and Access Management (IAM) roles |<n>
-|Auto Scaling groups |<n>
-|Application Load Balancers |<n>
-|Network Load Balancers |<n>
-|<type> instances |<n>
+| VPCs | 1
+| Subnets | 6
+| Route Tables | 2
+| Internet Gateway | 1
+| NAT Gateway | 1
+| Security Groups | 5
+| AWS Identity and Access Management (IAM) roles | 5
+| Auto Scaling Groups | 1
+| EC2 Instances | 2
+| Application Load Balancers | 1
+| Cognito User Pools | 1
+| ElasticSearch Domains | 1
+| S3 Buckets | 2
+| CloudWatch Log Groups | 5
+| Route53 Records | 5
+| Kinesis Data Firehose Delivery Stream | 1
+| Lambda Functions | 3
 |===
