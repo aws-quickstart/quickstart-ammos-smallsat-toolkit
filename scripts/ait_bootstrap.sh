@@ -140,8 +140,11 @@ setsebool -P httpd_can_network_connect 1
 # semanage boolean -m --on httpd_can_network_connect
 
 systemctl start httpd
+
+# Configure and start the CloudWatch Agent
+mv $SETUP_DIR/cloudwatch-agent-ait.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
-    -a fetch-config -m ec2 -s -c file:$SETUP_DIR/cloudwatch-agent-ait.json
+    -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
 # Give user ownership of all the things placed in project home during this setup script
 chown -R $USER $PROJECT_HOME
