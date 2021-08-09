@@ -103,7 +103,9 @@ pip install .
 cp $SETUP_DIR/httpd_proxy.conf /etc/httpd/conf.d/proxy.conf
 
 # Inject FQDN from Cloudformation for proper virtual host configuration
-sed 's/<CFN_FQDN>/${FQDN}/g' /etc/httpd/conf.d/proxy.conf
+mv /etc/httpd/conf.d/proxy.conf{,.bak}
+sed 's/<CFN_FQDN>/${FQDN}/g' /etc/httpd/conf.d/proxy.conf.bak > /etc/httpd/conf.d/proxy.conf
+rm /etc/httpd/conf.d/proxy.conf.bak
 
 # Install InfluxDB and data plugin
 curl https://repos.influxdata.com/rhel/6/amd64/stable/influxdb-1.2.4.x86_64.rpm -o $SETUP_DIR/influxdb-1.2.4.x86_64.rpm
