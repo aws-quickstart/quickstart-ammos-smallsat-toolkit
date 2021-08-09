@@ -102,6 +102,9 @@ pip install .
 # Copy necessary apache configs
 cp $SETUP_DIR/httpd_proxy.conf /etc/httpd/conf.d/proxy.conf
 
+# Inject FQDN from Cloudformation for proper virtual host configuration
+sed 's/<CFN_FQDN>/${FQDN}/g' /etc/httpd/conf.d/proxy.conf
+
 # Install InfluxDB and data plugin
 curl https://repos.influxdata.com/rhel/6/amd64/stable/influxdb-1.2.4.x86_64.rpm -o $SETUP_DIR/influxdb-1.2.4.x86_64.rpm
 yum localinstall -y $SETUP_DIR/influxdb-1.2.4.x86_64.rpm
@@ -127,17 +130,20 @@ ExecStart=/home/ec2-user/.virtualenvs/ait/bin/ait-server
 WantedBy=multi-user.target
 EOM
 systemctl enable ait-server.service
+
+# https://serverfault.com/questions/1006417/selinux-blocking-execution-in-systemd-unit
+semanage fcontext -a -t bin_t '/home/ec2-user/.virtualenvs/ait/bin.*'
+chcon -Rv -u system_u -t bin_t '/home/ec2-user/.virtualenvs/ait/bin'
+restorecon -R -v /home/ec2-user/.virtualenvs/ait/bin
+
 systemctl start ait-server.service
 
 # change SELinux file context so that apache can read specific files (e.g certs)
 # semanage fcontext -a -t httpd_sys_content_t "/ammos(/.*)?"
-# restorecon -R -v /ammos
 
 # allow apache to make outbound connections
 # (for proxying requests to AIT server)
-# https://tinyurl.com/4ze56xyx
 setsebool -P httpd_can_network_connect 1
-# semanage boolean -m --on httpd_can_network_connect
 
 systemctl start httpd
 
