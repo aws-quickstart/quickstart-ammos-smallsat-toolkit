@@ -1,0 +1,433 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  BastionAmiId:
+    Description: AMI to use for the Elasticsearch bastion host
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+  ElasticsearchDomainName:
+    Description: Name of the Elasticsearch domain
+    Type: String
+  CloudWatchLogsRetentionPeriod:
+    Description: The number of days to retain log events in CloudWatch log groups
+    Type: Number
+    Default: 30
+  # TODO: Enforce AllowedValues
+  PermissionsBoundaryArn:
+    Description: Will be attached to all created IAM Roles to satisfy security requirements
+    Type: String
+    Default: ''
+  # TODO: Enforce AllowedValues
+  RolePath:
+    Description: Will be attached to all created IAM Roles to satisfy security requirements
+    Type: String
+    Default: ''
+  SshKeyName:
+    Description: SSH key to use for access to bastion host
+    Type: AWS::EC2::KeyPair::KeyName
+
+Conditions:
+  RolePathProvided: !Not [!Equals ["", !Ref RolePath]]
+  PermissionsBoundaryProvided: !Not [!Equals ["", !Ref PermissionsBoundaryArn]]
+
+Resources:
+  ElasticsearchSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: vpc-03456b468daa53da4 # TODO: parameterize
+      GroupDescription: Security group for access to AMMOS Cubs Elasticsearch domain.
+      SecurityGroupIngress: # TODO: parameterize?
+        - CidrIp: 128.149.0.0/16
+          Description: JPL Internal
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+        - CidrIp: 137.78.0.0/16
+          Description: JPL Internal
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+        - CidrIp: 137.79.0.0/16
+          Description: JPL Internal
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+
+  ElasticsearchSecurityGroupIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !GetAtt ElasticsearchSecurityGroup.GroupId
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      SourceSecurityGroupId: !GetAtt ElasticsearchSecurityGroup.GroupId
+
+  ElasticsearchDomain:
+    Type: AWS::Elasticsearch::Domain
+    Properties:
+      DomainName: !Ref ElasticsearchDomainName
+      ElasticsearchVersion: "7.10"
+      ElasticsearchClusterConfig:
+        DedicatedMasterCount: 3
+        DedicatedMasterEnabled: true
+        DedicatedMasterType: t3.medium.elasticsearch
+        InstanceType: t3.medium.elasticsearch
+        InstanceCount: 2
+        ZoneAwarenessEnabled: true
+      EBSOptions:
+        EBSEnabled: true
+        VolumeSize: 10
+        VolumeType: gp2
+      AdvancedOptions:
+        rest.action.multi.allow_explicit_index: "true"
+      EncryptionAtRestOptions:
+        Enabled: true
+      NodeToNodeEncryptionOptions:
+        Enabled: true
+      DomainEndpointOptions:
+        EnforceHTTPS: true
+        TLSSecurityPolicy: Policy-Min-TLS-1-2-2019-07
+      VPCOptions:
+        SubnetIds:
+          - subnet-03a1ec6be37d72106 # Private - 1A TODO: parameterize
+          - subnet-09abda62751c89495 # Private - 1B TODO: parameterize
+        SecurityGroupIds:
+          - !GetAtt ElasticsearchSecurityGroup.GroupId
+      AccessPolicies:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: "*"
+            Action: es:*
+            Resource: !Sub arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/${ElasticsearchDomainName}/*
+
+  AitEditorAgentLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /cloudwatch-agent/ait-editor/agent
+      RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
+
+  AitEditorSyslogLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /cloudwatch-agent/ait-editor/syslog
+      RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
+
+  AitServerAgentLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /cloudwatch-agent/ait-server/agent
+      RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
+
+  AitServerSyslogLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /cloudwatch-agent/ait-server/syslog
+      RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
+
+  Ec2SecurityGroupSsh:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: vpc-03456b468daa53da4 # TODO: parameterize
+      GroupDescription: Security group for access to bastion.
+      SecurityGroupIngress: # TODO: parameterize?
+        - CidrIp: 128.149.0.0/16
+          Description: JPL Internal
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+        - CidrIp: 137.78.0.0/16
+          Description: JPL Internal
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+        - CidrIp: 137.79.0.0/16
+          Description: JPL Internal
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+
+  ElasticsearchBastion:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref BastionAmiId
+      InstanceType: t2.micro
+      KeyName: !Ref SshKeyName
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeleteOnTermination: true
+          DeviceIndex: "0"
+          GroupSet:
+            - !Ref Ec2SecurityGroupSsh
+            - !Ref ElasticsearchSecurityGroup
+          SubnetId: subnet-0cdbb2c82e6a0595b # Public - 1A # TODO: parameterize
+      Tags:
+        - Key: Name
+          Value: ammo-cubs-logging-bastion
+
+  LoggingBucket:
+    Type: AWS::S3::Bucket
+
+  FirehoseRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - firehose.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [
+          PermissionsBoundaryProvided,
+          !Ref PermissionsBoundaryArn,
+          !Ref AWS::NoValue,
+        ]
+      Policies:
+        - PolicyName: firehose-s3
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:AbortMultipartUpload
+                  - s3:GetBucketLocation
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:ListBucketMultipartUploads
+                  - s3:PutObject
+                Resource:
+                  - !GetAtt LoggingBucket.Arn
+                  - !Sub ${LoggingBucket.Arn}/*
+        - PolicyName: firehose-ec2
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeVpcs
+                  - ec2:DescribeVpcAttribute
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:CreateNetworkInterface
+                  - ec2:CreateNetworkInterfacePermission
+                  - ec2:DeleteNetworkInterface
+                Resource: "*"
+        - PolicyName: firehose-elasticsearch
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - es:DescribeElasticsearchDomain
+                  - es:DescribeElasticsearchDomains
+                  - es:DescribeElasticsearchDomainConfig
+                  - es:ESHttpPost
+                  - es:ESHttpPut
+                Resource:
+                  - !GetAtt ElasticsearchDomain.Arn
+                  - !Sub ${ElasticsearchDomain.Arn}/*
+        - PolicyName: firehose-cloudwatch-errors
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:PutLogEvents
+                Resource:
+                  - !GetAtt FirehoseLogGroup.Arn
+        - PolicyName: firehose-lambda-transform
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                  - lambda:GetFunctionConfiguration
+                Resource:
+                  - !GetAtt LoggingProcessorLambda.Arn
+
+  FirehoseLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /kinesisfirehose/logging-firehose
+      RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
+
+  ElasticsearchDeliveryLogStream:
+    Type: AWS::Logs::LogStream
+    Properties:
+      LogGroupName: !Ref FirehoseLogGroup
+      LogStreamName: elasticsearch-delivery
+
+  S3DeliveryLogStream:
+    Type: AWS::Logs::LogStream
+    Properties:
+      LogGroupName: !Ref FirehoseLogGroup
+      LogStreamName: s3-delivery
+
+  LogKinesisDeliveryStream:
+    Type: AWS::KinesisFirehose::DeliveryStream
+    Properties:
+      DeliveryStreamType: DirectPut
+      ElasticsearchDestinationConfiguration:
+        ProcessingConfiguration:
+          Enabled: true
+          Processors:
+            - Type: Lambda
+              Parameters:
+                - ParameterName: LambdaArn
+                  ParameterValue: !GetAtt LoggingProcessorLambda.Arn
+                - ParameterName: BufferSizeInMBs
+                  ParameterValue: "3"
+                - ParameterName: BufferIntervalInSeconds
+                  ParameterValue: "60"
+        CloudWatchLoggingOptions:
+          Enabled: true
+          LogGroupName: !Ref FirehoseLogGroup
+          LogStreamName: !Ref ElasticsearchDeliveryLogStream
+        BufferingHints:
+          IntervalInSeconds: 300
+          SizeInMBs: 5
+        DomainARN: !GetAtt ElasticsearchDomain.Arn
+        IndexName: cloudwatch-logs
+        IndexRotationPeriod: OneDay
+        RetryOptions:
+          DurationInSeconds: 300
+        RoleARN: !GetAtt FirehoseRole.Arn
+        S3BackupMode: AllDocuments
+        S3Configuration:
+          CompressionFormat: UNCOMPRESSED
+          BucketARN: !GetAtt LoggingBucket.Arn
+          CloudWatchLoggingOptions:
+            Enabled: true
+            LogGroupName: !Ref FirehoseLogGroup
+            LogStreamName: !Ref S3DeliveryLogStream
+          BufferingHints:
+            IntervalInSeconds: 300
+            SizeInMBs: 5
+          RoleARN: !GetAtt FirehoseRole.Arn
+        VpcConfiguration:
+          RoleARN: !GetAtt FirehoseRole.Arn
+          SecurityGroupIds:
+            - !GetAtt ElasticsearchSecurityGroup.GroupId
+          SubnetIds:
+            - subnet-09abda62751c89495 # Private - 1B # TODO: parameterize
+            - subnet-03a1ec6be37d72106 # Private - 1A # TODO: parameterize
+            - subnet-0dd1d301a34b4db58 # Private - 1C # TODO: parameterize
+
+  CloudWatchLogRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - logs.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [
+          PermissionsBoundaryProvided,
+          !Ref PermissionsBoundaryArn,
+          !Ref AWS::NoValue,
+        ]
+      Policies:
+        - PolicyName: cloudwatch-firehose
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - firehose:*
+                Resource:
+                  - !GetAtt LogKinesisDeliveryStream.Arn
+
+  AitEditorAgentSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      RoleArn: !GetAtt CloudWatchLogRole.Arn
+      LogGroupName: !Ref AitEditorAgentLogGroup
+      DestinationArn: !GetAtt LogKinesisDeliveryStream.Arn
+      FilterPattern: ""
+
+  AitEditorSyslogSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      RoleArn: !GetAtt CloudWatchLogRole.Arn
+      LogGroupName: !Ref AitEditorSyslogLogGroup
+      DestinationArn: !GetAtt LogKinesisDeliveryStream.Arn
+      FilterPattern: ""
+
+  AitServerAgentSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      RoleArn: !GetAtt CloudWatchLogRole.Arn
+      LogGroupName: !Ref AitServerAgentLogGroup
+      DestinationArn: !GetAtt LogKinesisDeliveryStream.Arn
+      FilterPattern: ""
+
+  AitServerSyslogSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      RoleArn: !GetAtt CloudWatchLogRole.Arn
+      LogGroupName: !Ref AitServerSyslogLogGroup
+      DestinationArn: !GetAtt LogKinesisDeliveryStream.Arn
+      FilterPattern: ""
+
+  LambdaLogRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [
+          PermissionsBoundaryProvided,
+          !Ref PermissionsBoundaryArn,
+          !Ref AWS::NoValue,
+        ]
+      Policies:
+        - PolicyName: cloudwatch-firehose
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - firehose:*
+                Resource:
+                  - !Sub arn:${AWS::Partition}:firehose:${AWS::Region}:${AWS::AccountId}:deliverystream/*
+                  # - !GetAtt LogKinesisDeliveryStream.Arn # XXX: can't reference stream directly because of circular dependency
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+
+  LoggingProcessorLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: An Amazon Kinesis Firehose stream processor that extracts individual log events from records sent by Cloudwatch Logs subscription filters.
+      Handler: index.handler
+      Role: !GetAtt LambdaLogRole.Arn
+      Runtime: nodejs12.x
+      Timeout: 60
+      VpcConfig:
+        SecurityGroupIds:
+          - !GetAtt ElasticsearchSecurityGroup.GroupId
+        SubnetIds:
+          - subnet-09abda62751c89495 # Private - 1B # TODO: parameterize
+          - subnet-03a1ec6be37d72106 # Private - 1A # TODO: parameterize
+          - subnet-0dd1d301a34b4db58 # Private - 1C # TODO: parameterize
+      Code:
+        S3Bucket: ammos-cubs-assets
+        S3Key: logging_processor.zip
+
+Outputs:
+  LoggingBucketName:
+    Description: Name of the S3 Bucket where CloudWatch logs will be uploaded
+    Value: !Ref LoggingBucket
