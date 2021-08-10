@@ -1,12 +1,12 @@
 AWSTemplateFormatVersion: 2010-09-09
 Parameters:
+  ProjectName:
+    Description: Project name
+    Type: String
   BastionAmiId:
     Description: AMI to use for the Elasticsearch bastion host
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
-  ElasticsearchDomainName:
-    Description: Name of the Elasticsearch domain
-    Type: String
   CloudWatchLogsRetentionPeriod:
     Description: The number of days to retain log events in CloudWatch log groups
     Type: Number
@@ -69,7 +69,7 @@ Resources:
   ElasticsearchDomain:
     Type: AWS::Elasticsearch::Domain
     Properties:
-      DomainName: !Ref ElasticsearchDomainName
+      DomainName: !Sub "${ProjectName}-es-domain"
       ElasticsearchVersion: "7.10"
       ElasticsearchClusterConfig:
         DedicatedMasterCount: 3
