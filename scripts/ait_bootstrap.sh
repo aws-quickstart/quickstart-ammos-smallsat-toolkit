@@ -89,7 +89,7 @@ git clone https://github.com/NASA-AMMOS/AIT-Core.git $PROJECT_HOME/AIT-Core
 cd $PROJECT_HOME/AIT-Core/
 git checkout 2.3.5
 pip install .
-cp -r $SETUP_DIR/config $PROJECT_HOME/AIT-Core/config
+cp -r $SETUP_DIR/config $PROJECT_HOME/AIT-Core
 
 git clone https://github.com/NASA-AMMOS/AIT-GUI.git $PROJECT_HOME/AIT-GUI
 cd $PROJECT_HOME/AIT-GUI/
