@@ -206,3 +206,8 @@ Outputs:
     Value: !GetAtt AlbClientProps.ClientSecret
     Export:
       Name: !Sub "${ProjectName}-CognitoClientSecret"
+  ListenerCertificateArn:
+    Description: Certificate used for HTTPS listeners
+    Value: !Ref CertificateArn
+    Export:
+      Name: !Sub ${ProjectName}-ListenerCertificateArn
