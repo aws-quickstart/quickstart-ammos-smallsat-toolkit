@@ -295,7 +295,7 @@ Resources:
             SessionTimeout: !Ref SessionTimeout
         - Type: forward
           Order: 2
-          TargetGroupArn: !Ref 'AitMctTargetGroup'
+          TargetGroupArn: !Ref 'AitWebTargetGroup'
       Conditions:
         - Field: host-header
           HostHeaderConfig:
@@ -303,6 +303,23 @@ Resources:
               - !Sub 'mct.${FQDN}'
       ListenerArn: !Ref ALBHttpsListenerArn
       Priority: 100
+  AitMctIntListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn: !Ref AitMctTargetGroup
+                Weight: 1
+      LoadBalancerArn: !ImportValue
+        Fn::Sub: ${ProjectName}-AlbArn
+      Port: 8082
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: !ImportValue
+            Fn::Sub: ${ProjectName}-ListenerCertificateArn
+      SslPolicy: ELBSecurityPolicy-FS-1-2-2019-08
   InstanceRole:
     Type: AWS::IAM::Role
     Properties:
