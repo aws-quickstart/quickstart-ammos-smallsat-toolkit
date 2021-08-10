@@ -81,7 +81,7 @@ workon ait
 
 # Pull assets, config, and secrets from s3/sm
 mkdir -p $SETUP_DIR
-/usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 sync s3://$CONFIG_BUCKET_NAME/ait/config $SETUP_DIR/config
+/usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 sync s3://$CONFIG_BUCKET_NAME/ait/ $SETUP_DIR/
 /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 cp s3://"$CONFIG_BUCKET_NAME"/modules/openmct-static.tgz - | tar -xz -C /var/www/html
 
 # Install open-source AIT components
@@ -89,7 +89,7 @@ git clone https://github.com/NASA-AMMOS/AIT-Core.git $PROJECT_HOME/AIT-Core
 cd $PROJECT_HOME/AIT-Core/
 git checkout 2.3.5
 pip install .
-cp -r $SETUP_DIR/config $PROJECT_HOME/AIT-Core
+/usr/bin/cp -r $SETUP_DIR/config $PROJECT_HOME/AIT-Core
 
 git clone https://github.com/NASA-AMMOS/AIT-GUI.git $PROJECT_HOME/AIT-GUI
 cd $PROJECT_HOME/AIT-GUI/
