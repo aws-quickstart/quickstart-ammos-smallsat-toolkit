@@ -22,8 +22,25 @@ Parameters:
     Type: String
     Default: ''
   SshKeyName:
-    Description: SSH key to use for access to bastion host
+    Description: Name of created SSH Key for instance access - must use SSM sessions
+      if no key supplied
     Type: AWS::EC2::KeyPair::KeyName
+  PrivateSubnetIds:
+    Description: List of Private Subnet IDs for deploying the AIT Autoscaling Group
+    Type: List<AWS::EC2::Subnet::Id>
+  VpcId:
+    Description: VPC ID for deploying project resources
+    Type: AWS::EC2::VPC::Id
+  InstanceType:
+    Description: Instance type to be used for AIT Server instances; see deployment
+      guide for recommendations
+    Type: String
+  AccessSgId:
+    Description: Cidr Block to allow ingress to ALB
+    Type: AWS::EC2::SecurityGroup::Id
+  PublicSubnetIds:
+    Description: Comma-separated list of Pulbic Subnet ID's for bastion deployment
+    Type: List<AWS::EC2::Subnet::Id>
 
 Conditions:
   RolePathProvided: !Not [!Equals ["", !Ref RolePath]]
@@ -33,24 +50,12 @@ Resources:
   ElasticsearchSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      VpcId: vpc-03456b468daa53da4 # TODO: parameterize
+      VpcId: !Ref VpcId
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
       GroupDescription: Security group for access to AMMOS Cubs Elasticsearch domain.
-      SecurityGroupIngress: # TODO: parameterize?
-        - CidrIp: 128.149.0.0/16
-          Description: JPL Internal
-          IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-        - CidrIp: 137.78.0.0/16
-          Description: JPL Internal
-          IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-        - CidrIp: 137.79.0.0/16
-          Description: JPL Internal
-          IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
 
   ElasticsearchSecurityGroupIngress:
     Type: AWS::EC2::SecurityGroupIngress
@@ -87,11 +92,10 @@ Resources:
         EnforceHTTPS: true
         TLSSecurityPolicy: Policy-Min-TLS-1-2-2019-07
       VPCOptions:
-        SubnetIds:
-          - subnet-03a1ec6be37d72106 # Private - 1A TODO: parameterize
-          - subnet-09abda62751c89495 # Private - 1B TODO: parameterize
+        SubnetIds: !Ref PrivateSubnetIds
         SecurityGroupIds:
           - !GetAtt ElasticsearchSecurityGroup.GroupId
+          - !Ref AccessSgId
       AccessPolicies:
         Version: "2012-10-17"
         Statement:
@@ -128,24 +132,12 @@ Resources:
   Ec2SecurityGroupSsh:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      VpcId: vpc-03456b468daa53da4 # TODO: parameterize
+      VpcId: !Ref VpcId
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
       GroupDescription: Security group for access to bastion.
-      SecurityGroupIngress: # TODO: parameterize?
-        - CidrIp: 128.149.0.0/16
-          Description: JPL Internal
-          IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-        - CidrIp: 137.78.0.0/16
-          Description: JPL Internal
-          IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-        - CidrIp: 137.79.0.0/16
-          Description: JPL Internal
-          IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
 
   ElasticsearchBastion:
     Type: AWS::EC2::Instance
@@ -160,7 +152,8 @@ Resources:
           GroupSet:
             - !Ref Ec2SecurityGroupSsh
             - !Ref ElasticsearchSecurityGroup
-          SubnetId: subnet-0cdbb2c82e6a0595b # Public - 1A # TODO: parameterize
+            - !Ref AccessSgId
+          SubnetId: !Select [0, !Ref PublicSubnetIds]
       Tags:
         - Key: Name
           Value: ammo-cubs-logging-bastion
@@ -310,11 +303,7 @@ Resources:
           RoleARN: !GetAtt FirehoseRole.Arn
           SecurityGroupIds:
             - !GetAtt ElasticsearchSecurityGroup.GroupId
-          SubnetIds:
-            - subnet-09abda62751c89495 # Private - 1B # TODO: parameterize
-            - subnet-03a1ec6be37d72106 # Private - 1A # TODO: parameterize
-            - subnet-0dd1d301a34b4db58 # Private - 1C # TODO: parameterize
-
+          SubnetIds: !Ref PrivateSubnetIds
   CloudWatchLogRole:
     Type: AWS::IAM::Role
     Properties:
@@ -419,10 +408,7 @@ Resources:
       VpcConfig:
         SecurityGroupIds:
           - !GetAtt ElasticsearchSecurityGroup.GroupId
-        SubnetIds:
-          - subnet-09abda62751c89495 # Private - 1B # TODO: parameterize
-          - subnet-03a1ec6be37d72106 # Private - 1A # TODO: parameterize
-          - subnet-0dd1d301a34b4db58 # Private - 1C # TODO: parameterize
+        SubnetIds: !Ref PrivateSubnetIds
       Code:
         S3Bucket: ammos-cubs-assets
         S3Key: logging_processor.zip

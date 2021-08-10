@@ -14,7 +14,7 @@ Parameters:
   PublicSubnetIds:
     Description: Comma-separated list of Pulbic Subnet ID's for ALB deployment
     Type: List<AWS::EC2::Subnet::Id>
-  AccesSgId:
+  AccessSgId:
     Description: Cidr Block to allow ingress to ALB
     Type: AWS::EC2::SecurityGroup::Id
   HostedZoneId:
@@ -48,7 +48,7 @@ Resources:
       Name: !Sub "${ProjectName}-alb"
       Scheme: internet-facing
       SecurityGroups:
-        - !Ref AccesSgId
+        - !Ref AccessSgId
         - !GetAtt AlbSecurityGroup.GroupId
       Subnets: !Ref PublicSubnetIds
       Type: application
