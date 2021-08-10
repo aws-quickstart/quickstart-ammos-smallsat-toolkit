@@ -35,7 +35,7 @@ unzip -qq awscliv2.zip
 function bootstrap_ait(){
 # Install basic system tools needed for AIT Server
 # install python 3.7
-yum install -y @development gcc openssl-devel bzip2-devel libffi-devel sqlite-devel httpd mod_ssl vim
+yum install -y @development gcc openssl-devel bzip2-devel libffi-devel sqlite-devel httpd mod_ssl vim policycoreutils-python-utils
 cd /opt
 wget https://www.python.org/ftp/python/3.7.9/Python-3.7.9.tgz
 tar xzf Python-3.7.9.tgz
