@@ -1,16 +1,60 @@
-// If no preperation is required, remove all content from here
+// If no preparation is required, remove all content from here
 
 == Prepare your AWS account
 
 _Describe any setup required in the AWS account prior to template launch_
 
 TODO:
-1. Deploy vpc and config stacks (pre-deploy) //TODO: @AG
-2. Deploy SLR for ES //TODO: @SL
-3. Add ingress rules to “access-sg” //TODO: @MF
-4. Check config bucket contents and replace with mission-specific config //TODO: @SL
-5. Import user-owned domain to Route53 (optional) //TODO: @MF
-6. Import ssl certificate to AWS ACM //TODO: @MF
+=== Deploy vpc and config stacks (pre-deploy) //TODO: @AG
+
+
+== Deploy SLR for ES //TODO: @SL
+
+
+== Add ingress rules to “access-sg"
+As part of the VPC deployed above, a Security Group is created to manage allowed ingress to protected applications. This security group will be attached to various resources during the QS deployment, allowing access based on the SG Ingress Rules. At a minimum, ingress rules should be added for user-controlled IP blocks on following ports:
+
+- 22: Allow SSH to bastion resource
+- 443: Allow HTTPS traffic to the ALB which exposes application resources on the web (AIT-GUI, OpenMCT, Editor)
+- 80: Allow HTTP discovery of ALB (will redirect to HTTPS)
+- 8082: Allow retrieval of live telemetry from AIT-MCT plugin
+
+[NOTE]
+====
+If Security Group is opened to the world, resources will still be protected by ALB Authentication Actions and AWS SSM; for more info, see TODO: link to security
+====
+
+For more information on adding Security Group Ingress Rules, see: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html[AWS Docs - Security Groups Basics]
+
+== Check config bucket contents and replace with mission-specific config //TODO: @SL
+
+
+== Import user-owned domain to Route53 (optional)
+The deployment relies on a user-provided domain (referred to as `fqdn`); This FQDN is used to discover the ALB and subdomains identify each application. The following records will be deployed in the user-provided Route53 Hosted Zone for each application:
+
+    fqdn            →    ALB
+    ait.fqdn        →    AIT ASG [apache → ait-gui bottle app]
+    mct.fqdn        →    AIT ASG [apache → mct static built app]
+    editor.fqdn     →    Editor EC2 Instance [docker container]
+    logs.fqdn       →    ElasticSearch/Kibana
+
+For guidance on creating a Route 53 Hosted Zone, see: https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html[AWS Docs - Configuring Route53 as your DNS Service]
+
+If the user chooses not to use Route53, they are responsible for deploying the appropriate records as detailed in TODO: link to post-deployment step
+
+== Import ssl certificate to AWS ACM
+HTTPS is enabled on the ALB, requiring a valid SSL certificate for the aforementioned `FQDN`; additionally, the certificate should include the following alternative SANs (`*.{FQDN}` may be used if desired):
+
+- `ait.{FQDN}`
+- `mct.{FQDN}`
+- `editor.{FQDN}`
+- `logs.{FQDN}`
+
+This certificate will need to be available in AWS Certificate Manager (ACM) for attachment to the ALB. For detailed instructions on requesting or importing a certificate with ACM
+
+- https://docs.aws.amazon.com/acm/latest/userguide/gs.html[AWS User Guide - ACM: Issue and Manage Certificates]
+- https://docs.aws.amazon.com/acm/latest/userguide/import-certificate.html[AWS User Guide - ACM: Import Certificates]
+
 
 == Prepare your {partner-company-name} account
 

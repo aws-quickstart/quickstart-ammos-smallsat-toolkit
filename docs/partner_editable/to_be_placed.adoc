@@ -2,40 +2,9 @@
 
 Some random tid-bits that are important to know - not sure where to put them yet, just want to get them noted first.
 
-== DNS
-The deployment relies on a user-provided domain `fqdn` (e.g. apollo.snasa.gov)
-The following records will be deployed as subdomains for each application
-
-    fqdn        →    ALB
-    ait.fqdn    →    AIT ASG [apache → ait-gui bottle app]
-    mct.fqdn    →    AIT ASG [apache → mct static built app]
-    editor.fqdn    →    Editor EC2 Instance [docker container]
-    logging.fqdn    →    ElasticSearch/Kibana
-
-If the user chooses not to use Route53, they are responsible for deploying the following records:
-
-    CNAME    fqdn        →    ALB
-    Alias    |    ait.fqdn    →    fqdn
-    Alias    |    mct.fqdn    →    fqdn
-    Alias    |    editor.fqdn    →    fqdn
-    Alias    |    logging.fqdn    →    fqdn
-
-The ALB will handle the appropriate redirection based on host header in request, thus it is sufficient to deploy a single CNAME record pointing at the ALB, and all subdomains as aliases redirecting to the ALB CNAME
-
 == Log Retention Settings
 
 The AWS CloudWatch log groups that receive logs from the various applications have been configured with a log retention period. The retention period is a parameter in the logging CloudFormation template and can be adjusted by changing the parameter value prior to deployment or by https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#SettingLogRetention[manually changing the retention period]. The default log retention period is 30 days (a month). Keep in mind that increasing the log retention period will increase the costs associated with storing the logs for a longer time.
-
-== IAM PermissionsBoundary and RolePath
-
-In order to facilitate compliance with organizational restrictions on IAM Role creation, the following parameters are available on all stacks which create IAM Roles:
-
-* PermissionsBoundaryArn: ARN of a Managed Policy in your account to be used as the permissions boundary for the created role. +
-    See https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html[Permissions boundaries for IAM entities - AWS Identity and Access Management] for more info.
-* RolePath: String used as the path attribute for the created role. +
-    See https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-friendly-names[IAM identifiers - AWS Identity and Access Management] for more info.
-
-These attributes will not be set if the parameter is not supplied.
 
 == AIT Server Resiliency
 ...tbd...
@@ -49,14 +18,6 @@ The default configuration files can be inspected at TODO. Users may modify this 
 For more information about the CloudWatch Agent, see:
 
 https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent.html[Collecting metrics and logs from Amazon EC2 instances and on-premises servers with the CloudWatch agent - Amazon CloudWatch]
-
-== SSM Agent
-Users are directed to connect to the application servers via AWS SSM for improved security and monitoring. To facilitate this, the AWS SSM Agent is installed on all instances during bootstrapping. Additionally, each Instance Profile is assigned the AWS-managed service role   `AmazonSSMManagedInstanceCore`.
-
-Additionally, users can provide the SshKeyName parameter to the relevant templates to enable standard ssh connections. However, because the instances are provisioned in a private subnet, they will not be directly discoverable from the internet. To connect via SSH, a vpc-deployed bastion or “jump server” will need to be provisioned. Alternatively, see the below documentation for guidance on starting an SSH session via AWS SSM
-
-Sessions can be started via the AWS-provided web interface, or from a terminal. Both methods are documented here: +
-https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html[Start a session - AWS Systems Manager]
 
 == Virtual Environment (virtualenvwrapper)
 The AIT Server installs AIT-Core, several plugins, and various dependencies to a python virtual environment. This is facilitated by the virtualenvwrapper python tool as suggested by the AIT Core documentation; see: +

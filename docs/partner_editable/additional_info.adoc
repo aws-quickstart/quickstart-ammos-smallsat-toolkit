@@ -25,13 +25,21 @@ _Awaiting input from testing lead_
 // If post-deployment steps are required, add them here. If not, remove the heading
 
 === DNS Management
-If the user has opted to not use Route53 for domain management and prefers to manage their domain using some other DNS service, they will be responsible for deploying the appropriate name records to their DNS. Refer to your DNS provider’s documentation for guidance on this process. The following records must be deployed (more information can be found in TODO):
+If the user has opted to not use Route53 (see TODO: link to pre-req) for domain management and prefers to manage their domain using some other DNS service, they will be responsible for deploying the appropriate name records to their DNS. Refer to your DNS provider’s documentation for guidance on this process. The following records must be deployed:
 
-    `{fqdn}`           →    `{ALB}`
-    `ait.{fqdn}`       →    `{fqdn}`
-    `mct.{fqdn}`       →    `{fqdn}`
-    `editor.{fqdn}`    →    `{fqdn}`
-    `logs.{fqdn}`      →    `{fqdn}`
+    CNAME         fqdn            →    ALB
+    Alias    |    ait.fqdn        →    fqdn
+    Alias    |    mct.fqdn        →    fqdn
+    Alias    |    editor.fqdn     →    fqdn
+    Alias    |    logs.fqdn       →    fqdn
+
+//TODO: Link to ALB Stack or properly name once available
+The ALB DNS name can be obtained from the Outputs section of the ALB Stack
+
+[NOTE]
+====
+The ALB will handle redirection based on host header in request, thus it is sufficient to deploy a single CNAME record pointing at the ALB, and all subdomains as aliases redirecting to the ALB CNAME.
+====
 
 === Cognito User Management
 Each of the applications is protected by a basic authentication action on the Application Load Balancer. In order for users to access the deployed web applications (AIT, OpenMCT, or Editor), they will need to authenticate using an identity managed by Cognito. It is up to the system administrator to create appropriate user identities in the Cognito User Pool, or set up federation with an existing identity provider.
@@ -40,10 +48,29 @@ https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-acc
 https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-federation.html[Adding User Pool Sign-in Through a Third Party - Amazon Cognito]
 
 === AIT Server Management
-- Plugin installation [awaiting @KM]
-- Config adjustment? [TODO: @MF]
-- Server restarts [TODO: @MF]
-- Upgrade process? [TODO: @MF]
+The AIT Server will likely require further adaptation by the mission both at launch, and as the needs and parameters of the mission evolves over its lifetime. These changes can be made directly on the server over an SSH or SSM-Managed session; some common adaptations are described below.
+
+==== Plugin installation
+TODO: awaiting @KM
+
+==== Config Management
+Upon launch, a set of config files are brought down to the server from S3 and placed in `/home/ec2-user/AIT-Core/config` (more info on this S3 bucket can be found here TODO: link). Any of these config files can be modified directly on the server, or replaced by new files uploaded to S3. For any config changes to take effect, the `ait-server` systemd service will need to be restarted as described in TODO: link.
+
+New files can be brought down from S3 via
+
+    aws s3 sync s3://<BUCKET_NAME>/ait/config /home/ec2-user/AIT-Core/config
+
+https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html[AWS CLI - S3 Sync]
+
+==== Server Restarts
+The AIT Server and other critical services (InfluxDB and HTTPD) are enabled as `systemd` services. These are all described in more depth in TODO: link.
+
+The EC2 Instance can be stopped and restarted as needed; all system services will be brought online upon restart.
+
+==== Upgrades
+If the user desires to upgrade AIT-Core or any of the other included applications, they can do so at their own risk; however, this Quick Start only supports those versions listed below TODO: link.
+
+To upgrade any of the applications, the user should refer to that applications user guide. Be sure to backup any the config directory and any other modified files. The cloned application repositories can then be updated adn reinstalled to the virtual environment as noted in TODO: link to virtualenv
 
 === Modifying the CloudWatch Agent
 The CloudWatch Agent monitors specified log files and pipes their content to AWS CloudWatch Logs. This file can be found on each server at:
@@ -67,6 +94,17 @@ See docs provided in <<Resources,Resources>> below
 
 == Security
 // Provide post-deployment best practices for using the technology on AWS, including considerations such as migrating data, backups, ensuring high performance, high availability, etc. Link to software documentation for detailed information.
+
+=== IAM
+
+In order to facilitate compliance with organizational restrictions on IAM Role creation, the following parameters are available on all stacks which create IAM Roles:
+
+* PermissionsBoundaryArn: ARN of a Managed Policy in your account to be used as the permissions boundary for the created role. +
+    See https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html[Permissions boundaries for IAM entities - AWS Identity and Access Management] for more info.
+* RolePath: String used as the path attribute for the created role. +
+    See https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-friendly-names[IAM identifiers - AWS Identity and Access Management] for more info.
+
+These attributes will not be set if the parameter is not supplied.
 
 TODO:
 
@@ -97,11 +135,32 @@ IMPORTANT: The Elasticsearch domain currently uses an open access policy, with a
 
 @MF:
 
-- Auth actions on ALB
-- Code Server user-binding / auth
-- SSL terminates at ALB, for ALB, byo
-- SSM for instance access
+=== Authentication
+The application load balancer is deployed to a public subnet and brokers access to the application resources deployed in private subnets. Each application is accessible via a Listener Rule which directs traffic according to the host header and performs an authentication action prior to forwarding the traffic to the appropriate target group. This authentication action is configured with the deployed AWS Cognito User Pool as an OIDC provider. Access is granted on a full-access basis, if a user can authenticate as a known identity, they are allowed through the ALB to the underlying resource.
 
+For more information on ALB Authentication Actions, see:
+
+- https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-authenticate-users.html[AWS Documentation - Application Load Balancers: Authenticate users]
+- https://aws.amazon.com/blogs/aws/built-in-authentication-in-alb/[AWS Blog - Built-in Authentication in ALB]
+
+=== Code Server Access
+The Editor server runs cdr/code-server as described in TODO: link. VS Code includes an integrated terminal that allows the user to execute system-level commands from the browser interface. To mitigate impact, the VS Code server is run within a docker container with volumes mounted to the following locations:
+- `/home/editor-user/.aerie-editor-data:/home/coder/.local/share/code-server`
+- `/home/editor-user/.aerie-editor-config:/home/coder/.config`
+- `/home/editor-user:/home/coder/project`
+
+This web application is protected behind an authentication action on the ALB as described in TODO: link. Authentication can also be enforced at the application level as described in https://coder.com/docs/code-server/v3.11.1/FAQ#how-do-i-change-the-password[Code Server FAQ - Password]
+
+=== SSL TODO: @SL
+All traffic to the ALB is enforced HTTPS; however, SSL terminates at the ALB layer which communicates to the application servers directly.
+
+=== SSM
+Users are directed to connect to the application servers via AWS SSM for improved security and monitoring. To facilitate this, the AWS SSM Agent is installed on all instances during bootstrapping. Additionally, each Instance Profile is assigned the AWS-managed service role   `AmazonSSMManagedInstanceCore`.
+
+Additionally, users can provide the SshKeyName parameter to the relevant templates to enable standard ssh connections. However, because the instances are provisioned in a private subnet, they will not be directly discoverable from the internet. To connect via SSH, a vpc-deployed bastion or “jump server” will need to be provisioned. Alternatively, see the below documentation for guidance on starting an SSH session via AWS SSM
+
+Sessions can be started via the AWS-provided web interface, or from a terminal. Both methods are documented here: +
+https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html[Start a session - AWS Systems Manager]
 
 == Resources
 
@@ -117,6 +176,10 @@ OpenMCT:
 - https://nasa.github.io/openmct/[OpenMCT - Open Source Mission Control Software]
 - https://nasa.github.io/openmct/docs/guide/index.html#open-mct-developer-guide[Open MCT - Developer Guide]
 - https://github.com/nasa/openmct-tutorial[OpenMCT - Integration Tutorials]
+
+AIT Editor:
+
+TODO: @MF links to AIT Editor once available
 
 === Community
 TODO: @CC Links to other JPL/AMMOS resources

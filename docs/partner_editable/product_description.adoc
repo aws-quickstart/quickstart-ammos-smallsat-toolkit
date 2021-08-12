@@ -1,9 +1,29 @@
 // Replace the content in <>
-// Briefly describe the software. Use consistent and clear branding. 
+// Briefly describe the software. Use consistent and clear branding.
 // Include the benefits of using the software on AWS, and provide details on usage scenarios.
 
-== Product Description
-TODO: @MF How does AIT interface with OpenMCT and InfluxDB? How does this function as a complete system?
+== Overview
+{partner-product-short-name} represents a collection of software and tools useful in the planning and operation of small sat, cube sat, and instrumentation missions. The core of this slim Ground Data System (GDS) is the AMMOS Instrument Toolkit (AIT). Additional visualization and dashboarding capabilities are provided by the Open Mission Control Technologies (OpenMCT) toolkit. Lastly, the AIT Editor tool provides a centralized browser-based IDE for generating and editing spacecraft sequence files.
 
 == Applications
-TODO: Content will be sourced from AIT readthedocs page and other MGSS personnel; link to resources section in additional_info
+
+=== AIT
+// Following pulled from AIT-Core readthedocs
+// https://ait-core.readthedocs.io/en/latest/index.html#welcome-to-the-ammos-instrument-toolkit-ait-documentation
+The AMMOS Instrument Toolkit (Formerly the Bespoke Links to Instruments for Surface and Space (BLISS)) is a Python-based software suite developed to handle Ground Data System (GDS), Electronic Ground Support Equipment (EGSE), commanding, telemetry uplink/downlink, and sequencing for JPL International Space Station and CubeSat Missions. It is a generalization and expansion of tools developed for a number of JPL ISS missions.
+
+=== OpenMCT
+// Following pulled from OpenMCT's README on GitHub
+// https://github.com/nasa/openmct/blob/master/README.md
+Open MCT (Open Mission Control Technologies) is a next-generation mission control framework for visualization of data on desktop and mobile devices. It is developed at NASA's Ames Research Center, and is being used by NASA for data analysis of spacecraft missions, as well as planning and operation of experimental rover systems. As a generalizable and open source framework, Open MCT could be used as the basis for building applications for planning, operation, and analysis of any systems producing telemetry data.
+
+=== AIT Editor
+//TODO: @MF Replace or augment with official content from AIT Editor team once available
+The AIT Editor is an extension for Microsoft Visual Studio Code (VSC) published on the VS Code Extension Marketplace. This tool reads in the same configuration files used by AIT to perform syntax checking and validation of command sequence files. While this extension can be installed locally on any VSC client, this deployment includes a centralized IDE based on https://github.com/cdr/code-server[Code Server], an open-source application which enables users to "Run VS Code on any machine anywhere and access it in the browser". The central "Editor" server deployed in this Quick Start installs and configures code-server, the AIT Editor extension, and the mission config used by AIT.
+
+[NOTE]
+====
+The official MS VSC Extension Marketplace is not available on code-server due to Microsoft's Terms of Service for VSC. Instead, the AIT Editor extension is installed manually from the VSIX file published on GitHub and the Marketplace. For more info, see the https://coder.com/docs/code-server/v3.11.1/FAQ#why-cant-code-server-use-microsofts-extension-marketplace[code-server FAQ]
+====
+
+//TODO: link to resources section in additional_info
