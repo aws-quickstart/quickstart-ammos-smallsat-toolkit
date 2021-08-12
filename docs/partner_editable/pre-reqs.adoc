@@ -78,15 +78,15 @@ _Describe any preparation required to complete the product build, such as obtain
 For configuration and settings, an S3 bucket is created as part of the deployment and seeded with a set of default configuration files. Within the bucket, the configuration files have been organized by application with the following file structure:
 
 ----
-s3                                      desc
-├── ait                                 desc
-│   ├── cloudwatch-agent-ait.json       desc
-│   ├── config                          desc
+s3
+├── ait
+│   ├── cloudwatch-agent-ait.json
+│   ├── config
 │   │   ├── bsc.yaml
 │   │   ├── ccsds_header.yaml
 │   │   ├── cmd.pkl
 │   │   ├── cmd.yaml
-│   │   ├── config.yaml                 desc
+│   │   ├── config.yaml
 │   │   ├── core_set_op_mode.yaml
 │   │   ├── evr.pkl
 │   │   ├── evr.yaml
@@ -96,14 +96,14 @@ s3                                      desc
 │   │   ├── table.yaml
 │   │   ├── tlm.pkl
 │   │   └── tlm.yaml
-│   └── httpd_proxy.conf                desc
-├── editor                              desc
-│   └── cloudwatch-agent-editor.json    desc
-└── modules                             desc
-    └── openmct-static.tgz              desc
+│   └── httpd_proxy.conf
+├── editor
+│   └── cloudwatch-agent-editor.json
+└── modules
+    └── openmct-static.tgz
 ----
 
-==== ait
+==== ait/
 Files in this S3 path are configuration files for the AIT deployment within this Quick Start.
 
 ===== cloudwatch-agent-ait.json
@@ -127,7 +127,7 @@ This configuration file defines how Apache HTTP Server proxies requests to eithe
 This file typically does not need to be modified unless you want a non-standard configuration for routing traffic between applications. For more detailed information on how to modify this file, please see the https://httpd.apache.org/docs[Apache HTTP Server Project documentation].
 
 
-==== editor
+==== editor/
 Files in this S3 path are configuration files for the AIT Editor deployment within this Quick Start.
 
 ===== cloudwatch-agent-editor.json
@@ -135,7 +135,7 @@ This file is used to configure the CloudWatch agent that runs on the AIT Editor 
 
 For more information about modifying the CloudWatch agent configuration file, see the https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html[AWS CloudWatch agent documentation].
 
-==== modules
+==== modules/
 Files in this S3 path are static files that are served via Apache HTTP Server.
 
 ===== openmct-static.tgz
