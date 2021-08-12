@@ -3,27 +3,19 @@ AWSTemplateFormatVersion: "2010-09-09"
 Metadata:
   QuickStartDocumentation:
     EntrypointName: "Launch into a new VPC"
-Conditions:
-  GenerateSSL: !And
-    - !Equals [!Ref SSLCertificateArn, '']
-    - !Not [!Equals [!Ref MoleculeFQDN, '']]
-  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
-Rules:
-  DomainNamePresentWithHostedID:
-    Assertions:
-      - Assert: !Or
-          - !Equals [!Ref HostedZoneID, '']
-          - !Not [!Equals [!Ref MoleculeFQDN, '']]
-        AssertDescription: "Please specify a 'Domain Name' if you specify 'Route 53 Hosted Zone ID'"
-  GenerateOrProvideSSL:
-    Assertions:
-      - Assert: !Or
-          - !Not [!Equals [!Ref SSLCertificateArn, '']]
-          - !And
-            - !Not [!Equals [!Ref HostedZoneID, '']]
-            - !Not [!Equals [!Ref MoleculeFQDN, '']]
-        AssertDescription: "Using an SSL certificate is enforced. A CertificateArn or a HostedZoneID and MoleculeFQDN must be provided."
 Parameters:
+  AITInstanceType:
+    Description: Instance type to be used for AIT Server instances; see deployment
+      guide for recommendations
+    Type: String
+    Default: m5.large
+  # CloudWatchLogsRetentionPeriod:
+  #   Description: The number of days to retain log events in CloudWatch log groups
+  #   Type: Number
+  #   Default: 30
+  ElasticsearchDomainName:
+    Description: Name of the Elasticsearch domain
+    Type: String
   KeyPairName:
     Description: A public/private key pair, which allows you to connect securely to your instance after it launches.
     Type: AWS::EC2::KeyPair::KeyName
@@ -93,15 +85,63 @@ Parameters:
       that you set this value to a trusted IP range.
     Type: String
   SSLCertificateArn:
-    Description: The ARN of the SSL certificate to use for the load balancer. Use 'SSLCertificateArn' if you are not using 'MoleculeFQDN' and 'HostedZoneID'.
+    Description: The ARN of the SSL certificate to use for the load balancer. Use 'SSLCertificateArn' if you are not using 'FQDN' and 'HostedZoneID'.
     Type: String
     Default: ''
   HostedZoneID:
-    Description: Route 53 Hosted Zone ID of the domain name. Used in conjunction with a 'MoleculeFQDN'.
+    Description: Route 53 Hosted Zone ID of the domain name. Used in conjunction with a 'FQDN'.
     Type: String
     MaxLength: 32
     Default: ''
+  FQDN:
+    Description: Fully Qualified Domain Name to use for project resources root.
+    Type: String
+  PermissionsBoundaryArn:
+    Description: Will be attached to all created IAM Roles to satisfy security requirements
+    Type: String
+    Default: ''
+  RolePath:
+    Description: Will be attached to all created IAM Roles to satisfy security requirements
+    Type: String
+    Default: ''
+  ProjectName:
+    Description: Name of your project
+    Type: String
+Rules:
+  DomainNamePresentWithHostedID:
+    Assertions:
+      - Assert: !Or
+          - !Equals [!Ref HostedZoneID, '']
+          - !Not [!Equals [!Ref FQDN, '']]
+        AssertDescription: "Please specify a 'Domain Name' if you specify 'Route 53 Hosted Zone ID'"
+  GenerateOrProvideSSL:
+    Assertions:
+      - Assert: !Or
+          - !Not [!Equals [!Ref SSLCertificateArn, '']]
+          - !And
+            - !Not [!Equals [!Ref HostedZoneID, '']]
+            - !Not [!Equals [!Ref FQDN, '']]
+        AssertDescription: "Using an SSL certificate is enforced. A CertificateArn or a HostedZoneID and FQDN must be provided."
+Conditions:
+  GenerateSSL: !And
+    - !Equals [!Ref SSLCertificateArn, '']
+    - !Not [!Equals [!Ref FQDN, '']]
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
 Resources:
+  AmmosConfigStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ammos-config.template.yaml'
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Parameters:
+        QSS3BucketName: !Ref QSS3BucketName
+        QSS3KeyPrefix: !Ref QSS3KeyPrefix
+        ProjectName: !Ref ProjectName
+        RolePath: !Ref RolePath
+        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
+# ---
   VPCStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -141,35 +181,86 @@ Resources:
         QSS3BucketRegion: !Ref QSS3BucketRegion
         RemoteAccessCIDR: !Ref RemoteAccessCIDR
         VPCID: !GetAtt VPCStack.Outputs.VPCID
-  CubsStack:
+  AmmosCognitoStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/boomi-molecule.template.yaml'
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ammos-cubs-cognito.template.yaml'
         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
-        # TODO: Decide on individual params for subnets, or a list of subnets
-        PublicSubnet1ID: !If
-        - ALBInPublicSubnets
-        - !GetAtt VPCStack.Outputs.PublicSubnet1ID
-        - !Ref AWS::NoValue
-        PublicSubnet2ID: !If
-        - ALBInPublicSubnets
-        - !GetAtt VPCStack.Outputs.PublicSubnet2ID
-        - !Ref AWS::NoValue
-        PrivateSubnet1ID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
-        PrivateSubnet2ID: !GetAtt VPCStack.Outputs.PrivateSubnet2AID
-        #TODO: Security Group Parameter
-        #TODO: Is VPCID necessary?
+        ProjectName: !Ref ProjectName
+        RolePath: !Ref RolePath
+        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
+  AmmosCubsALBStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ammos-cubs-alb.template.yaml'
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Parameters:
+        ProjectName: !Ref ProjectName
+        VPCID: !GetAtt VPCStack.Outputs.VPCID
+        PublicSubnetIds: [!GetAtt VPCStack.Outputs.PublicSubnet1ID,!GetAtt VPCStack.Outputs.PublicSubnet2ID]
+        FQDN: !Ref FQDN
+        HostedZoneID: !Ref HostedZoneID
+        SSLCertificateArn: !If [GenerateSSL, !GetAtt ConfigureSSLStack.Outputs.ACMCertificate, SSLCertificateArn]
+  AmmosCubsLoggingStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ammos-cubs-logging.template.yaml'
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Parameters:
+        CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
+        ElasticsearchDomainName: !Ref ElasticsearchDomainName
+        PermissionsBoundaryArn: !Ref PermissionBounaryArn
+        RolePath: !Ref RolePath
+        VPCID: !GetAtt VPCStack.Outputs.VPCID
+        PrivateSubnet1ID: !GetAtt VPCStack.Outputs.PrivateSubnet1ID
+        PrivateSubnet2ID: !GetAtt VPCStack.Outputs.PrivateSubnet2ID
+        QSS3BucketName: !Ref QSS3BucketName
+        QSS3KeyPrefix: !Ref QSS3KeyPrefix
+  AmmosCubsEditorStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ammos-cubs-editor.template.yaml'
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Parameters:
+        ProjectName: !Ref ProjectName
+        ConfigBucketName: !ImportValue !Sub "${ProjectName}-ConfigBucketName"
+        FQDN: !Ref FQDN
+        PrivateSubnetIds: [!GetAtt VPCStack.Outputs.PrivateSubnet1ID,!GetAtt VPCStack.Outputs.PrivateSubnet2ID]
         VPCID: !GetAtt VPCStack.Outputs.VPCID
         KeyPairName: !Ref KeyPairName
-        SSLCertificateArn: !If
-          - GenerateSSL
-          - !GetAtt ConfigureSSLStack.Outputs.ACMCertificate
-          - !Ref SSLCertificateArn
+        RolePath: !Ref RolePath
+        PermissionsBoundaryArn: !Ref PermissionBounaryArn
+  AmmosCubsAITStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ammos-cubs-ait.template.yaml'
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Parameters:
+        ProjectName: !Ref ProjectName
+        ConfigBucketName: !ImportValue !Sub "${ProjectName}-ConfigBucketName"
+        FQDN: !Ref FQDN
+        PrivateSubnetIds: [!GetAtt VPCStack.Outputs.PrivateSubnet1ID,!GetAtt VPCStack.Outputs.PrivateSubnet2ID]
+        VPCID: !GetAtt VPCStack.Outputs.VPCID
+        InstanceType: !Ref AITInstnaceType
+        KeyPairName: !Ref KeyPairName
+        QSS3BucketName: !Ref QSS3BucketName
+        QSS3KeyPrefix: !Ref QSS3KeyPrefix
+        QSS3BucketRegion: !Ref QSS3BucketRegion
+        RolePath: !Ref RolePath
+        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
   ConfigureSSLStack:
     Condition: GenerateSSL
     Type: AWS::CloudFormation::Stack
@@ -182,5 +273,5 @@ Resources:
         QSS3BucketName: !Ref QSS3BucketName
         QSS3BucketRegion: !Ref QSS3BucketRegion
         QSS3KeyPrefix: !Sub "${QSS3KeyPrefix}submodules/quickstart-aws-acm-certificate/"
-        DomainName: !Ref MoleculeFQDN
+        DomainName: !Ref FQDN
         HostedZoneID: !Ref HostedZoneID
