@@ -33,7 +33,7 @@ Cover Pre-Deployment Resources here?
 * Config stack
 ** S3 Bucket to hold project-specific application config files
 ** Custom resource to seed this bucket with default reference config files
-** See <<pre-reqs.adoc#Configuration-Files-in-S3,Configuration Files in S3>> for more information on the contents of this bucket
+** TODO: See <<pre-reqs.adoc#Configuration-Files-in-S3,Configuration Files in S3>> for more information on the contents of this bucket
 
 
 [.small]#* The template that deploys the Quick Start into an existing VPC skips the components marked by asterisks and prompts you for your existing VPC configuration.#

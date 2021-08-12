@@ -8,8 +8,12 @@ TODO:
 === Deploy vpc and config stacks (pre-deploy) //TODO: @AG
 
 
-== Deploy SLR for ES //TODO: @SL
+== Deploy SLR for ES
+A service-linked role must be created in your AWS account before an Elasticsearch domain can be created as a part of Quick Start deployment.
 
+The serviced to use the service-linked role is `es.amazonaws.com`.  The serviced-linked role will allow Elasticsearch to call other necessary AWS services on your behalf during the Elasticsearch provisioning process.
+
+For more information on how to create a service-linked role for Elasticsearch, see the https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/slr-es.html[AWS Elasticsearch documentation], or the https://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html#create-service-linked-role[documentation for creating service-linked roles].
 
 == Add ingress rules to “access-sg"
 As part of the VPC deployed above, a Security Group is created to manage allowed ingress to protected applications. This security group will be attached to various resources during the QS deployment, allowing access based on the SG Ingress Rules. At a minimum, ingress rules should be added for user-controlled IP blocks on following ports:
@@ -26,8 +30,12 @@ If Security Group is opened to the world, resources will still be protected by A
 
 For more information on adding Security Group Ingress Rules, see: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html[AWS Docs - Security Groups Basics]
 
-== Check config bucket contents and replace with mission-specific config //TODO: @SL
+== Check config bucket contents and replace with mission-specific config
+During Quick Start deployment, an S3 Bucket is created and populated with base configuration files for AIT Server, AIT Editor, and OpenMCT.
 
+If you would like to use your own configuration files, copy and overwrite files of the same name in the S3 configuration files bucket. For a layout of the configuration S3 Bucket and an overview of available configuration files, see <<Configuration files in S3, Configuration files in S3>>.
+
+IMPORTANT: To ensure successful deployment of the applications, make sure your configuration files have the correct syntax and format. For more more information about AIT configuration, see the https://ait-core.readthedocs.io/en/latest/configuration_intro.html[AIT Documentation]
 
 == Import user-owned domain to Route53 (optional)
 The deployment relies on a user-provided domain (referred to as `fqdn`); This FQDN is used to discover the ALB and subdomains identify each application. The following records will be deployed in the user-provided Route53 Hosted Zone for each application:
@@ -104,7 +112,7 @@ This file is used to configure the CloudWatch agent that will run on the AIT EC2
 For more information about modifying the CloudWatch agent configuration file, see the https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html[AWS CloudWatch agent documentation].
 
 ===== config/
-All files in this S3 path are configuration files for the AIT application. These files can be modified and overwritten in S3 to customize the AIT server installation.
+All files in this S3 path are configuration files for the AIT application. These files can be modified and overwritten in S3 to customize the AIT server installation. The main configuration file is `config.yaml`, however any of the other files may be modified or overwritten depending on your needs.
 
 ===== config.yaml
 This file is the main configuration file for AIT. On the AIT EC2 service instance, this file is located at `/home/ec2-user/AIT-Core/config/config.yaml`.

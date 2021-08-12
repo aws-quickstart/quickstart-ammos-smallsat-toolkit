@@ -9,7 +9,7 @@ The AWS CloudWatch log groups that receive logs from the various applications ha
 == AIT Server Resiliency
 ...tbd...
 
-== Logging (CW Agent)
+== Logging (CloudWatch Agent)
 
 To facilitate centralized logging for the various applications, the Amazon CloudWatch Agent is installed on all of the deployed EC2 Instances during the bootstrap process. This agent is initialized by a provided default config file which informs the agent which files to monitor and where to direct the logs in AWS CloudWatch.
 
@@ -77,13 +77,3 @@ If changes are made to the AIT config files, the service will need to be restart
 sudo systemctl restart ait-server
 
 The service itself will run the AIT Core Server which listens for, processes, and exposes telemetry. Additionally, any configured plugins (such as `AIT-GUI`) will also be run according to the main AIT config file.
-
-== RHEL 8
-All applications are deployed on Instances running the RHEL8 GA AMI. Although the applications installed do not have a hard dependency on this OS, it is the officially supported Operating System for all AMMOS applications.
-
-== SELinux
-SELinux is enabled and enforced on the application servers. Apache HTTP Server and the various application processes have been configured for SELinux compatibility and can be run without disabling SELinux.
-
-Side effects may occur if settings and/or configuration files are modified or moved after the initial deployment of the application. If you have any issues with SELinux file and process contexts, please refer to a fresh deployment of the Quick Start or redeploy the Quick Start.
-
-We highly recommend that you do not disable SELinux unless you are aware of unintended security consequences or have the need to disable SELinux for compatibility or debugging purposes.
