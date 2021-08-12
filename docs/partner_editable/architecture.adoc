@@ -15,12 +15,12 @@ As shown in <<architecture1>>, the Quick Start sets up the following:
 
 * Cognito User Pool to manage identities and authenticate users
 * Application Load Balancer to route traffic from the web to the appropriate application resources
-* Auto Scaling Group containing the AIT Server (exposes AIT-GUI and OpenMCT applications via Apache web server)
+* Auto Scaling Group containing the AIT Server (exposes AIT-GUI and OpenMCT applications via Apache HTTP Server)
 * EC2 Instance serving the AIT Editor application via Docker
-* CloudWatch LogGroups [TODO: SL]
-* Kinesis FireHose [TODO: SL]
-* Lambda Functions [TODO: SL]
-* S3 Bucket [TODO: SL]
+* CloudWatch LogGroups that receive log data from application servers via CloudWatch Logs Agent
+* Kinesis Data Firehose delivers log data from CloudWatch Logs to S3 and AWS Elasticsearch Service
+* Lambda Functions that preprocesses logs and prepares them for delivery to Kinesis Data Firehose
+* S3 Bucket containing application and server configuration files
 
 == Prereq Components
 // Add bullet points for any additional components that are included in the deployment. Make sure that the additional components are also represented in the architecture diagram. End each bullet with a period.

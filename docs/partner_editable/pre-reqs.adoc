@@ -22,11 +22,8 @@ None required - all products are FOSS (we think)
 
 _Describe any preparation required to complete the product build, such as obtaining licenses or placing files in S3_
 
-=== S3 Config
-
-For configuration and settings, an S3 bucket is created as part of the deployment. The bucket has the following structure:
-
-TODO: @SL Add descriptions of the below folders/files
+=== Configuration files in S3
+For configuration and settings, an S3 bucket is created as part of the deployment and seeded with a set of default configuration files. Within the bucket, the configuration files have been organized by application with the following file structure:
 
 ----
 s3                                      desc
@@ -53,3 +50,43 @@ s3                                      desc
 └── modules                             desc
     └── openmct-static.tgz              desc
 ----
+
+==== ait
+Files in this S3 path are configuration files for the AIT deployment within this Quick Start.
+
+===== cloudwatch-agent-ait.json
+This file is used to configure the CloudWatch agent that will run on the AIT EC2 server instance. If you would like to add additional sources for logs that will be sent to CloudWatch Logs, edit this config to enable those new log sources.
+
+For more information about modifying the CloudWatch agent configuration file, see the https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html[AWS CloudWatch agent documentation].
+
+===== config/
+All files in this S3 path are configuration files for the AIT application. These files can be modified and overwritten in S3 to customize the AIT server installation.
+
+===== config.yaml
+This file is the main configuration file for AIT. On the AIT EC2 service instance, this file is located at `/home/ec2-user/AIT-Core/config/config.yaml`.
+
+This main configuration file references a few other configuration files (filepaths are relative) as well as enabling a default set of AIT plugins - AIT GUI, the Data Archive plugin for InfluxDB, and the AIT Open MCT Plugin.
+
+For more information on this file, see the https://ait-core.readthedocs.io/en/latest/configuration_intro.html#config-yaml[AIT documentation].
+
+===== httpd_proxy.conf
+This configuration file defines how Apache HTTP Server proxies requests to either AIT or OpenMCT. Both applications are set up as virtual hosts in Apache. Requests to AIT get proxied to the AIT backend Python process while requests to OpenMCT are handled directly by the Apache web server which is serving OpenMCT’s static files.
+
+This file typically does not need to be modified unless you want a non-standard configuration for routing traffic between applications. For more detailed information on how to modify this file, please see the https://httpd.apache.org/docs[Apache HTTP Server Project documentation].
+
+
+==== editor
+Files in this S3 path are configuration files for the AIT Editor deployment within this Quick Start.
+
+===== cloudwatch-agent-editor.json
+This file is used to configure the CloudWatch agent that runs on the AIT Editor EC2 server instance. If you would like to configure additional sources for logs that will be sent to CloudWatch Logs, edit this config to enable those sources.
+
+For more information about modifying the CloudWatch agent configuration file, see the https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html[AWS CloudWatch agent documentation].
+
+==== modules
+Files in this S3 path are static files that are served via Apache HTTP Server.
+
+===== openmct-static.tgz
+This file is a tarball of the static files for OpenMCT. The JavaScript files in the tarball have been minified and bundled.
+
+If you would like to modify the OpenMCT framework or configure/install plugins for OpenMCT, you may make your changes, create a new tarball, and then upload new file to overwrite the existing file in S3.

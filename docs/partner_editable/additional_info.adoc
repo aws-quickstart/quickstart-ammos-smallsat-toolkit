@@ -101,13 +101,17 @@ TODO: @CC Links to other JPL/AMMOS resources
 
 == Software version requirements
 
-Document version requirements [TODO: @SL] +
-include note about python3.7 on RHEL8
+=== Operating System and dependency versions
+All applications are deployed on EC2 instances running Red Hat Enterprise Linux 8 (RHEL8). Although the applications installed via this Quick Start do not have a hard dependency on this specific operating system, it is the officially supported operating system for all AMMOS applications.
 
-Note that deployed applications are bound to tagged release. If you require a different version, you can adapt this QuickStart or reinstall the applications at your own risk, as that is out of scope for this deployment guide.
+The AIT software has only been tested against Python 3.7.x (see the https://ait-core.readthedocs.io/en/latest/installation.html[AIT Docs]), and that is the Python version installed on the application EC2 servers. Python 3.7 is currently not found in any of the official Red Hat Enterprise Linux 8 software repositories, nor is it found in the Red Hat Software Collections. Thus, as part of the deployment, this Quick Start will build/install Python 3.7.9 from source.
 
-The currently supported versions are:
-----
-AIT: 2.3.5
-OpenMCT: 1.6.2
-----
+=== Application software versions
+* AIT: https://github.com/NASA-AMMOS/AIT-Core/releases/tag/2.3.5[2.3.5]
+* OpenMCT: https://github.com/nasa/openmct/releases/tag/1.6.2[1.6.2]
+
+The software deployed as part of this Quick Start have the above versions and correspond to the versioned releases in their respective Github repositories. If you require a different version of the software, you can adapt this QuickStart or reinstall the applications at your own risk.
+
+=== InfluxDB
+
+The AIT software installed by this Quick Start is configured with an InfluxDB backend and InfluxDB is installed on the same EC2 server as part of the deployment. The Python library used by AIT to interface with InfluxDB, `influxdb`, is only compatible with InfluxDB versions 1.x and so InfluxDB 1.2.4 is installed during deployment.
