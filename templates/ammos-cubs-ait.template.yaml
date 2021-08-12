@@ -12,14 +12,15 @@ Parameters:
   PrivateSubnetIds:
     Description: List of Private Subnet IDs for deploying the AIT Autoscaling Group
     Type: List<AWS::EC2::Subnet::Id>
-  VpcId:
+  VPCID:
     Description: VPC ID for deploying project resources
     Type: AWS::EC2::VPC::Id
   InstanceType:
     Description: Instance type to be used for AIT Server instances; see deployment
       guide for recommendations
     Type: String
-  SshKeyName:
+    Default: m5.large
+  KeyPairName:
     Description: Name of created SSH Key for instance access - must use SSM sessions
       if no key supplied
     Type: AWS::EC2::KeyPair::KeyName
@@ -44,7 +45,7 @@ Parameters:
     AllowedPattern: ^([0-9a-zA-Z-.]+/)*$
     ConstraintDescription: The Quick Start S3 key prefix can include numbers, lowercase letters,
       uppercase letters, hyphens (-), and forward slashes (/).
-    Default: quickstart-linux-bastion/
+    Default: quickstart-nasa-jpl-cubs/
     Description: S3 key prefix that is used to simulate a directory for your copy of the
       Quick Start assets. Keep the default prefix unless you are customizing
       the template. Changing this prefix updates code references to point to
@@ -74,7 +75,7 @@ Conditions:
   SshEnabled: !Not
     - !Equals
       - ''
-      - !Ref 'SshKeyName'
+      - !Ref 'KeyPairName'
   UsingDefaultBucket: !Equals
     - ''
     - ''
@@ -84,13 +85,13 @@ Conditions:
 Mappings:
   AWSAMIRegionMap:
     us-east-1:
-      RHEL76HVM: example
+      RHEL76HVM: ami-08a7d2bfef687328f
     us-east-2:
-      RHEL76HVM: example
+      RHEL76HVM: ami-0e166e72fda655c63
     us-west-1:
-      RHEL76HVM: example
+      RHEL76HVM: ami-056efb42b219f9abb
     us-west-2:
-      RHEL76HVM: example
+      RHEL76HVM: ami-02deb4589e0f0d95e
 
 Resources:
   AitServerSecurityGroup:
@@ -106,14 +107,11 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          SourceSecurityGroupId: !ImportValue
-            Fn::Sub: ${ProjectName}-AlbSecurityGroupId
+          SourceSecurityGroupId: !ImportValue !Sub ${ProjectName}-AlbSecurityGroupId
         - IpProtocol: tcp
           FromPort: 8082
           ToPort: 8082
-          SourceSecurityGroupId: !ImportValue
-            Fn::Sub: ${ProjectName}-AlbSecurityGroupId
-      VpcId: !Ref 'VpcId'
+          SourceSecurityGroupId: !ImportValue !Sub ${ProjectName}-AlbSecurityGroupId
   AitAutoScalingGroupInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -168,7 +166,7 @@ Resources:
       InstanceType: !Ref 'InstanceType'
       KeyName: !If
         - SshEnabled
-        - !Ref 'SshKeyName'
+        - !Ref 'KeyPairName'
         - !Ref 'AWS::NoValue'
       SecurityGroups:
         - !GetAtt 'AitServerSecurityGroup.GroupId'
@@ -194,14 +192,12 @@ Resources:
       Port: 80
       Protocol: HTTP
       TargetType: instance
-      VpcId: !Ref 'VpcId'
   AitMctTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       Port: 8082
       Protocol: HTTP
       TargetType: instance
-      VpcId: !Ref 'VpcId'
   AitAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     CreationPolicy:

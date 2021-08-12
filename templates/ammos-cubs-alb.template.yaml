@@ -5,24 +5,21 @@ Parameters:
   FQDN:
     Description: FQDN to use for load balancer
     Type: String
-  CertificateArn:
+  SSLCertificateArn:
     Description: ARN to Certifictate in ACM valid for specified FQDN and relevant subdomains
     Type: String
-  VpcId:
+  VPCID:
     Description: VPC ID for deploying project resources
     Type: AWS::EC2::VPC::Id
   PublicSubnetIds:
     Description: Comma-separated list of Pulbic Subnet ID's for ALB deployment
     Type: List<AWS::EC2::Subnet::Id>
-  AccesSgId:
-    Description: Cidr Block to allow ingress to ALB
-    Type: AWS::EC2::SecurityGroup::Id
-  HostedZoneId:
+  HostedZoneID:
     Description: ID of Route53 Hosted Zone in which to create records for discovery
     Type: String
 
 Conditions:
-  DeployR53Records: !Not [!Equals ["", !Ref HostedZoneId]]
+  DeployR53Records: !Not [!Equals ["", !Ref HostedZoneID]]
 
 Resources:
   ################# ALB #################
@@ -34,7 +31,7 @@ Resources:
         - CidrIp: 0.0.0.0/0
           Description: Allow all outbound traffic by default
           IpProtocol: "-1"
-      VpcId: !Ref VpcId
+      VPCID: !Ref VPCID
 
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -48,7 +45,6 @@ Resources:
       Name: !Sub "${ProjectName}-alb"
       Scheme: internet-facing
       SecurityGroups:
-        - !Ref AccesSgId
         - !GetAtt AlbSecurityGroup.GroupId
       Subnets: !Ref PublicSubnetIds
       Type: application
@@ -60,7 +56,7 @@ Resources:
     Properties:
       Name: !Ref FQDN
       Type: CNAME
-      HostedZoneId: !Ref HostedZoneId
+      HostedZoneID: !Ref HostedZoneID
       ResourceRecords:
         - !GetAtt ApplicationLoadBalancer.DNSName
   AitAlias:
@@ -71,8 +67,8 @@ Resources:
       Type: CNAME
       AliasTarget:
         DNSName: !Ref FQDN
-        HostedZoneId: !Ref HostedZoneId
-      HostedZoneId: !Ref HostedZoneId
+        HostedZoneID: !Ref HostedZoneID
+      HostedZoneID: !Ref HostedZoneID
   MctAlias:
     Type: AWS::Route53::RecordSet
     Condition: DeployR53Records
@@ -81,8 +77,8 @@ Resources:
       Type: CNAME
       AliasTarget:
         DNSName: !Ref FQDN
-        HostedZoneId: !Ref HostedZoneId
-      HostedZoneId: !Ref HostedZoneId
+        HostedZoneID: !Ref HostedZoneID
+      HostedZoneID: !Ref HostedZoneID
   EditorAlias:
     Type: AWS::Route53::RecordSet
     Condition: DeployR53Records
@@ -91,8 +87,8 @@ Resources:
       Type: CNAME
       AliasTarget:
         DNSName: !Ref FQDN
-        HostedZoneId: !Ref HostedZoneId
-      HostedZoneId: !Ref HostedZoneId
+        HostedZoneID: !Ref HostedZoneID
+      HostedZoneID: !Ref HostedZoneID
 
   ########### Cognito  Client ###########
   UserPoolAlbClient:

@@ -1,33 +1,48 @@
 Parameters:
+  QSS3BucketName:
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
+    ConstraintDescription: Quick Start bucket name can include numbers, lowercase
+      letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
+      (-).
+    Default: aws-quickstart
+    Description: S3 bucket name for the Quick Start assets. This string can include
+      numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start
+      or end with a hyphen (-).
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: ^[0-9a-zA-Z-/]*$
+    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slash (/).
+    Default: quickstart-jpl-nasa-cubs/
+    Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
+      can include numbers, lowercase letters, uppercase letters, hyphens (-), and
+      forward slash (/).
+    Type: String
   ProjectName:
     Description: Name of your project
     Type: String
-  # TODO: Enforce AllowedValues
   RolePath:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
     Default: ''
-  # TODO: Enforce AllowedValues
   PermissionsBoundaryArn:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
     Default: ''
-
 Conditions:
   RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
   PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
-
 Resources:
   ConfigBucket:
-    DeletionPolicy: Retain
     Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
   BucketSeedFunction:
     Type: AWS::Lambda::Function
     Properties:
       Code:
-        S3Bucket: ammos-cubs-assets
-        S3Key: bucket-seed-function.zip
+        S3Bucket: !Ref QSS3BucketName
+        S3Key: !Sub "${QSS3KeyPrefix}/functions/packages/BucketSeedFunction/lambda.zip"
       Handler: cfn_cognito_inspect.lambda_handler
       Role: !GetAtt LambdaRole.Arn
       Runtime: python3.8
@@ -60,7 +75,6 @@ Resources:
     UpdateReplacePolicy: Delete
     Properties:
       ServiceToken: !Ref BucketSeedFunction
-
 Outputs:
   ExportsOutputRefConfigBucket2112C5EC685752CB:
     Export:

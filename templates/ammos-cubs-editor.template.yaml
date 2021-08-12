@@ -11,16 +11,14 @@ Parameters:
   PrivateSubnetIds:
     Description: Private Subnet IDs for deploying application server Instances
     Type: List<AWS::EC2::Subnet::Id>
-  VpcId:
+  VPCID:
     Description: VPC ID for deploying project resources
     Type: AWS::EC2::VPC::Id
   InstanceType:
     Description: Instance type to be used for AIT Server instances; see deployment guide for recommendations
     Type: String
-    # TODO: Prescribe allowed Instance Types
-    # AllowedValues:
-    # - ""
-  SshKeyName:
+    Default: m5.large
+  KeyPairName:
     Description: Name of created SSH Key for instance access - must use SSM sessions if no key supplied
     Type: AWS::EC2::KeyPair::KeyName
   SessionTimeout:
@@ -29,38 +27,29 @@ Parameters:
     Default: 604800  # One day
     MinValue: 60
     MaxValue: 604800
-  # TODO: Enforce AllowedValues
   RolePath:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
     Default: ''
-  # TODO: Enforce AllowedValues
   PermissionsBoundaryArn:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
     Default: ''
-
-  # NOTE: This will be obsolete once AIT Editor is open sourced and publicly available
-  EditorEcrRepoArn:
-    Type: String
-
 Mappings:
   AWSAMIRegionMap:
     us-east-1:
-      RHEL76HVM: example
+      RHEL76HVM: ami-08a7d2bfef687328f
     us-east-2:
-      RHEL76HVM: example
+      RHEL76HVM: ami-0e166e72fda655c63
     us-west-1:
-      RHEL76HVM: example
+      RHEL76HVM: ami-056efb42b219f9abb
     us-west-2:
-      RHEL76HVM: example
-
+      RHEL76HVM: ami-02deb4589e0f0d95e
 Conditions:
-  SshEnabled: !Not [!Equals ['', !Ref SshKeyName]]
+  SshEnabled: !Not [!Equals ['', !Ref KeyPairName]]
   IsGovCloud: !Not [!Equals ['aws', !Ref AWS::Partition]]
   RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
   PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
-
 Resources:
   AitEditorSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -77,8 +66,7 @@ Resources:
           ToPort: 80
           SourceSecurityGroupId: !ImportValue
             Fn::Sub: '${ProjectName}-AlbSecurityGroupId'
-      VpcId: !Ref VpcId
-
+      VPCID: !Ref VPCID
   EditorTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -88,7 +76,7 @@ Resources:
       Targets:
         - Id: !Ref Instance
           Port: 80
-      VpcId: !Ref VpcId
+      VPCID: !Ref VPCID
   EditorListenerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
@@ -165,7 +153,7 @@ Resources:
         - !Ref AWS::Region
         - RHEL76HVM
       InstanceType: !Ref InstanceType
-      KeyName: !If [SshEnabled, !Ref SshKeyName, !Ref AWS::NoValue]
+      KeyName: !If [SshEnabled, !Ref KeyPairName, !Ref AWS::NoValue]
       SecurityGroupIds:
         - !GetAtt AitEditorSecurityGroup.GroupId
       SubnetId: !Select [0, !Ref PrivateSubnetIds]
@@ -322,7 +310,6 @@ Resources:
     Properties:
       Roles:
         - !Ref InstanceRole
-
 Outputs:
   InstanceId:
     Value: !Ref Instance
