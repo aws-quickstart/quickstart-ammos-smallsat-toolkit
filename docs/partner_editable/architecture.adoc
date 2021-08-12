@@ -17,10 +17,10 @@ As shown in <<architecture1>>, the Quick Start sets up the following:
 * Application Load Balancer to route traffic from the web to the appropriate application resources
 * Auto Scaling Group containing the AIT Server (exposes AIT-GUI and OpenMCT applications via Apache web server)
 * EC2 Instance serving the AIT Editor application via Docker
-* CloudWatch LogGroups
-* Kinesis FireHose
-* Lambda Functions
-* S3 Bucket
+* CloudWatch LogGroups [TODO: SL]
+* Kinesis FireHose [TODO: SL]
+* Lambda Functions [TODO: SL]
+* S3 Bucket [TODO: SL]
 
 == Prereq Components
 // Add bullet points for any additional components that are included in the deployment. Make sure that the additional components are also represented in the architecture diagram. End each bullet with a period.
@@ -33,7 +33,7 @@ Cover Pre-Deployment Resources here?
 * Config stack
 ** S3 Bucket to hold project-specific application config files
 ** Custom resource to seed this bucket with default reference config files
-** See [TODO] for more information on the contents of this bucket
+** See [TODO: link to config section] for more information on the contents of this bucket
 
 
 [.small]#* The template that deploys the Quick Start into an existing VPC skips the components marked by asterisks and prompts you for your existing VPC configuration.#

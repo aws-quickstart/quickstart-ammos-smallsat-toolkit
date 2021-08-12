@@ -1,13 +1,15 @@
 // Add steps as necessary for accessing the software, post-configuration, and testing. Don’t include full usage instructions for your software, but add links to your product documentation for that information.
 //Should any sections not be applicable, remove them
-= Note This is an edit
+= Additional Info
 
 
 == Test the deployment
 // If steps are required to test the deployment, add them here. If not, remove the heading
 
-- navigate to {FQDN} (app subdomains?) and check GUI availability
+TODO: @MF @SL @KM build out
 - connect to the AIT Server EC2 Instance and verify services running
+- run ait-example and ait-tlm-simulate
+- navigate to {FQDN} (app subdomains?) and check GUI availability
 - check logs in CW
 
 _Awaiting input from testing lead_
@@ -30,15 +32,18 @@ Each of the applications is protected by a basic authentication action on the Ap
 https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html[Creating User Accounts as Administrator - Amazon Cognito]
 https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-federation.html[Adding User Pool Sign-in Through a Third Party - Amazon Cognito]
 
-AIT Server Management
-TODO
+=== AIT Server Management
+- Plugin installation [awaiting kabir]
+- Config adjustment? [TODO: MF]
+- Server restarts [TODO: MF]
+- Upgrade process? [TODO: MF]
 
-Modifying the CloudWatch Agent
+=== Modifying the CloudWatch Agent
 The CloudWatch Agent monitors specified log files and pipes their content to AWS CloudWatch Logs. This file can be found on each server at:
 /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
 If you wish to monitor additional files, or change the configuration settings, this file can be modified directly according to:
-Manually create or edit the CloudWatch agent configuration file - Amazon CloudWatch 
+Manually create or edit the CloudWatch agent configuration file - Amazon CloudWatch
 
 Upon editing the file, restart the agent and apply the changes with the following command:
 [source,bash]
@@ -51,39 +56,58 @@ Upon editing the file, restart the agent and apply the changes with the followin
 == Best practices for using {partner-product-short-name} on AWS
 // Provide post-deployment best practices for using the technology on AWS, including considerations such as migrating data, backups, ensuring high performance, high availability, etc. Link to software documentation for detailed information.
 
-_Add any best practices for using the software._
+See docs provided in <<Resources,Resources>> below
 
 == Security
 // Provide post-deployment best practices for using the technology on AWS, including considerations such as migrating data, backups, ensuring high performance, high availability, etc. Link to software documentation for detailed information.
 
-_Add any security-related information._
+TODO:
 
-_To be discussed:_
+@SL:
 
 - Security groups
 - Private subnet deployment
-- Auth actions on ALB
 - SELinux
 - ES/Kibana access policy
+
+@MF:
+
+- Auth actions on ALB
 - Code Server user-binding / auth
 - SSL terminates at ALB, for ALB, byo
 - SSM for instance access
 
 
-== Other useful information
-//Provide any other information of interest to users, especially focusing on areas where AWS or cloud usage differs from on-premises usage.
+== Resources
 
-_Add any other details that will help the customer use the software on AWS._
-
-=== Resources:
+=== Docs
+AIT:
 
 - https://ait-core.readthedocs.io/en/latest/[AIT-Core 2.3.5 documentation]
 - https://ait-gui.readthedocs.io/en/latest/index.html[AIT-GUI 2.3.1 documentation]
 - https://ait-dsn.readthedocs.io/en/latest/index.html[AIT-DSN 2.0.0 documentation]
-- https://nasa.github.io/openmct/[Open MCT - Open Source Mission Control Software]
 
+OpenMCT:
 
-Software version requirements
+- https://nasa.github.io/openmct/[OpenMCT - Open Source Mission Control Software]
+- https://nasa.github.io/openmct/docs/guide/index.html#open-mct-developer-guide[Open MCT - Developer Guide]
+- https://github.com/nasa/openmct-tutorial[OpenMCT - Integration Tutorials]
 
-_TODO_: Document version requirements
+=== Community
+TODO: @CC Links to other JPL/AMMOS resources
 
+- https://groups.google.com/g/ait-dev[AIT Users Mailing Group]
+- https://github.com/nasa/openmct/discussions[OpenMCT - Github Discussions]
+
+== Software version requirements
+
+Document version requirements [TODO: @SL] +
+include note about python3.7 on RHEL8
+
+Note that deployed applications are bound to tagged release. If you require a different version, you can adapt this QuickStart or reinstall the applications at your own risk, as that is out of scope for this deployment guide.
+
+The currently supported versions are:
+----
+AIT: 2.3.5
+OpenMCT: 1.6.2
+----

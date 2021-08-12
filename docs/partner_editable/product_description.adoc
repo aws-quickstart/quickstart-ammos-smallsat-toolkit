@@ -2,6 +2,8 @@
 // Briefly describe the software. Use consistent and clear branding. 
 // Include the benefits of using the software on AWS, and provide details on usage scenarios.
 
-<Describe how the software works on AWS.>
+== Product Description
+TODO: @MF How does AIT interface with OpenMCT and InfluxDB? How does this function as a complete system?
 
-TODO: Content will be sourced from AIT readthedocs page and other MGSS personnel
+== Applications
+TODO: Content will be sourced from AIT readthedocs page and other MGSS personnel; link to resources section in additional_info

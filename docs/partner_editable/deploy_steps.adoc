@@ -1,5 +1,6 @@
 === Confirm your AWS account configuration
 
+//TODO: This section does not exist - link to pre-reqs?
 . Sign in to your AWS account at https://aws.amazon.com with an IAM user role that has the necessary permissions. For details, see link:#_planning_the_deployment[Planning the deployment] earlier in this guide.
 . Make sure that your AWS account is configured correctly, as discussed in the link:#_technical_requirements[Technical requirements] section.
 
@@ -19,9 +20,6 @@ endif::marketplace_subscription[]
 // \Not to be edited
 
 === Launch the Quick Start
-// Adapt the following warning to your Quick Start.
-WARNING: If you’re deploying {partner-product-short-name} into an existing VPC, make sure that your VPC has two private subnets in different Availability Zones for the workload instances and that the subnets aren’t shared. This Quick Start doesn’t support https://docs.aws.amazon.com/vpc/latest/userguide/vpc-sharing.html[shared subnets^]. These subnets require https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html[NAT gateways^] in their route tables to allow the instances to download packages and software without exposing them to the internet. Also make sure that the domain name option in the DHCP options is configured as explained in http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_DHCP_Options.html[DHCP options sets^]. You provide your VPC settings when you launch the Quick Start.
-
 Each deployment takes about {deployment_time} to complete.
 
 . Sign in to your AWS account, and choose one of the following options to launch the AWS CloudFormation template. For help with choosing an option, see link:#_deployment_options[Deployment options] earlier in this guide.
@@ -40,13 +38,17 @@ Each deployment takes about {deployment_time} to complete.
 . On the *Specify stack details* page, change the stack name if needed. Review the parameters for the template. Provide values for the parameters that require input. For all other parameters, review the default settings and customize them as necessary. For details on each parameter, see the link:#_parameter_reference[Parameter reference] section of this guide. When you finish reviewing and customizing the parameters, choose *Next*.
 
 == Overview of process - michael and steven’s “in a nutshell” version
+
+//TODO: Link to Pre-Reqs
 1. Deploy vpc and config stacks (pre-deploy)
 2. Deploy SLR for ES
 3. Add ingress rules to “access-sg”
 4. Check config bucket contents and replace with mission-specific config
 5. Import user-owned domain to Route53 (optional)
 6. Import ssl certificate to AWS ACM
+// Main deploy
 7. Deploy QS
+// TODO: link to post-deploy
 8. Deploy CNAMEs if not using R53
 9. Add users to Cognito UserPool
 10. Validate web interfaces and services
@@ -56,3 +58,7 @@ Each deployment takes about {deployment_time} to complete.
 Step 1-6 is before QS +
 Step 8-10 is post QS
 ====
+
+== Deployment Parameters
+//TODO: Document all parameters by stack
+//TODO: @MF: List params

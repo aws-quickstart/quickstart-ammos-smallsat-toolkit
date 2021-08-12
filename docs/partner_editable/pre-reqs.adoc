@@ -1,24 +1,55 @@
 // If no preperation is required, remove all content from here
 
-==== Prepare your AWS account
+== Prepare your AWS account
 
 _Describe any setup required in the AWS account prior to template launch_
 
 TODO:
+1. Deploy vpc and config stacks (pre-deploy) //TODO: @AG
+2. Deploy SLR for ES //TODO: @SL
+3. Add ingress rules to “access-sg” //TODO: @MF
+4. Check config bucket contents and replace with mission-specific config //TODO: @SL
+5. Import user-owned domain to Route53 (optional) //TODO: @MF
+6. Import ssl certificate to AWS ACM //TODO: @MF
 
-* pre-deploy stacks (vpc and config)
-* deploy ES service-linked role
-* import ssl cert to ACM
-* import domain to R53 (optional)
-
-==== Prepare your {partner-company-name} account
+== Prepare your {partner-company-name} account
 
 _Describe any setup required in the partner portal/account prior to template launch_
 
-==== Prepare for the deployment
+None required - all products are FOSS (we think)
+
+== Prepare for the deployment
 
 _Describe any preparation required to complete the product build, such as obtaining licenses or placing files in S3_
 
-TODO:
+=== S3 Config
 
-* modify applicaiton config in S3
+For configuration and settings, an S3 bucket is created as part of the deployment. The bucket has the following structure:
+
+TODO: @SL Add descriptions of the below folders/files
+
+----
+s3                                      desc
+├── ait                                 desc
+│   ├── cloudwatch-agent-ait.json       desc
+│   ├── config                          desc
+│   │   ├── bsc.yaml
+│   │   ├── ccsds_header.yaml
+│   │   ├── cmd.pkl
+│   │   ├── cmd.yaml
+│   │   ├── config.yaml                 desc
+│   │   ├── core_set_op_mode.yaml
+│   │   ├── evr.pkl
+│   │   ├── evr.yaml
+│   │   ├── leapseconds.dat
+│   │   ├── limits.pkl
+│   │   ├── limits.yaml
+│   │   ├── table.yaml
+│   │   ├── tlm.pkl
+│   │   └── tlm.yaml
+│   └── httpd_proxy.conf                desc
+├── editor                              desc
+│   └── cloudwatch-agent-editor.json    desc
+└── modules                             desc
+    └── openmct-static.tgz              desc
+----

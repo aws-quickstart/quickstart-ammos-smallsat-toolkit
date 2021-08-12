@@ -22,12 +22,6 @@ If the user chooses not to use Route53, they are responsible for deploying the f
 
 The ALB will handle the appropriate redirection based on host header in request, thus it is sufficient to deploy a single CNAME record pointing at the ALB, and all subdomains as aliases redirecting to the ALB CNAME
 
-== S3 Config
-
-For configuration and settings, an S3 bucket is created as part of the deployment. The bucket has the following structure:
-
-TODO: Will populate this with tree later
-
 == Log Retention Settings
 
 The AWS CloudWatch log groups that receive logs from the various applications have been configured with a log retention period. The retention period is a parameter in the logging CloudFormation template and can be adjusted by changing the parameter value prior to deployment or by https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#SettingLogRetention[manually changing the retention period]. The default log retention period is 30 days (a month). Keep in mind that increasing the log retention period will increase the costs associated with storing the logs for a longer time.
@@ -124,7 +118,7 @@ sudo systemctl restart ait-server
 The service itself will run the AIT Core Server which listens for, processes, and exposes telemetry. Additionally, any configured plugins (such as `AIT-GUI`) will also be run according to the main AIT config file.
 
 == RHEL 8
-TODO: Add disclaimer about AMMOS support for RHEL even though AIT does not technically hard-depend on RHEL
+All applications are deployed on Instances running the RHEL8 GA AMI. Although the applications installed do not have a hard dependency on this OS, it is the officially supported Operating System for all AMMOS applications.
 
 == SELinux
 SELinux is enabled and enforced on the application servers. Apache HTTP Server and the various application processes have been configured for SELinux compatibility and can be run without disabling SELinux.
