@@ -1,6 +1,5 @@
-  AWSTemplateFormatVersion: 2010-09-09
+AWSTemplateFormatVersion: 2010-09-09
 Description: Cognito resources for an AMMOS Cubs Deployment
-
 Parameters:
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
@@ -16,7 +15,7 @@ Parameters:
     AllowedPattern: ^[0-9a-zA-Z-/]*$
     ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
       uppercase letters, hyphens (-), and forward slash (/).
-    Default: quickstart-boomi-molecule/
+    Default: quickstart-nasa-jpl-cubs/
     Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
       can include numbers, lowercase letters, uppercase letters, hyphens (-), and
       forward slash (/).
@@ -98,7 +97,6 @@ Resources:
     Properties:
       Domain: !Ref ProjectName
       UserPoolId: !Ref UserPool
-
 Outputs:
   CognitoInspectFunctionArn:
     Description: ARN of the Lambda function to serve as a custom resource inspecting cognito clients

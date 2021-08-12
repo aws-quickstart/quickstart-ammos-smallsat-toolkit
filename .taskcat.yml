@@ -18,4 +18,4 @@ project:
 tests:
   quickstart-nasa-jpl-cubs:
     parameters: {}
-    template: templates/jpl-main-entrypoint.template.yaml
+    template: templates/ammos-cubs.main.template.yaml
