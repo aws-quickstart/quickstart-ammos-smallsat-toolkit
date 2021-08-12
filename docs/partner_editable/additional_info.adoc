@@ -33,10 +33,10 @@ https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-acc
 https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-federation.html[Adding User Pool Sign-in Through a Third Party - Amazon Cognito]
 
 === AIT Server Management
-- Plugin installation [awaiting kabir]
-- Config adjustment? [TODO: MF]
-- Server restarts [TODO: MF]
-- Upgrade process? [TODO: MF]
+- Plugin installation [awaiting @KM]
+- Config adjustment? [TODO: @MF]
+- Server restarts [TODO: @MF]
+- Upgrade process? [TODO: @MF]
 
 === Modifying the CloudWatch Agent
 The CloudWatch Agent monitors specified log files and pipes their content to AWS CloudWatch Logs. This file can be found on each server at:
