@@ -12,6 +12,13 @@ TODO: @MF @SL @KM build out
 - navigate to {FQDN} (app subdomains?) and check GUI availability
 - check logs in CW
 
+
+=== Connect to EC2 Server
+=== Run sample telemtry generators
+=== Navigate to applications in web browser
+=== Check logs in CloudWatch Logs
+
+
 _Awaiting input from testing lead_
 
 == Post-deployment steps
@@ -69,6 +76,24 @@ TODO:
 - Private subnet deployment
 - SELinux
 - ES/Kibana access policy
+
+=== Security Groups
+As part of the Quick Start deployment, you will need to specify security groups that define inbound/outbound network traffic rules. Typically this means creating inbound rules for the security groups, defining the appropriate CIDR/IP ranges that should be allowed access to various resources deployed by this Quick Start. For more information, see the https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security-groups.html[documentation for security groups].
+
+=== Private Subnets
+The application servers for AIT Server and AIT Editor as well as the Elasticsearch domain are deployed to private subnets within a VPC. An Application Load Balancer (deployed to a public subnet in the same VPC) is used to route requests to these servers. This minimizes the publicly exposed footprint of resources deployed using this Quick Start. To access these servers in the private subnets, please refer TODO: to the SSM section.
+
+=== SELinux
+SELinux is enabled and enforced on the application servers. Apache HTTP Server and the various application processes have been configured for SELinux compatibility and can be run without disabling SELinux.
+
+Side effects may occur if settings and/or configuration files are modified or moved after the initial deployment of the application. If you have any issues with SELinux file and process contexts, please refer to a fresh deployment of the Quick Start or redeploy the Quick Start.
+
+We highly recommend that you do not disable SELinux unless you are aware of unintended security consequences or have the need to disable SELinux for compatibility or debugging purposes.
+
+=== Elasticsearch/Kibana
+This Quick Start deploys an Elasticsearch domain under the AWS Elasticsearch Service. The Elasticsearch domain contains logging data that is received from application servers. It is deployed within a VPC (see https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-vpc.html[VPC support]) and all master and data nodes reside within private subnets. Encryption for data at rest is enabled by default, and the security group associated with the domain is configured prior to deploying this Quick Start.
+
+IMPORTANT: The Elasticsearch domain currently uses an open access policy, with access controlled via by an EC2 security group. For more security, use fine-grained access control or modify the access policy to specify IAM users or roles. See https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/security.html[Elasticsearch security] for more details.
 
 @MF:
 
