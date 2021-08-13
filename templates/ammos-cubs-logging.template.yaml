@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
+Description: (qs-1s6abjf80)
 Parameters:
   ElasticsearchDomainName:
     Description: Name of the Elasticsearch domain
@@ -49,8 +50,6 @@ Parameters:
 Conditions:
   RolePathProvided: !Not [!Equals ["", !Ref RolePath]]
   PermissionsBoundaryProvided: !Not [!Equals ["", !Ref PermissionsBoundaryArn]]
-
-# TODO: parameterize?
 Resources:
   ElasticsearchSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -120,27 +119,69 @@ Resources:
           - Effect: Allow
             Principal:
               AWS: "*"
-            Action: es:*
+            Action:
+              - es:AcceptInboundCrossClusterSearchConnection
+              - es:AddTags
+              - es:AssociatePackage
+              - es:CreateElasticsearchDomain
+              - es:CreateElasticsearchServiceRole
+              - es:CreateOutboundCrossClusterSearchConnection
+              - es:CreatePackage
+              - es:DeleteElasticsearchDomain
+              - es:DeleteElasticsearchServiceRole
+              - es:DeleteInboundCrossClusterSearchConnection
+              - es:DeleteOutboundCrossClusterSearchConnection
+              - es:DeletePackage
+              - es:DescribeElasticsearchDomain
+              - es:DescribeElasticsearchDomainConfig
+              - es:DescribeElasticsearchDomains
+              - es:DescribeElasticsearchInstanceTypeLimits
+              - es:DescribeInboundCrossClusterSearchConnections
+              - es:DescribeOutboundCrossClusterSearchConnections
+              - es:DescribePackages
+              - es:DescribeReservedElasticsearchInstanceOfferings
+              - es:DescribeReservedElasticsearchInstances
+              - es:DissociatePackage
+              - es:ESCrossClusterGet
+              - es:ESHttpDelete
+              - es:ESHttpGet
+              - es:ESHttpHead
+              - es:ESHttpPatch
+              - es:ESHttpPost
+              - es:ESHttpPut
+              - es:GetCompatibleElasticsearchVersions
+              - es:GetPackageVersionHistory
+              - es:GetUpgradeHistory
+              - es:GetUpgradeStatus
+              - es:ListDomainNames
+              - es:ListDomainsForPackage
+              - es:ListElasticsearchInstanceTypeDetails
+              - es:ListElasticsearchInstanceTypes
+              - es:ListElasticsearchVersions
+              - es:ListPackagesForDomain
+              - es:ListTags
+              - es:PurchaseReservedElasticsearchInstanceOffering
+              - es:RejectInboundCrossClusterSearchConnection
+              - es:RemoveTags
+              - es:UpdateElasticsearchDomainConfig
+              - es:UpdatePackage
+              - es:UpgradeElasticsearchDomain
             Resource: !Sub arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/${ElasticsearchDomainName}/*
-
   AitEditorAgentLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: /cloudwatch-agent/ait-editor/agent
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
-
   AitEditorSyslogLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: /cloudwatch-agent/ait-editor/syslog
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
-
   AitServerAgentLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: /cloudwatch-agent/ait-server/agent
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
-
   AitServerSyslogLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -148,8 +189,14 @@ Resources:
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
   LoggingBucket:
     Type: AWS::S3::Bucket
-
   FirehoseRole:
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - EIAMPolicyWildcardResource
+          ignore_reasons:
+            EIAMPolicyWildcardResource: Network interface permissions are a circular dependency. Specific nodes/interfaces of an Elasticsearch domain are not easily surfaced to CFN
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -194,8 +241,8 @@ Resources:
                   - ec2:DescribeSecurityGroups
                   - ec2:DescribeNetworkInterfaces
                   - ec2:CreateNetworkInterface
-                  - ec2:CreateNetworkInterfacePermission
                   - ec2:DeleteNetworkInterface
+                  - ec2:CreateNetworkInterfacePermission
                 Resource: "*"
         - PolicyName: firehose-elasticsearch
           PolicyDocument:
@@ -320,7 +367,18 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - firehose:*
+                  - firehose:CreateDeliveryStream
+                  - firehose:DeleteDeliveryStream
+                  - firehose:DescribeDeliveryStream
+                  - firehose:ListDeliveryStreams
+                  - firehose:ListTagsForDeliveryStream
+                  - firehose:PutRecord
+                  - firehose:PutRecordBatch
+                  - firehose:StartDeliveryStreamEncryption
+                  - firehose:StopDeliveryStreamEncryption
+                  - firehose:TagDeliveryStream
+                  - firehose:UntagDeliveryStream
+                  - firehose:UpdateDestination
                 Resource:
                   - !GetAtt LogKinesisDeliveryStream.Arn
 
@@ -381,7 +439,18 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - firehose:*
+                  - firehose:CreateDeliveryStream
+                  - firehose:DeleteDeliveryStream
+                  - firehose:DescribeDeliveryStream
+                  - firehose:ListDeliveryStreams
+                  - firehose:ListTagsForDeliveryStream
+                  - firehose:PutRecord
+                  - firehose:PutRecordBatch
+                  - firehose:StartDeliveryStreamEncryption
+                  - firehose:StopDeliveryStreamEncryption
+                  - firehose:TagDeliveryStream
+                  - firehose:UntagDeliveryStream
+                  - firehose:UpdateDestination
                 Resource:
                   - !Sub arn:${AWS::Partition}:firehose:${AWS::Region}:${AWS::AccountId}:deliverystream/*
                   # - !GetAtt LogKinesisDeliveryStream.Arn # XXX: can't reference stream directly because of circular dependency

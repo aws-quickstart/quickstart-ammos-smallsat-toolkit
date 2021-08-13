@@ -1,5 +1,6 @@
 ---
 AWSTemplateFormatVersion: "2010-09-09"
+Description: (qs-1s6abjf8q)
 Metadata:
   QuickStartDocumentation:
     EntrypointName: "Launch into a new VPC"

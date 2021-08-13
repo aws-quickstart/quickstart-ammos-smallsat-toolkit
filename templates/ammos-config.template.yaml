@@ -1,3 +1,4 @@
+Description: (qs-1s6abjf87)
 Parameters:
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
@@ -18,6 +19,10 @@ Parameters:
       can include numbers, lowercase letters, uppercase letters, hyphens (-), and
       forward slash (/).
     Type: String
+  QSS3BucketRegion:
+    Default: 'us-east-1'
+    Description: The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value.
+    Type: String
   ProjectName:
     Description: Name of your project
     Type: String
@@ -32,49 +37,31 @@ Parameters:
 Conditions:
   RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
   PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, "aws-quickstart"]
 Resources:
   ConfigBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
-  BucketSeedFunction:
-    Type: AWS::Lambda::Function
+  CopyZipsStack:
+    Type: AWS::CloudFormation::Stack
     Properties:
-      Code:
-        S3Bucket: !Ref QSS3BucketName
-        S3Key: !Sub "${QSS3KeyPrefix}/functions/packages/BucketSeedFunction/lambda.zip"
-      Handler: cfn_cognito_inspect.lambda_handler
-      Role: !GetAtt LambdaRole.Arn
-      Runtime: python3.8
-  LambdaRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-        Version: "2012-10-17"
-      ManagedPolicyArns:
-        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
-      PermissionsBoundary:  !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
-      Policies:
-        - PolicyDocument:
-            Statement:
-              - Action: s3:PutObject
-                Effect: Allow
-                Resource:
-                  - !Sub 'arn:${AWS::Partition}:s3:::${ConfigBucket}/*'
-            Version: "2012-10-17"
-          PolicyName: config-bucket-put-objects
-  SeedBucket:
-    Type: AWS::CloudFormation::CustomResource
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
-    Properties:
-      ServiceToken: !Ref BucketSeedFunction
+      TemplateURL: !Sub
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/lambda-copyzips/templates/copy-zips.template.yaml
+        - S3Region:
+            !If [UsingDefaultBucket, !Ref "AWS::Region", !Ref QSS3BucketRegion]
+          S3Bucket:
+            !If [
+              UsingDefaultBucket,
+              !Sub "${QSS3BucketName}-${AWS::Region}",
+              !Ref QSS3BucketName,
+            ]
+      Parameters:
+        DestinationBucket: !Ref ConfigBucket
+        QSS3BucketName: !Ref "QSS3BucketName"
+        QSS3KeyPrefix: !Ref "QSS3KeyPrefix"
+        SourceObjects:
+          -
 Outputs:
   ExportsOutputRefConfigBucket2112C5EC685752CB:
     Export:

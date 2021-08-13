@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Cognito resources for an AMMOS Cubs Deployment
+Description: Cognito resources for an AMMOS Cubs Deployment (qs-1s6abjf7e)
 Parameters:
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
