@@ -1,4 +1,4 @@
-  AWSTemplateFormatVersion: 2010-09-09
+AWSTemplateFormatVersion: 2010-09-09
 Description: Cognito resources for an AMMOS Cubs Deployment
 
 Parameters:
@@ -32,6 +32,42 @@ Parameters:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
     Default: ''
+
+Metadata:
+  QuickStartDocumentation:
+    EntrypointName: 'Launch a New VPC'
+    OptionalParameters:
+      - RolePath
+      - PermissionsBoundaryArn
+      - QSS3BucketName
+      - QSS3KeyPrefix
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Quick Start Configuration
+        Parameters:
+          - QSS3BucketName
+          - QSS3KeyPrefix
+      - Label:
+          default: IAM Configuration
+        Parameters:
+          - RolePath
+          - PermissionsBoundaryArn
+      - Label:
+          default: Project Configuration
+        Parameters:
+          - ProjectName
+    ParameterLabels:
+      QSS3BucketName:
+        default: QS S3 Bucket Name
+      QSS3KeyPrefix:
+        default: QS S3 Key Prefix
+      ProjectName:
+        default: Project Name
+      PermissionsBoundaryArn:
+        default: PermissionsBoundary Policy ARN
+      RolePath:
+        default: IAM Role Path
 
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']

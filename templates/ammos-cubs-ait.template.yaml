@@ -42,7 +42,8 @@ Parameters:
     Type: String
   QSS3KeyPrefix:
     AllowedPattern: ^([0-9a-zA-Z-.]+/)*$
-    ConstraintDescription: The Quick Start S3 key prefix can include numbers, lowercase letters,
+    ConstraintDescription:
+      The Quick Start S3 key prefix can include numbers, lowercase letters,
       uppercase letters, hyphens (-), and forward slashes (/).
     Default: quickstart-linux-bastion/
     Description: S3 key prefix that is used to simulate a directory for your copy of the
@@ -56,7 +57,7 @@ Parameters:
   SessionTimeout:
     Description: The maximum duration of the authentication session, in seconds.
     Type: Number
-    Default: 604800  # One day
+    Default: 604800 # One day
     MinValue: 60
     MaxValue: 604800
   # TODO: Enforce AllowedValues
@@ -81,6 +82,77 @@ Conditions:
   IsGovCloud: !Not [!Equals ['aws', !Ref AWS::Partition]]
   RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
   PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
+
+Metadata:
+  QuickStartDocumentation:
+    EntrypointName: 'Provision the AIT Server resources'
+    OptionalParameters:
+      - InstanceType
+      - SshKeyName
+      - QSS3BucketName
+      - QSS3BucketRegion
+      - QSS3KeyPrefix
+      - SessionTimeout
+      - RolePath
+      - PermissionsBoundaryArn
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Network Configuration
+        Parameters:
+          - SessionTimeout
+          - PrivateSubnetIds
+          - VpcId
+      - Label:
+          default: Project Configuration
+        Parameters:
+          - FQDN
+          - ProjectName
+          - ConfigBucketName
+      - Label:
+          default: Server Configuration
+        Parameters:
+          - InstanceType
+          - SshKeyName
+      - Label:
+          default: IAM Configuration
+        Parameters:
+          - RolePath
+          - PermissionsBoundaryArn
+      - Label:
+          default: VPC Flow Logs Configuration
+        Parameters:
+          - QSS3BucketName
+          - QSS3BucketRegion
+          - QSS3KeyPrefix
+    ParameterLabels:
+      ProjectName:
+        default: Projec tName
+      ConfigBucketName:
+        default: Config Bucket Name
+      FQDN:
+        default: FQDN
+      PrivateSubnetIds:
+        default: Private Subnet IDs
+      VpcId:
+        default: VPC ID
+      InstanceType:
+        default: Instance Type
+      SshKeyName:
+        default: SSH KeyPair Name
+      QSS3BucketName:
+        default: QS S3 Bucket Name
+      QSS3KeyPrefix:
+        default: QS S3 Key Prefix
+      QSS3BucketRegion:
+        default: QS S3 Bucket Region
+      SessionTimeout:
+        default: Auth Session Timeout
+      PermissionsBoundaryArn:
+        default: PermissionsBoundary Policy ARN
+      RolePath:
+        default: IAM Role Path
+
 Mappings:
   AWSAMIRegionMap:
     us-east-1:
@@ -128,7 +200,11 @@ Resources:
           roleName:
             - !Ref InstanceRole
           buckets:
-            - !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+            - !If [
+                UsingDefaultBucket,
+                !Sub '${QSS3BucketName}-${AWS::Region}',
+                !Ref QSS3BucketName,
+              ]
       AWS::CloudFormation::Init:
         configSets:
           default:
@@ -212,7 +288,7 @@ Resources:
       Tags:
         - Key: Name
           PropagateAtLaunch: true
-          Value: !Sub "${ProjectName}/AitAutoScalingGroup"
+          Value: !Sub '${ProjectName}/AitAutoScalingGroup'
       TargetGroupARNs:
         - !Ref 'AitWebTargetGroup'
         - !Ref 'AitMctTargetGroup'
@@ -235,38 +311,38 @@ Resources:
               Fn::Sub: ${ProjectName}-CognitoProviderUrl
             UserInfoEndpoint:
               Fn::Join:
-                - ""
-                - - "https://"
+                - ''
+                - - 'https://'
                   - !ImportValue
                     Fn::Sub: ${ProjectName}-CognitoDomainName
-                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
+                  - !If [IsGovCloud, '.auth-fips.', '.auth.']
                   - !Ref AWS::Region
-                  - ".amazoncognito.com/oauth2/userInfo"
+                  - '.amazoncognito.com/oauth2/userInfo'
             AuthorizationEndpoint:
               Fn::Join:
-                - ""
-                - - "https://"
+                - ''
+                - - 'https://'
                   - !ImportValue
                     Fn::Sub: ${ProjectName}-CognitoDomainName
-                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
+                  - !If [IsGovCloud, '.auth-fips.', '.auth.']
                   - !Ref AWS::Region
-                  - ".amazoncognito.com/oauth2/authorize"
+                  - '.amazoncognito.com/oauth2/authorize'
             TokenEndpoint:
               Fn::Join:
-                - ""
-                - - "https://"
+                - ''
+                - - 'https://'
                   - !ImportValue
                     Fn::Sub: ${ProjectName}-CognitoDomainName
-                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
+                  - !If [IsGovCloud, '.auth-fips.', '.auth.']
                   - !Ref AWS::Region
-                  - ".amazoncognito.com/oauth2/token"
+                  - '.amazoncognito.com/oauth2/token'
             OnUnauthenticatedRequest: authenticate
             Scope: openid
             SessionTimeout: !Ref SessionTimeout
         - Type: forward
           Order: 2
           TargetGroupArn: !Ref 'AitWebTargetGroup'
-      Conditions:  # One day
+      Conditions: # One day
         - Field: host-header
           HostHeaderConfig:
             Values:
@@ -289,31 +365,31 @@ Resources:
               Fn::Sub: ${ProjectName}-CognitoProviderUrl
             UserInfoEndpoint:
               Fn::Join:
-                - ""
-                - - "https://"
+                - ''
+                - - 'https://'
                   - !ImportValue
                     Fn::Sub: ${ProjectName}-CognitoDomainName
-                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
+                  - !If [IsGovCloud, '.auth-fips.', '.auth.']
                   - !Ref AWS::Region
-                  - ".amazoncognito.com/oauth2/userInfo"
+                  - '.amazoncognito.com/oauth2/userInfo'
             AuthorizationEndpoint:
               Fn::Join:
-                - ""
-                - - "https://"
+                - ''
+                - - 'https://'
                   - !ImportValue
                     Fn::Sub: ${ProjectName}-CognitoDomainName
-                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
+                  - !If [IsGovCloud, '.auth-fips.', '.auth.']
                   - !Ref AWS::Region
-                  - ".amazoncognito.com/oauth2/authorize"
+                  - '.amazoncognito.com/oauth2/authorize'
             TokenEndpoint:
               Fn::Join:
-                - ""
-                - - "https://"
+                - ''
+                - - 'https://'
                   - !ImportValue
                     Fn::Sub: ${ProjectName}-CognitoDomainName
-                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
+                  - !If [IsGovCloud, '.auth-fips.', '.auth.']
                   - !Ref AWS::Region
-                  - ".amazoncognito.com/oauth2/token"
+                  - '.amazoncognito.com/oauth2/token'
             OnUnauthenticatedRequest: authenticate
             Scope: openid
             SessionTimeout: !Ref SessionTimeout
@@ -360,7 +436,8 @@ Resources:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy'
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
       Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
-      PermissionsBoundary:  !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
       Policies:
         - PolicyDocument:
             Statement:
@@ -383,12 +460,17 @@ Resources:
                   - 's3:GetObject'
                 Resource: !Sub
                   - arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}*
-                  - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+                  - S3Bucket:
+                      !If [
+                        UsingDefaultBucket,
+                        !Sub '${QSS3BucketName}-${AWS::Region}',
+                        !Ref QSS3BucketName,
+                      ]
                 Effect: Allow
             Version: '2012-10-17'
           PolicyName: InstanceRoleDefaultPolicy
 Outputs:
   GovCloudCondition:
-    Value: !If [IsGovCloud, "yes", "no"]
+    Value: !If [IsGovCloud, 'yes', 'no']
   AitSecurityGroupId:
     Value: !GetAtt 'AitServerSecurityGroup.GroupId'
