@@ -26,7 +26,7 @@ Parameters:
   SessionTimeout:
     Description: The maximum duration of the authentication session, in seconds.
     Type: Number
-    Default: 604800  # One day
+    Default: 604800 # One day
     MinValue: 60
     MaxValue: 604800
   # TODO: Enforce AllowedValues
@@ -43,6 +43,61 @@ Parameters:
   # NOTE: This will be obsolete once AIT Editor is open sourced and publicly available
   EditorEcrRepoArn:
     Type: String
+
+Metadata:
+  QuickStartDocumentation:
+    EntrypointName: 'Provision the AIT Editor resources'
+    OptionalParameters:
+      - InstanceType
+      - SshKeyName
+      - SessionTimeout
+      - RolePath
+      - PermissionsBoundaryArn
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Network Configuration
+        Parameters:
+          - VpcId
+          - PrivateSubnetIds
+          - SessionTimeout
+      - Label:
+          default: Instance Configuration
+        Parameters:
+          - InstanceType
+          - SshKeyName
+      - Label:
+          default: Project Configuration
+        Parameters:
+          - ProjectName
+          - ConfigBucketName
+          - FQDN
+      - Label:
+          default: IAM Configuration
+        Parameters:
+          - RolePath
+          - PermissionsBoundaryArn
+    ParameterLabels:
+      ProjectName:
+        default: Project Name
+      PermissionsBoundaryArn:
+        default: PermissionsBoundary Policy ARN
+      RolePath:
+        default: IAM Role Path
+      ConfigBucketName:
+        default: Config Bucket Name
+      FQDN:
+        default: FQDN
+      PrivateSubnetIds:
+        default: Private Subnet IDs
+      VpcId:
+        default: VPC ID
+      InstanceType:
+        default: Instance Type
+      SshKeyName:
+        default: SSH KeyPair Name
+      SessionTimeout:
+        default: Auth Session Timeout
 
 Mappings:
   AWSAMIRegionMap:
@@ -104,31 +159,31 @@ Resources:
               Fn::Sub: ${ProjectName}-CognitoProviderUrl
             UserInfoEndpoint:
               Fn::Join:
-                - ""
-                - - "https://"
+                - ''
+                - - 'https://'
                   - !ImportValue
                     Fn::Sub: ${ProjectName}-CognitoDomainName
-                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
+                  - !If [IsGovCloud, '.auth-fips.', '.auth.']
                   - !Ref AWS::Region
-                  - ".amazoncognito.com/oauth2/userInfo"
+                  - '.amazoncognito.com/oauth2/userInfo'
             AuthorizationEndpoint:
               Fn::Join:
-                - ""
-                - - "https://"
+                - ''
+                - - 'https://'
                   - !ImportValue
                     Fn::Sub: ${ProjectName}-CognitoDomainName
-                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
+                  - !If [IsGovCloud, '.auth-fips.', '.auth.']
                   - !Ref AWS::Region
-                  - ".amazoncognito.com/oauth2/authorize"
+                  - '.amazoncognito.com/oauth2/authorize'
             TokenEndpoint:
               Fn::Join:
-                - ""
-                - - "https://"
+                - ''
+                - - 'https://'
                   - !ImportValue
                     Fn::Sub: ${ProjectName}-CognitoDomainName
-                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
+                  - !If [IsGovCloud, '.auth-fips.', '.auth.']
                   - !Ref AWS::Region
-                  - ".amazoncognito.com/oauth2/token"
+                  - '.amazoncognito.com/oauth2/token'
             OnUnauthenticatedRequest: authenticate
             Scope: openid
             SessionTimeout: !Ref SessionTimeout
@@ -155,7 +210,7 @@ Resources:
     Properties:
       Tags:
         - Key: Name
-          Value: !Sub "${ProjectName}/EditorServer"
+          Value: !Sub '${ProjectName}/EditorServer'
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
           Ebs:
@@ -172,8 +227,7 @@ Resources:
         - !GetAtt AitEditorSecurityGroup.GroupId
       SubnetId: !Select [0, !Ref PrivateSubnetIds]
       UserData:
-        Fn::Base64:
-          !Sub |
+        Fn::Base64: !Sub |
           #!/bin/bash
           exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 
@@ -287,7 +341,8 @@ Resources:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy'
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
       Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
-      PermissionsBoundary:  !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
       Policies:
         - PolicyDocument:
             Statement:

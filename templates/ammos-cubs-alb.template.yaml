@@ -6,7 +6,7 @@ Parameters:
     Description: FQDN to use for load balancer
     Type: String
   CertificateArn:
-    Description: ARN to Certifictate in ACM valid for specified FQDN and relevant subdomains
+    Description: ARN to Certificate in ACM valid for specified FQDN and relevant subdomains
     Type: String
   VpcId:
     Description: VPC ID for deploying project resources
@@ -15,11 +15,52 @@ Parameters:
     Description: Comma-separated list of Pulbic Subnet ID's for ALB deployment
     Type: List<AWS::EC2::Subnet::Id>
   AccessSgId:
-    Description: Cidr Block to allow ingress to ALB
+    Description: ID of the Security Group configured for inbound access
     Type: AWS::EC2::SecurityGroup::Id
   HostedZoneId:
     Description: ID of Route53 Hosted Zone in which to create records for discovery
     Type: String
+    Default: ''
+
+Metadata:
+  QuickStartDocumentation:
+    EntrypointName: 'Provision the Application Load Balancer'
+    OptionalParameters:
+      - HostedZoneId
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Network Configuration
+        Parameters:
+          - VpcId
+          - PublicSubnetIds
+          - AccessSgId
+          - HostedZoneId
+      - Label:
+          default: Project Configuration
+        Parameters:
+          - ProjectName
+          - FQDN
+      - Label:
+          default: Load Balancer Configuration
+        Parameters:
+          - CertificateArn
+    ParameterLabels:
+      ProjectName:
+        default: Project Name
+      FQDN:
+        default: FQDN
+      CertificateArn:
+        default: Certificate ARN
+      VpcId:
+        default: VPC ID
+      PublicSubnetIds:
+        default: Public Subnet IDs
+      AccessSgId:
+        default: Access Security Group ID
+      HostedZoneId:
+        default: Hosted Zone ID
+
 
 Conditions:
   DeployR53Records: !Not [!Equals ["", !Ref HostedZoneId]]

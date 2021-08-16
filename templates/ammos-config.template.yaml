@@ -13,6 +13,31 @@ Parameters:
     Type: String
     Default: ''
 
+Metadata:
+  QuickStartDocumentation:
+    EntrypointName: 'Launch a New VPC'
+    OptionalParameters:
+      - RolePath
+      - PermissionsBoundaryArn
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: IAM Configuration
+        Parameters:
+          - RolePath
+          - PermissionsBoundaryArn
+      - Label:
+          default: Project Configuration
+        Parameters:
+          - ProjectName
+    ParameterLabels:
+      ProjectName:
+        default: Project Name
+      PermissionsBoundaryArn:
+        default: PermissionsBoundary Policy ARN
+      RolePath:
+        default: IAM Role Path
+
 Conditions:
   RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
   PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]

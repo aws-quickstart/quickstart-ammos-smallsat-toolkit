@@ -22,8 +22,7 @@ Parameters:
     Type: String
     Default: ''
   SshKeyName:
-    Description: Name of created SSH Key for instance access - must use SSM sessions
-      if no key supplied
+    Description: Name of created SSH Key for instance access - can also connect via SSM
     Type: AWS::EC2::KeyPair::KeyName
   PrivateSubnetIds:
     Description: List of Private Subnet IDs for deploying the AIT Autoscaling Group
@@ -31,16 +30,70 @@ Parameters:
   VpcId:
     Description: VPC ID for deploying project resources
     Type: AWS::EC2::VPC::Id
-  InstanceType:
-    Description: Instance type to be used for AIT Server instances; see deployment
-      guide for recommendations
-    Type: String
   AccessSgId:
     Description: Cidr Block to allow ingress to ALB
     Type: AWS::EC2::SecurityGroup::Id
   PublicSubnetIds:
     Description: Comma-separated list of Pulbic Subnet ID's for bastion deployment
     Type: List<AWS::EC2::Subnet::Id>
+
+Metadata:
+  QuickStartDocumentation:
+    EntrypointName: 'Launch centralized logging resources'
+    OptionalParameters:
+      - BastionAmiId
+      - CloudWatchLogsRetentionPeriod
+      - PermissionsBoundaryArn
+      - RolePath
+      - SshKeyName
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Project Configuration
+        Parameters:
+          - ProjectName
+      - Label:
+          default: Network Configuration
+        Parameters:
+          - VpcId
+          - PrivateSubnetIds
+          - PublicSubnetIds
+          - AccessSgId
+      - Label:
+          default: IAM Configuration
+        Parameters:
+          - RolePath
+          - PermissionsBoundaryArn
+      - Label:
+          default: Bastion Configuration
+        Parameters:
+          - BastionAmiId
+          - SshKeyName
+      - Label:
+          default: Logging Configuration
+        Parameters:
+          - CloudWatchLogsRetentionPeriod
+    ParameterLabels:
+      ProjectName:
+        default: Project Name
+      PermissionsBoundaryArn:
+        default: PermissionsBoundary Policy ARN
+      RolePath:
+        default: IAM Role Path
+      BastionAmiId:
+        default: Bastion AMI ID
+      CloudWatchLogsRetentionPeriod:
+        default: Logs Retention Period
+      SshKeyName:
+        default: SSH KeyPair Name
+      PrivateSubnetIds:
+        default: Private Subnet IDs
+      VpcId:
+        default: VPC ID
+      AccessSgId:
+        default: Access Security Group ID
+      PublicSubnetIds:
+        default: Public Subnet IDs
 
 Conditions:
   RolePathProvided: !Not [!Equals ["", !Ref RolePath]]
@@ -103,7 +156,7 @@ Resources:
             Principal:
               AWS: "*"
             Action: es:*
-            Resource: !Sub arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/${ElasticsearchDomainName}/*
+            Resource: !Sub arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/${ProjectName}-es-domain/*
 
   AitEditorAgentLogGroup:
     Type: AWS::Logs::LogGroup
