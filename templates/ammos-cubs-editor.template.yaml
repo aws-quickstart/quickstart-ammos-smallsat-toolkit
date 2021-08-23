@@ -40,10 +40,6 @@ Parameters:
     Type: String
     Default: ''
 
-  # NOTE: This will be obsolete once AIT Editor is open sourced and publicly available
-  EditorEcrRepoArn:
-    Type: String
-
 Metadata:
   QuickStartDocumentation:
     EntrypointName: 'Provision the AIT Editor resources'
@@ -256,10 +252,9 @@ Resources:
           SETUP_DIR=$PROJECT_HOME/setup
           AWS_REGION=${AWS::Region}
           AWS_ACCOUNT_ID=${AWS::AccountId}
-          EDITOR_IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/aerie/aerie-editor
+          EDITOR_IMAGE_URI=codercom/code-server
+          EDITOR_IMAGE_TAG=3.11.0
 
-          # EDITOR_IMAGE_TAG=release-0.8.0
-          EDITOR_IMAGE_TAG=latest
           echo "Starting user data"
 
           # General tools
@@ -289,12 +284,6 @@ Resources:
           systemctl enable docker
           systemctl start docker
 
-          echo "Authenticating to ECR"
-          /usr/local/aws-cli/v2/current/bin/aws ecr get-login-password --region $AWS_REGION | \
-            docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-
-          # docker-compose up --detach
-
           echo "Creating Editor Users"
           groupadd editor-users
           EDITOR_GID=$(tail -1 /etc/group | cut -d : -f3)
@@ -314,7 +303,7 @@ Resources:
           disable-telemetry: true
           disable-update-check: true
           extra-extensions-dir: ['/home/coder/extra-extensions']
-          username: $USERNAME
+          # username: $USERNAME
           EOF
           chown -R $USERNAME: /home/$USERNAME
 
@@ -346,16 +335,6 @@ Resources:
       Policies:
         - PolicyDocument:
             Statement:
-              - Action: ecr:GetAuthorizationToken
-                Effect: Allow
-                Resource: '*'
-              - Action:
-                  - ecr:BatchCheckLayerAvailability
-                  - ecr:GetDownloadUrlForLayer
-                  - ecr:BatchGetImage
-                Effect: Allow
-                Resource:
-                  - !Ref EditorEcrRepoArn
               - Action:
                   - s3:GetBucketAcl
                   - s3:GetBucketLocation
