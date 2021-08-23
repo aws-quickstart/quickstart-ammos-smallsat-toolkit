@@ -3,7 +3,7 @@
 // Include the benefits of using the software on AWS, and provide details on usage scenarios.
 
 == Overview
-{partner-product-short-name} represents a collection of software and tools useful in the planning and operation of small sat, cube sat, and instrumentation missions. The core of this slim Ground Data System (GDS) is the AMMOS Instrument Toolkit (AIT). Additional visualization and dashboarding capabilities are provided by the Open Mission Control Technologies (OpenMCT) toolkit. Lastly, the AIT Editor tool provides a centralized browser-based IDE for generating and editing spacecraft sequence files.
+{partner-product-short-name} represents a collection of software and tools useful in the planning and operation of small sat, cube sat, and instrument missions. The core of this slim Ground Data System (GDS) is the AMMOS Instrument Toolkit (AIT). Additional visualization and dashboarding capabilities are provided by the Open Mission Control Technologies (OpenMCT) toolkit. Lastly, the AIT Editor tool provides a centralized browser-based IDE for generating and editing spacecraft sequence files.
 
 == Applications
 

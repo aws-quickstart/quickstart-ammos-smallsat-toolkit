@@ -4,9 +4,10 @@
 
 _Describe any setup required in the AWS account prior to template launch_
 
-TODO:
-=== Deploy vpc and config stacks (pre-deploy) //TODO: @AG
+=== Deploy vpc and config stacks (pre-deploy)
+Two prerequisite stacks must be deployed prior to launching the Quick Start. Templates for these stacks are included in the repository with the appropriate resources and exports required by the Quick Start. These stacks are deployed separately because both require some slight modification by the user prior to launching. These modifications are detailed below in *Add ingress rules to "access-sg" and "Check config bucket contents and replace with mission-specific config".
 
+//TODO: @AG any more guidance needed on deploying these prereq stacks?
 
 == Deploy SLR for ES
 A service-linked role must be created in your AWS account before an Elasticsearch domain can be created as a part of Quick Start deployment.
