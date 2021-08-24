@@ -46,7 +46,7 @@ Resources:
           - UsingDefaultBucket
           - !Sub '${QSS3BucketName}-${AWS::Region}'
           - !Ref QSS3BucketName
-        S3Key: !Sub '${QSS3KeyPrefix}/functions/packages/CognitoClientInspect/lambda.zip'
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/CognitoClientInspect/lambda.zip'
       Handler: cfn_cognito_inspect.lambda_handler
       Role: !GetAtt LambdaRole.Arn
       Runtime: python3.8
@@ -73,6 +73,11 @@ Resources:
             Version: "2012-10-17"
           PolicyName: cognito-client-describe
   UserPool:
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - ECognitoUserPoolMfaConfiguration
     Type: AWS::Cognito::UserPool
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain

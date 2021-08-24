@@ -1,3 +1,4 @@
+AWSTemplateFormatVersion: "2010-09-09"
 Description: (qs-1s6abjf4a)
 Parameters:
   ProjectName:
@@ -71,7 +72,6 @@ Parameters:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
     Default: ''
-
   CognitoDomainName:
     Type: String
   ALBSecurityGroupID:
@@ -110,6 +110,7 @@ Resources:
   AitServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
+      VpcId: !Ref VPCID
       GroupDescription: Security group to manage connections to ammos-ait-asg-deploy
         AIT Server
       SecurityGroupEgress:
