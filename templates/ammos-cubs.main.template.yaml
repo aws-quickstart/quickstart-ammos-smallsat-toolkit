@@ -295,7 +295,7 @@ Resources:
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         CognitoDomainName: !GetAtt AmmosCognitoStack.Outputs.CognitoDomainName
         ALBSecurityGroupID: !GetAtt AmmosCubsALBStack.Outputs.AlbSecurityGroupId
-        CognitoClientID: !GetAtt AmmosCognitoStack.Outputs.CognitoClientId
+        CognitoClientID: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientId
         CognitoClientSecret: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientSecret
         CognitoProviderUrl: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolProviderUrl
         ALBHttpsListenerArn: !GetAtt AmmosCubsALBStack.Outputs.ALBHttpsListenerArn

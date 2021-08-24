@@ -141,7 +141,6 @@ Resources:
         Count: 1
         Timeout: PT1H
     DependsOn:
-      - InstanceRoleDefaultPolicy
       - InstanceRole
     Properties:
       BlockDeviceMappings:
@@ -210,7 +209,7 @@ Resources:
           mkdir -p $SETUP_DIR
           cd $SETUP_DIR
           /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 cp \
-            s3://$CONFIG_BUCKET_NAME/editor/cloudwatch-agent-editor.json \
+            s3://$CONFIG_BUCKET_NAME/configs/editor/cloudwatch-agent-editor.json \
             $SETUP_DIR/cloudwatch-agent-editor.json
 
           # Docker + Docker-Compose
