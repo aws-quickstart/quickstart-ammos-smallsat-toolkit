@@ -1,3 +1,5 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: (qs-1s6abjf7k)
 Parameters:
   ProjectName:
     Description: Name of your project
@@ -35,6 +37,26 @@ Parameters:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
     Default: ''
+  ALBSecurityGroupID:
+    Description: ID of Pre-configured Security Group attached to the ALB
+    Type: String
+  CognitoClientID:
+    Description: Client ID from pre-configured cognito environment
+    Type: String
+    NoEcho: true
+  CognitoClientSecret:
+    Description: Client Secret from pre-configured cognito environment
+    Type: String
+    NoEcho: true
+  CognitoProviderUrl:
+    Description: Provider URL from pre-configured cognito environment
+    Type: String
+  CognitoDomainName:
+    Description: Domain Name from pre-configured cognito environment
+    Type: String
+  ALBHttpsListenerArn:
+    Description: ALB HTTPS Listener ARN
+    Type: String
 Mappings:
   AWSAMIRegionMap:
     us-east-1:
@@ -64,9 +86,8 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          SourceSecurityGroupId: !ImportValue
-            Fn::Sub: '${ProjectName}-AlbSecurityGroupId'
-      VPCID: !Ref VPCID
+          SourceSecurityGroupId: !Ref ALBSecurityGroupID
+      VpcId: !Ref VPCID
   EditorTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -76,7 +97,7 @@ Resources:
       Targets:
         - Id: !Ref Instance
           Port: 80
-      VPCID: !Ref VPCID
+      VpcId: !Ref VPCID
   EditorListenerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
@@ -84,39 +105,21 @@ Resources:
         - Type: authenticate-oidc
           Order: 1
           AuthenticateOidcConfig:
-            ClientId: !ImportValue
-              Fn::Sub: ${ProjectName}-CognitoClientId
-            ClientSecret: !ImportValue
-              Fn::Sub: ${ProjectName}-CognitoClientSecret
-            Issuer: !ImportValue
-              Fn::Sub: ${ProjectName}-CognitoProviderUrl
+            ClientId: !Ref CognitoClientID
+            ClientSecret: !Ref CognitoClientSecret
+            Issuer: !Ref CognitoProviderUrl
             UserInfoEndpoint:
-              Fn::Join:
-                - ""
-                - - "https://"
-                  - !ImportValue
-                    Fn::Sub: ${ProjectName}-CognitoDomainName
-                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
-                  - !Ref AWS::Region
-                  - ".amazoncognito.com/oauth2/userInfo"
+              Fn::Sub:
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/userInfo"
+                - AuthSuffix: !If [IsGovCloud, ".auth-fips.", ".auth."]
             AuthorizationEndpoint:
-              Fn::Join:
-                - ""
-                - - "https://"
-                  - !ImportValue
-                    Fn::Sub: ${ProjectName}-CognitoDomainName
-                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
-                  - !Ref AWS::Region
-                  - ".amazoncognito.com/oauth2/authorize"
+              Fn::Sub:
+                - https://${ProjectName}-${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/authorize"
+                - AuthSuffix: !If [IsGovCloud, ".auth-fips.", ".auth."]
             TokenEndpoint:
-              Fn::Join:
-                - ""
-                - - "https://"
-                  - !ImportValue
-                    Fn::Sub: ${ProjectName}-CognitoDomainName
-                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
-                  - !Ref AWS::Region
-                  - ".amazoncognito.com/oauth2/token"
+              Fn::Sub:
+                - https://${ProjectName}-${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/token"
+                - AuthSuffix: !If [IsGovCloud, ".auth-fips.", ".auth."]
             OnUnauthenticatedRequest: authenticate
             Scope: openid
             SessionTimeout: !Ref SessionTimeout
@@ -129,8 +132,7 @@ Resources:
           HostHeaderConfig:
             Values:
               - !Sub 'editor.${FQDN}'
-      ListenerArn: !ImportValue
-        Fn::Sub: '${ProjectName}-HttpsListenerArn'
+      ListenerArn: !Ref ALBHttpsListenerArn
       Priority: 125
   Instance:
     Type: AWS::EC2::Instance
@@ -188,10 +190,9 @@ Resources:
           SETUP_DIR=$PROJECT_HOME/setup
           AWS_REGION=${AWS::Region}
           AWS_ACCOUNT_ID=${AWS::AccountId}
-          EDITOR_IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/aerie/aerie-editor
+          EDITOR_IMAGE_URI=codercom/code-server
+          EDITOR_IMAGE_TAG=3.11.0
 
-          # EDITOR_IMAGE_TAG=release-0.8.0
-          EDITOR_IMAGE_TAG=latest
           echo "Starting user data"
 
           # General tools
@@ -221,12 +222,6 @@ Resources:
           systemctl enable docker
           systemctl start docker
 
-          echo "Authenticating to ECR"
-          /usr/local/aws-cli/v2/current/bin/aws ecr get-login-password --region $AWS_REGION | \
-            docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-
-          # docker-compose up --detach
-
           echo "Creating Editor Users"
           groupadd editor-users
           EDITOR_GID=$(tail -1 /etc/group | cut -d : -f3)
@@ -246,7 +241,7 @@ Resources:
           disable-telemetry: true
           disable-update-check: true
           extra-extensions-dir: ['/home/coder/extra-extensions']
-          username: $USERNAME
+          # username: $USERNAME
           EOF
           chown -R $USERNAME: /home/$USERNAME
 
@@ -273,38 +268,26 @@ Resources:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy'
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
       Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
-      PermissionsBoundary:  !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
-  InstanceRoleDefaultPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Action: ecr:GetAuthorizationToken
-            Effect: Allow
-            Resource: '*'
-          - Action:
-              - ecr:BatchCheckLayerAvailability
-              - ecr:GetDownloadUrlForLayer
-              - ecr:BatchGetImage
-            Effect: Allow
-            Resource:
-              - !Ref EditorEcrRepoArn
-          - Action:
-              - s3:GetBucketAcl
-              - s3:GetBucketLocation
-              - s3:GetObject
-              - s3:GetObjectAcl
-              - s3:GetObjectTagging
-              - s3:GetObjectVersion
-              - s3:ListBucket
-            Effect: Allow
-            Resource:
-              - !Sub 'arn:${AWS::Partition}:s3:::${ConfigBucketName}'
-              - !Sub 'arn:${AWS::Partition}:s3:::${ConfigBucketName}/*'
-        Version: '2012-10-17'
-      PolicyName: InstanceRoleDefaultPolicy
-      Roles:
-        - !Ref InstanceRole
+      PermissionsBoundary:
+        !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - s3:GetBucketAcl
+                  - s3:GetBucketLocation
+                  - s3:GetObject
+                  - s3:GetObjectAcl
+                  - s3:GetObjectTagging
+                  - s3:GetObjectVersion
+                  - s3:ListBucket
+                Effect: Allow
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ConfigBucketName}'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ConfigBucketName}/*'
+            Version: '2012-10-17'
+          PolicyName: InstanceRoleDefaultPolicy
+
   InstanceOneInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:

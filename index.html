@@ -1114,19 +1114,12 @@ deploy, and operate your infrastructure and applications on the AWS Cloud.</p>
 </table>
 </div>
 <div class="sect3">
-<h4 id="_supported_regions">Supported Regions</h4>
+<h4 id="_supported_aws_regions">Supported AWS Regions</h4>
 <div class="paragraph">
-<p>This Quick Start supports the following Regions:</p>
+<p>For any Quick Start to work in a Region other than its default Region, all the services it deploys must be supported in that Region. You can launch a Quick Start in any Region and see if it works. If you get an error such as “Unrecognized resource type,” the Quick Start is not supported in that Region.</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p>us-east-1, US East (N. Virginia) (EXAMPLE)</p>
-</li>
-<li>
-<p>us-east-2, US East (Ohio) (EXAMPLE)</p>
-</li>
-</ul>
+<div class="paragraph">
+<p>For an up-to-date list of AWS Regions and the AWS services they support, see <a href="https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/" target="_blank" rel="noopener">AWS Regional Services</a>.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -1251,7 +1244,7 @@ If you’re deploying Example Product Name into an existing VPC, make sure that 
 <p>On the <strong>Specify stack details</strong> page, change the stack name if needed. Review the parameters for the template. Provide values for the parameters that require input. For all other parameters, review the default settings and customize them as necessary. For details on each parameter, see the <a href="#_parameter_reference">Parameter reference</a> section of this guide. When you finish reviewing and customizing the parameters, choose <strong>Next</strong>.</p>
 </li>
 <li>
-<p>On the <strong>Configure stack options</strong> page, you can <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-resource-tags.html" target="_blank" rel="noopener">specify tags</a> (key-value pairs) for resources in your stack and <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-add-tags.html" target="_blank" rel="noopener">set advanced options</a>. When you’re finished, choose <strong>Next</strong>.</p>
+<p>On the <strong>Configure stack options</strong> page, you can <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-resource-tags.html" target="_blank" rel="noopener">specify tags</a> (key-value pairs) for resources in your stack and <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-add-tags.html" target="_blank" rel="noopener">set advanced options</a>. When you finish, choose <strong>Next</strong>.</p>
 </li>
 <li>
 <p>On the <strong>Review</strong> page, review and confirm the template settings. Under <strong>Capabilities</strong>, select the two check boxes to acknowledge that the template creates IAM resources and might require the ability to automatically expand macros.</p>
@@ -1383,7 +1376,7 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 <h2 id="_quick_start_reference_deployments">Quick Start reference deployments</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>See the <a href="https://aws.amazon.com/quickstart/">AWS Quick Start home page</a>.</p>
+<p>See the <a href="https://aws.amazon.com/quickstart/" target="_blank" rel="noopener">AWS Quick Start home page</a>.</p>
 </div>
 </div>
 </div>
@@ -1419,11 +1412,12 @@ and to share your customizations with others.</p>
 </html>
 <!--
 repo commit:
-1ed3ce54274d9c610a7765f57d0572e91ed408a8
+b2c5f6012f0890323b3828ee77f73f9af11bb4e1
 
 submodule config:
- a9193e801b5dab0ad2524a058a2414a028a1a4f4 docs/boilerplate (remotes/origin/swingline-test-8-ga9193e8)
- db7b01f560465cb1487fa801d5931d9bfca4abce submodules/lambda-copyzips (heads/main)
- 25d1eb874ba356d7c85fda18be239a6b404dd551 submodules/quickstart-aws-acm-certificate (heads/main)
+ 4ee94d6b60ec455e5b452e8ad9841eb825704b70 docs/boilerplate (heads/main)
+ 1e67902b86c027499c1a903b52d63b59822cc976 submodules/lambda-copyzips (heads/main)
+ 233fbd97e3563911a7dc91f8c6ba8e24e10d32c8 submodules/quickstart-aws-acm-certificate (heads/main)
  ffc7af4e59a09dbf52199a3ecf70f3805abeff48 submodules/quickstart-aws-vpc (v1.0-58-gffc7af4)
+ b9950be657d8a8c76e71fca157b4952a587342f4 submodules/quickstart-linux-bastion (heads/main)
 -->

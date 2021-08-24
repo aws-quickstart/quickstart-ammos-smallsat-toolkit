@@ -35,7 +35,7 @@ unzip -qq awscliv2.zip
 function bootstrap_ait(){
 # Install basic system tools needed for AIT Server
 # install python 3.7
-yum install -y @development gcc openssl-devel bzip2-devel libffi-devel sqlite-devel httpd mod_ssl vim
+yum install -y @development gcc openssl-devel bzip2-devel libffi-devel sqlite-devel httpd mod_ssl vim policycoreutils-python-utils
 cd /opt
 wget https://www.python.org/ftp/python/3.7.9/Python-3.7.9.tgz
 tar xzf Python-3.7.9.tgz
@@ -89,10 +89,7 @@ git clone https://github.com/NASA-AMMOS/AIT-Core.git $PROJECT_HOME/AIT-Core
 cd $PROJECT_HOME/AIT-Core/
 git checkout 2.3.5
 pip install .
-cp $SETUP_DIR/ait-example-config.yaml $PROJECT_HOME/AIT-Core/config/config.yaml
-mkdir -p $PROJECT_HOME/AIT-Core/config/tlm
-cp $PROJECT_HOME/AIT-Core/config/tlm.yaml $PROJECT_HOME/AIT-Core/config/tlm/tlm.yaml
-cp $PROJECT_HOME/AIT-Core/config/ccsds_header.yaml $PROJECT_HOME/AIT-Core/config/tlm/ccsds_header.yaml
+/usr/bin/cp -r $SETUP_DIR/config $PROJECT_HOME/AIT-Core
 
 git clone https://github.com/NASA-AMMOS/AIT-GUI.git $PROJECT_HOME/AIT-GUI
 cd $PROJECT_HOME/AIT-GUI/
@@ -101,6 +98,11 @@ pip install .
 
 # Copy necessary apache configs
 cp $SETUP_DIR/httpd_proxy.conf /etc/httpd/conf.d/proxy.conf
+
+# Inject FQDN from Cloudformation for proper virtual host configuration
+mv /etc/httpd/conf.d/proxy.conf{,.bak}
+sed 's/<CFN_FQDN>/${FQDN}/g' /etc/httpd/conf.d/proxy.conf.bak > /etc/httpd/conf.d/proxy.conf
+rm /etc/httpd/conf.d/proxy.conf.bak
 
 # Install InfluxDB and data plugin
 curl https://repos.influxdata.com/rhel/6/amd64/stable/influxdb-1.2.4.x86_64.rpm -o $SETUP_DIR/influxdb-1.2.4.x86_64.rpm
@@ -127,17 +129,20 @@ ExecStart=/home/ec2-user/.virtualenvs/ait/bin/ait-server
 WantedBy=multi-user.target
 EOM
 systemctl enable ait-server.service
+
+# https://serverfault.com/questions/1006417/selinux-blocking-execution-in-systemd-unit
+semanage fcontext -a -t bin_t '/home/ec2-user/.virtualenvs/ait/bin.*'
+chcon -Rv -u system_u -t bin_t '/home/ec2-user/.virtualenvs/ait/bin'
+restorecon -R -v /home/ec2-user/.virtualenvs/ait/bin
+
 systemctl start ait-server.service
 
 # change SELinux file context so that apache can read specific files (e.g certs)
 # semanage fcontext -a -t httpd_sys_content_t "/ammos(/.*)?"
-# restorecon -R -v /ammos
 
 # allow apache to make outbound connections
 # (for proxying requests to AIT server)
-# https://tinyurl.com/4ze56xyx
 setsebool -P httpd_can_network_connect 1
-# semanage boolean -m --on httpd_can_network_connect
 
 systemctl start httpd
 

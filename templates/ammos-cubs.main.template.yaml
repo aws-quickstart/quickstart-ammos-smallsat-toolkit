@@ -1,5 +1,6 @@
 ---
 AWSTemplateFormatVersion: "2010-09-09"
+Description: (qs-1s6abjf8q)
 Metadata:
   QuickStartDocumentation:
     EntrypointName: "Launch into a new VPC"
@@ -9,10 +10,10 @@ Parameters:
       guide for recommendations
     Type: String
     Default: m5.large
-  # CloudWatchLogsRetentionPeriod:
-  #   Description: The number of days to retain log events in CloudWatch log groups
-  #   Type: Number
-  #   Default: 30
+  CloudWatchLogsRetentionPeriod:
+    Description: The number of days to retain log events in CloudWatch log groups
+    Type: Number
+    Default: 30
   ElasticsearchDomainName:
     Description: Name of the Elasticsearch domain
     Type: String
@@ -38,6 +39,12 @@ Parameters:
     Default: 10.0.64.0/24
     Description: The CIDR block used for the public subnet located in Availability Zone 2.
     Type: String
+  PublicSubnet3CIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+    Default: 10.0.70.0/24
+    Description: The CIDR block used for the public subnet located in Availability Zone 2.
+    Type: String
   PrivateSubnet1CIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
@@ -48,6 +55,12 @@ Parameters:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
     Default: 10.0.192.0/24
+    Description: The CIDR block used for the private subnet located in Availability Zone 2.
+    Type: String
+  PrivateSubnet3CIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+    Default: 10.0.200.0/24
     Description: The CIDR block used for the private subnet located in Availability Zone 2.
     Type: String
   AvailabilityZones:
@@ -73,7 +86,7 @@ Parameters:
     AllowedPattern: ^[0-9a-zA-Z-/]*$
     ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
       uppercase letters, hyphens (-), and forward slash (/).
-    Default: quickstart-boomi-molecule/
+    Default: quickstart-nasa-jpl-cubs/
     Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
       can include numbers, lowercase letters, uppercase letters, hyphens (-), and
       forward slash (/).
@@ -138,11 +151,13 @@ Resources:
       Parameters:
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
+        QSS3BucketRegion: !Ref QSS3BucketRegion
         ProjectName: !Ref ProjectName
         RolePath: !Ref RolePath
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
 # ---
   VPCStack:
+    DependsOn: AmmosConfigStack
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL:
@@ -158,13 +173,16 @@ Resources:
               - !Ref QSS3BucketName
       Parameters:
         AvailabilityZones: !Join [',', !Ref 'AvailabilityZones']
-        NumberOfAZs: '2'
+        NumberOfAZs: '3'
         VPCCIDR: !Ref VPCCIDR
         PrivateSubnet1ACIDR: !Ref PrivateSubnet1CIDR
         PrivateSubnet2ACIDR: !Ref PrivateSubnet2CIDR
+        PrivateSubnet3ACIDR: !Ref PrivateSubnet3CIDR
         PublicSubnet1CIDR: !Ref PublicSubnet1CIDR
         PublicSubnet2CIDR: !Ref PublicSubnet2CIDR
+        PublicSubnet3CIDR: !Ref PublicSubnet3CIDR
   BastionStack:
+    DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -182,6 +200,7 @@ Resources:
         RemoteAccessCIDR: !Ref RemoteAccessCIDR
         VPCID: !GetAtt VPCStack.Outputs.VPCID
   AmmosCognitoStack:
+    DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -195,6 +214,7 @@ Resources:
         RolePath: !Ref RolePath
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
   AmmosCubsALBStack:
+    DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -204,11 +224,14 @@ Resources:
       Parameters:
         ProjectName: !Ref ProjectName
         VPCID: !GetAtt VPCStack.Outputs.VPCID
-        PublicSubnetIds: [!GetAtt VPCStack.Outputs.PublicSubnet1ID,!GetAtt VPCStack.Outputs.PublicSubnet2ID]
+        PublicSubnetIds: !Join [',',[!GetAtt VPCStack.Outputs.PublicSubnet1ID,!GetAtt VPCStack.Outputs.PublicSubnet2ID]]
         FQDN: !Ref FQDN
         HostedZoneID: !Ref HostedZoneID
         SSLCertificateArn: !If [GenerateSSL, !GetAtt ConfigureSSLStack.Outputs.ACMCertificate, SSLCertificateArn]
+        CognitoInspectFunctionArn: !GetAtt AmmosCognitoStack.Outputs.CognitoInspectFunctionArn
+        CognitoUserPoolID: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolId
   AmmosCubsLoggingStack:
+    DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -218,14 +241,16 @@ Resources:
       Parameters:
         CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
         ElasticsearchDomainName: !Ref ElasticsearchDomainName
-        PermissionsBoundaryArn: !Ref PermissionBounaryArn
+        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         RolePath: !Ref RolePath
         VPCID: !GetAtt VPCStack.Outputs.VPCID
-        PrivateSubnet1ID: !GetAtt VPCStack.Outputs.PrivateSubnet1ID
-        PrivateSubnet2ID: !GetAtt VPCStack.Outputs.PrivateSubnet2ID
+        PrivateSubnet1ID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
+        PrivateSubnet2ID: !GetAtt VPCStack.Outputs.PrivateSubnet2AID
+        PrivateSubnet3ID: !GetAtt VPCStack.Outputs.PrivateSubnet3AID
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
   AmmosCubsEditorStack:
+    DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -233,15 +258,22 @@ Resources:
         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
-        ProjectName: !Ref ProjectName
-        ConfigBucketName: !ImportValue !Sub "${ProjectName}-ConfigBucketName"
+        ALBHttpsListenerArn: !GetAtt AmmosCubsALBStack.Outputs.HttpsListenerArn
+        ALBSecurityGroupID: !GetAtt AmmosCubsALBStack.Outputs.AlbSecurityGroupId
+        CognitoClientID: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientId
+        CognitoClientSecret: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientSecret
+        CognitoDomainName: !GetAtt AmmosCognitoStack.Outputs.CognitoDomainName
+        CognitoProviderUrl: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolProviderUrl
+        ConfigBucketName: !GetAtt AmmosConfigStack.Outputs.ConfigBucket
         FQDN: !Ref FQDN
-        PrivateSubnetIds: [!GetAtt VPCStack.Outputs.PrivateSubnet1ID,!GetAtt VPCStack.Outputs.PrivateSubnet2ID]
-        VPCID: !GetAtt VPCStack.Outputs.VPCID
         KeyPairName: !Ref KeyPairName
+        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
+        PrivateSubnetIds: !Join [',',[!GetAtt VPCStack.Outputs.PrivateSubnet1AID,!GetAtt VPCStack.Outputs.PrivateSubnet2AID]]
+        ProjectName: !Ref ProjectName
         RolePath: !Ref RolePath
-        PermissionsBoundaryArn: !Ref PermissionBounaryArn
+        VPCID: !GetAtt VPCStack.Outputs.VPCID
   AmmosCubsAITStack:
+    DependsOn: AmmosCognitoStack
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -250,18 +282,25 @@ Resources:
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         ProjectName: !Ref ProjectName
-        ConfigBucketName: !ImportValue !Sub "${ProjectName}-ConfigBucketName"
+        ConfigBucketName: !GetAtt AmmosConfigStack.Outputs.ConfigBucket
         FQDN: !Ref FQDN
-        PrivateSubnetIds: [!GetAtt VPCStack.Outputs.PrivateSubnet1ID,!GetAtt VPCStack.Outputs.PrivateSubnet2ID]
+        PrivateSubnetIds: !Join [',', [!GetAtt VPCStack.Outputs.PrivateSubnet1AID,!GetAtt VPCStack.Outputs.PrivateSubnet2AID]]
         VPCID: !GetAtt VPCStack.Outputs.VPCID
-        InstanceType: !Ref AITInstnaceType
+        InstanceType: !Ref AITInstanceType
         KeyPairName: !Ref KeyPairName
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         QSS3BucketRegion: !Ref QSS3BucketRegion
         RolePath: !Ref RolePath
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
+        CognitoDomainName: !GetAtt AmmosCognitoStack.Outputs.CognitoDomainName
+        ALBSecurityGroupID: !GetAtt AmmosCubsALBStack.Outputs.AlbSecurityGroupId
+        CognitoClientID: !GetAtt AmmosCognitoStack.Outputs.CognitoClientId
+        CognitoClientSecret: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientSecret
+        CognitoProviderUrl: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolProviderUrl
+        ALBHttpsListenerArn: !GetAtt AmmosCubsALBStack.Outputs.ALBHttpsListenerArn
   ConfigureSSLStack:
+    DependsOn: CFNEndpoint
     Condition: GenerateSSL
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -275,3 +314,27 @@ Resources:
         QSS3KeyPrefix: !Sub "${QSS3KeyPrefix}submodules/quickstart-aws-acm-certificate/"
         DomainName: !Ref FQDN
         HostedZoneID: !Ref HostedZoneID
+  CFNEndpointSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: String
+      GroupName: String
+      SecurityGroupIngress:
+        - IpProtocol: '-1'
+          FromPort: -1
+          ToPort: -1
+          CidrIp: !GetAtt VPCStack.Outputs.VPCCIDR
+      VpcId: !GetAtt VPCStack.Outputs.VPCID
+  CFNEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !GetAtt VPCStack.Outputs.VPCID
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.cloudformation"
+      VpcEndpointType: "Interface"
+      PrivateDnsEnabled: true
+      SubnetIds:
+        - !GetAtt VPCStack.Outputs.PrivateSubnet1AID
+        - !GetAtt VPCStack.Outputs.PrivateSubnet2AID
+        - !GetAtt VPCStack.Outputs.PrivateSubnet3AID
+      SecurityGroupIds:
+        - !Ref CFNEndpointSG

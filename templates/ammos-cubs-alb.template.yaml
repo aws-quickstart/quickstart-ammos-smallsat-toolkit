@@ -1,3 +1,5 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: (qs-1s6abjf77)
 Parameters:
   ProjectName:
     Description: Project name
@@ -17,7 +19,12 @@ Parameters:
   HostedZoneID:
     Description: ID of Route53 Hosted Zone in which to create records for discovery
     Type: String
-
+  CognitoUserPoolID:
+    Description: User Pool ID of the pre-configured Cognito Environment
+    Type: String
+  CognitoInspectFunctionArn:
+    Description: ARN of the Cognito Inspect function.
+    Type: String
 Conditions:
   DeployR53Records: !Not [!Equals ["", !Ref HostedZoneID]]
 
@@ -31,7 +38,7 @@ Resources:
         - CidrIp: 0.0.0.0/0
           Description: Allow all outbound traffic by default
           IpProtocol: "-1"
-      VPCID: !Ref VPCID
+      VpcId: !Ref VPCID
 
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -56,7 +63,8 @@ Resources:
     Properties:
       Name: !Ref FQDN
       Type: CNAME
-      HostedZoneID: !Ref HostedZoneID
+      HostedZoneId: !Ref HostedZoneID
+      TTL: 300
       ResourceRecords:
         - !GetAtt ApplicationLoadBalancer.DNSName
   AitAlias:
@@ -67,8 +75,8 @@ Resources:
       Type: CNAME
       AliasTarget:
         DNSName: !Ref FQDN
-        HostedZoneID: !Ref HostedZoneID
-      HostedZoneID: !Ref HostedZoneID
+        HostedZoneId: !Ref HostedZoneID
+      HostedZoneId: !Ref HostedZoneID
   MctAlias:
     Type: AWS::Route53::RecordSet
     Condition: DeployR53Records
@@ -77,8 +85,8 @@ Resources:
       Type: CNAME
       AliasTarget:
         DNSName: !Ref FQDN
-        HostedZoneID: !Ref HostedZoneID
-      HostedZoneID: !Ref HostedZoneID
+        HostedZoneId: !Ref HostedZoneID
+      HostedZoneId: !Ref HostedZoneID
   EditorAlias:
     Type: AWS::Route53::RecordSet
     Condition: DeployR53Records
@@ -87,8 +95,8 @@ Resources:
       Type: CNAME
       AliasTarget:
         DNSName: !Ref FQDN
-        HostedZoneID: !Ref HostedZoneID
-      HostedZoneID: !Ref HostedZoneID
+        HostedZoneId: !Ref HostedZoneID
+      HostedZoneId: !Ref HostedZoneID
 
   ########### Cognito  Client ###########
   UserPoolAlbClient:
@@ -112,26 +120,22 @@ Resources:
         - !Sub https://${FQDN}/
       SupportedIdentityProviders:
         - COGNITO
-      UserPoolId: !ImportValue
-        Fn::Sub: "${ProjectName}-CognitoUserPoolId"
-
+      UserPoolId: !Ref CognitoUserPoolID
   AlbClientProps:
     Type: AWS::CloudFormation::CustomResource
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
     Properties:
-      ServiceToken: !ImportValue
-        Fn::Sub: "${ProjectName}-CognitoInspectFunctionArn"
+      ServiceToken: !Ref CognitoInspectFunctionArn
       ClientId: !Ref UserPoolAlbClient
-      UserPoolId: !ImportValue
-        Fn::Sub: "${ProjectName}-CognitoUserPoolId"
+      UserPoolId: !Ref CognitoUserPoolID
 
   ############ ALB Listeners ############
   HttpsListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       Certificates:
-        - CertificateArn: !Ref CertificateArn
+        - CertificateArn: !Ref SSLCertificateArn
       DefaultActions:
         # This serves as a simple landing page redirecting to the available apps at various subdomains
         - FixedResponseConfig:
@@ -175,30 +179,18 @@ Outputs:
   AlbDnsName:
     Description: amazonaws.com DNS name of the deployed Load Balancer
     Value: !GetAtt ApplicationLoadBalancer.DNSName
-    Export:
-      Name: !Sub "${ProjectName}-AlbDnsName"
   AlbArn:
     Description: ARN of the deployed Load Balancer
     Value: !Ref ApplicationLoadBalancer
-    Export:
-      Name: !Sub "${ProjectName}-AlbArn"
   HttpsListenerArn:
     Description: ARN for the HTTPS Listener attached to the deployed Load Balancer
     Value: !Ref HttpsListener
-    Export:
-      Name: !Sub "${ProjectName}-HttpsListenerArn"
   CognitoClientId:
     Description: desc
     Value: !Ref UserPoolAlbClient
-    Export:
-      Name: !Sub "${ProjectName}-CognitoClientId"
   AlbSecurityGroupId:
     Description: SG ID for the deployed Load Balancer's attached security group
     Value: !GetAtt AlbSecurityGroup.GroupId
-    Export:
-      Name: !Sub "${ProjectName}-AlbSecurityGroupId"
   CognitoClientSecret:
     Description: OIDC Secret for ALB Cognito Client
     Value: !GetAtt AlbClientProps.ClientSecret
-    Export:
-      Name: !Sub "${ProjectName}-CognitoClientSecret"

@@ -1,0 +1,82 @@
+default:
+    command:
+        history:
+            filename: ../cmdhist.pcap
+
+    script:
+        directory: ../scripts/
+
+    sequence:
+        directory: ../sequences/
+
+    cmddict:
+        filename:  cmd.yaml
+
+    extensions:
+        ait.core.cmd.Cmd: emit.cmd.EMITCmd
+
+    evrdict:
+        filename:  evr.yaml
+
+    tlmdict:
+        filename:  tlm.yaml
+
+    limits:
+        filename:  limits.yaml
+
+    bsc:
+        filename: bsc.yaml
+
+    emitdefaults:
+        filename: emitdefaults.yaml
+
+    server:
+        plugins:
+            - plugin:
+                name: ait.gui.AITGUIPlugin
+                inputs:
+                    - log_stream
+                    - telem_stream
+                outputs:
+                    - command_stream
+
+            - plugin:
+                name: ait.core.server.plugins.data_archive.DataArchive
+                inputs:
+                    - telem_stream
+                datastore: ait.core.db.InfluxDBBackend
+                host: localhost
+                port: 8086
+
+            - plugin:
+                name: ait.core.server.plugins.openmct.AITOpenMctPlugin
+                inputs:
+                    - telem_stream
+                port: 8082
+                # debug_enabled: False
+                # database_enabled: True
+                # datastore: ait.core.db.InfluxDBBackend
+
+        inbound-streams:
+            - stream:
+                name: log_stream
+                input:
+                  - 2514
+
+            - stream:
+                name: telem_stream
+                input:
+                  - 3076
+                handlers:
+                  - name: ait.core.server.handlers.PacketHandler
+                    packet: 1553_HS_Packet
+
+        outbound-streams:
+            - stream:
+                name: command_stream
+                output: 3075
+
+    # database:
+    #     host: localhost
+    #     port: 8086
+    #     dbname: ait

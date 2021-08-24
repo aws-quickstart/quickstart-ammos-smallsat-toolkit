@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Cognito resources for an AMMOS Cubs Deployment
+Description: Cognito resources for an AMMOS Cubs Deployment (qs-1s6abjf7e)
 Parameters:
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
@@ -46,7 +46,7 @@ Resources:
           - UsingDefaultBucket
           - !Sub '${QSS3BucketName}-${AWS::Region}'
           - !Ref QSS3BucketName
-        S3Key: !Sub '${QSS3KeyPrefix}/functions/packages/CognitoClientInspect/lambda.zip'
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/CognitoClientInspect/lambda.zip'
       Handler: cfn_cognito_inspect.lambda_handler
       Role: !GetAtt LambdaRole.Arn
       Runtime: python3.8
@@ -73,6 +73,11 @@ Resources:
             Version: "2012-10-17"
           PolicyName: cognito-client-describe
   UserPool:
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - ECognitoUserPoolMfaConfiguration
     Type: AWS::Cognito::UserPool
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
@@ -101,20 +106,12 @@ Outputs:
   CognitoInspectFunctionArn:
     Description: ARN of the Lambda function to serve as a custom resource inspecting cognito clients
     Value: !GetAtt CognitoClientInspectionFunction.Arn
-    Export:
-      Name: !Sub "${ProjectName}-CognitoInspectFunctionArn"
   CognitoDomainName:
     Description: Domain name registered with the Cognito User Pool and associated clients
     Value: !Ref UserPoolCognitoDomain
-    Export:
-      Name: !Sub "${ProjectName}-CognitoDomainName"
   CognitoUserPoolId:
     Description: User Pool ID for managing users
     Value: !Ref UserPool
-    Export:
-      Name: !Sub "${ProjectName}-CognitoUserPoolId"
   CognitoUserPoolProviderUrl:
     Description: URL for the cognito provider (Issuer attribute)
     Value: !GetAtt UserPool.ProviderURL
-    Export:
-      Name: !Sub "${ProjectName}-CognitoProviderUrl"
