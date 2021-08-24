@@ -1,1 +1,4 @@
 functions/source/*.zip
+functions/packages/*/*.zip
+.taskcat/
+taskcat_outputs/
