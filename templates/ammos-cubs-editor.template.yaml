@@ -36,6 +36,26 @@ Parameters:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
     Default: ''
+  ALBSecurityGroupID:
+    Description: ID of Pre-configured Security Group attached to the ALB
+    Type: String
+  CognitoClientID:
+    Description: Client ID from pre-configured cognito environment
+    Type: String
+    NoEcho: true
+  CognitoClientSecret:
+    Description: Client Secret from pre-configured cognito environment
+    Type: String
+    NoEcho: true
+  CognitoProviderUrl:
+    Description: Provider URL from pre-configured cognito environment
+    Type: String
+  CognitoDomainName:
+    Description: Domain Name from pre-configured cognito environment
+    Type: String
+  ALBHttpsListenerArn:
+    Description: ALB HTTPS Listener ARN
+    Type: String
 Mappings:
   AWSAMIRegionMap:
     us-east-1:
@@ -65,9 +85,8 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          SourceSecurityGroupId: !ImportValue
-            Fn::Sub: '${ProjectName}-AlbSecurityGroupId'
       VPCID: !Ref VPCID
+          SourceSecurityGroupId: !Ref ALBSecurityGroupID
   EditorTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -85,39 +104,21 @@ Resources:
         - Type: authenticate-oidc
           Order: 1
           AuthenticateOidcConfig:
-            ClientId: !ImportValue
-              Fn::Sub: ${ProjectName}-CognitoClientId
-            ClientSecret: !ImportValue
-              Fn::Sub: ${ProjectName}-CognitoClientSecret
-            Issuer: !ImportValue
-              Fn::Sub: ${ProjectName}-CognitoProviderUrl
+            ClientId: !Ref CognitoClientID
+            ClientSecret: !Ref CognitoClientSecret
+            Issuer: !Ref CognitoProviderUrl
             UserInfoEndpoint:
-              Fn::Join:
-                - ""
-                - - "https://"
-                  - !ImportValue
-                    Fn::Sub: ${ProjectName}-CognitoDomainName
-                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
-                  - !Ref AWS::Region
-                  - ".amazoncognito.com/oauth2/userInfo"
+              Fn::Sub:
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/userInfo"
+                - AuthSuffix: !If [IsGovCloud, ".auth-fips.", ".auth."]
             AuthorizationEndpoint:
-              Fn::Join:
-                - ""
-                - - "https://"
-                  - !ImportValue
-                    Fn::Sub: ${ProjectName}-CognitoDomainName
-                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
-                  - !Ref AWS::Region
-                  - ".amazoncognito.com/oauth2/authorize"
+              Fn::Sub:
+                - https://${ProjectName}-${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/authorize"
+                - AuthSuffix: !If [IsGovCloud, ".auth-fips.", ".auth."]
             TokenEndpoint:
-              Fn::Join:
-                - ""
-                - - "https://"
-                  - !ImportValue
-                    Fn::Sub: ${ProjectName}-CognitoDomainName
-                  - !If [IsGovCloud, ".auth-fips.", ".auth."]
-                  - !Ref AWS::Region
-                  - ".amazoncognito.com/oauth2/token"
+              Fn::Sub:
+                - https://${ProjectName}-${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/token"
+                - AuthSuffix: !If [IsGovCloud, ".auth-fips.", ".auth."]
             OnUnauthenticatedRequest: authenticate
             Scope: openid
             SessionTimeout: !Ref SessionTimeout
@@ -130,8 +131,7 @@ Resources:
           HostHeaderConfig:
             Values:
               - !Sub 'editor.${FQDN}'
-      ListenerArn: !ImportValue
-        Fn::Sub: '${ProjectName}-HttpsListenerArn'
+      ListenerArn: !Ref ALBHttpsListenerArn
       Priority: 125
   Instance:
     Type: AWS::EC2::Instance

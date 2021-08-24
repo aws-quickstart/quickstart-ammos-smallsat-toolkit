@@ -214,6 +214,8 @@ Resources:
         FQDN: !Ref FQDN
         HostedZoneID: !Ref HostedZoneID
         SSLCertificateArn: !If [GenerateSSL, !GetAtt ConfigureSSLStack.Outputs.ACMCertificate, SSLCertificateArn]
+        CognitoInspectFunctionArn: !GetAtt AmmosCognitoStack.Outputs.CognitoInspectFunctionArn
+        CognitoUserPoolID: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolId
   AmmosCubsLoggingStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -240,7 +242,13 @@ Resources:
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         ProjectName: !Ref ProjectName
-        ConfigBucketName: !ImportValue !Sub "${ProjectName}-ConfigBucketName"
+        ALBHttpsListenerArn: !GetAtt AmmosCubsALBStack.Outputs.HttpsListenerArn
+        ALBSecurityGroupID: !GetAtt AmmosCubsALBStack.Outputs.AlbSecurityGroupId
+        CognitoClientID: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientId
+        CognitoClientSecret: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientSecret
+        CognitoDomainName: !GetAtt AmmosCognitoStack.Outputs.CognitoDomainName
+        CognitoProviderUrl: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolProviderUrl
+        ConfigBucketName: !GetAtt AmmosConfigStack.Outputs.ConfigBucket
         FQDN: !Ref FQDN
         PrivateSubnetIds: [!GetAtt VPCStack.Outputs.PrivateSubnet1ID,!GetAtt VPCStack.Outputs.PrivateSubnet2ID]
         VPCID: !GetAtt VPCStack.Outputs.VPCID
@@ -256,7 +264,7 @@ Resources:
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         ProjectName: !Ref ProjectName
-        ConfigBucketName: !ImportValue !Sub "${ProjectName}-ConfigBucketName"
+        ConfigBucketName: !GetAtt AmmosConfigStack.Outputs.ConfigBucket
         FQDN: !Ref FQDN
         PrivateSubnetIds: [!GetAtt VPCStack.Outputs.PrivateSubnet1ID,!GetAtt VPCStack.Outputs.PrivateSubnet2ID]
         VPCID: !GetAtt VPCStack.Outputs.VPCID
@@ -267,6 +275,12 @@ Resources:
         QSS3BucketRegion: !Ref QSS3BucketRegion
         RolePath: !Ref RolePath
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
+        CognitoDomainName: !GetAtt AmmosCognitoStack.Outputs.CognitoDomainName
+        ALBSecurityGroupID: !GetAtt AmmosCubsALBStack.Outputs.AlbSecurityGroupId
+        CognitoClientID: !GetAtt AmmosCognitoStack.Outputs.CognitoClientId
+        CognitoClientSecret: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientSecret
+        CognitoProviderUrl: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolProviderUrl
+        ALBHttpsListenerArn: !GetAtt AmmosCubsALBStack.Outputs.ALBHttpsListenerArn
   ConfigureSSLStack:
     Condition: GenerateSSL
     Type: AWS::CloudFormation::Stack

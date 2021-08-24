@@ -101,20 +101,12 @@ Outputs:
   CognitoInspectFunctionArn:
     Description: ARN of the Lambda function to serve as a custom resource inspecting cognito clients
     Value: !GetAtt CognitoClientInspectionFunction.Arn
-    Export:
-      Name: !Sub "${ProjectName}-CognitoInspectFunctionArn"
   CognitoDomainName:
     Description: Domain name registered with the Cognito User Pool and associated clients
     Value: !Ref UserPoolCognitoDomain
-    Export:
-      Name: !Sub "${ProjectName}-CognitoDomainName"
   CognitoUserPoolId:
     Description: User Pool ID for managing users
     Value: !Ref UserPool
-    Export:
-      Name: !Sub "${ProjectName}-CognitoUserPoolId"
   CognitoUserPoolProviderUrl:
     Description: URL for the cognito provider (Issuer attribute)
     Value: !GetAtt UserPool.ProviderURL
-    Export:
-      Name: !Sub "${ProjectName}-CognitoProviderUrl"
