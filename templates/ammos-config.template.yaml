@@ -1,3 +1,4 @@
+AWSTemplateFormatVersion: "2010-09-09"
 Description: (qs-1s6abjf87)
 Parameters:
   QSS3BucketName:
@@ -60,10 +61,36 @@ Resources:
         DestinationBucket: !Ref ConfigBucket
         QSS3BucketName: !Ref "QSS3BucketName"
         QSS3KeyPrefix: !Ref "QSS3KeyPrefix"
-        SourceObjects:
-          -
+        SourceObjects: !Join
+          - ','
+          - - configs/ait/ait-config.zip
+            - configs/ait/ait-example-config.yaml
+            - configs/ait/ait_server_ssl_cert.pem
+            - configs/ait/cloudwatch-agent-ait.json
+            - configs/ait/config/bsc.yaml
+            - configs/ait/config/ccsds_header.yaml
+            - configs/ait/config/cmd.pkl
+            - configs/ait/config/cmd.yaml
+            - configs/ait/config/config.yaml
+            - configs/ait/config/core_set_op_mode.yaml
+            - configs/ait/config/evr.pkl
+            - configs/ait/config/evr.yaml
+            - configs/ait/config/leapseconds.dat
+            - configs/ait/config/limits.pkl
+            - configs/ait/config/limits.yaml
+            - configs/ait/config/table.yaml
+            - configs/ait/config/tlm.pkl
+            - configs/ait/config/tlm.yaml
+            - configs/ait/config.zip
+            - configs/ait/httpd_proxy.conf
+            - configs/ait/httpd_proxy_old.conf
+            - configs/ait/httpd_ssl.conf
+            - configs/ait/test-config.yaml
+            - configs/editor/cloudwatch-agent-editor.json
+            - configs/modules/openmct-0.14.tgz
+            - configs/modules/openmct-static.tgz
+            - configs/modules/openmct.tgz
 Outputs:
-  ExportsOutputRefConfigBucket2112C5EC685752CB:
-    Export:
-      Name: !Sub "${ProjectName}-ConfigBucketName"
+  ConfigBucket:
+      # Name: !Sub "${ProjectName}-ConfigBucketName"
     Value: !Ref ConfigBucket
