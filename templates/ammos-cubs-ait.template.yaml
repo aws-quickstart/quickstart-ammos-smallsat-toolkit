@@ -93,9 +93,7 @@ Conditions:
     - !Equals
       - ''
       - !Ref 'KeyPairName'
-  UsingDefaultBucket: !Equals
-    - ''
-    - ''
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
   IsGovCloud: !Not [!Equals ['aws', !Ref AWS::Partition]]
   RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
   PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
