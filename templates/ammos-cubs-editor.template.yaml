@@ -111,15 +111,15 @@ Resources:
             UserInfoEndpoint:
               Fn::Sub:
                 - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/userInfo"
-                - AuthSuffix: !If [IsGovCloud, ".auth-fips.", ".auth."]
+                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
             AuthorizationEndpoint:
               Fn::Sub:
                 - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/authorize"
-                - AuthSuffix: !If [IsGovCloud, ".auth-fips.", ".auth."]
+                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
             TokenEndpoint:
               Fn::Sub:
                 - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/token"
-                - AuthSuffix: !If [IsGovCloud, ".auth-fips.", ".auth."]
+                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
             OnUnauthenticatedRequest: authenticate
             Scope: openid
             SessionTimeout: !Ref SessionTimeout
