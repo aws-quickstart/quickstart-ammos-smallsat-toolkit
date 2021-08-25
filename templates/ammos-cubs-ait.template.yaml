@@ -150,6 +150,14 @@ Resources:
         configSets:
           default:
             - download_bootstrap_script
+        install_aws_cli:
+          commands:
+            010_install_aws_cli: !Sub |
+              mkdir -p /tmp/awscli
+              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscli/awscliv2.zip"
+              cd /tmp/awscli
+              unzip awscliv2.zip
+              ./aws/install
         download_bootstrap_script:
           files:
             /tmp/ait_bootstrap.sh:
@@ -168,9 +176,16 @@ Resources:
               group: 'root'
               authentication: S3AccessCreds
           commands:
-            010_run_bootstrap:
-              command: !Sub |
-                /tmp/ait_bootstrap.sh
+            010_copy_bootstrap:
+              command: !Sub
+                - aws cp s3://${S3Bucket}/${QSS3KeyPrefix}scripts/ait_bootstrap.sh /tmp/
+                - S3Bucket: !If
+                    - UsingDefaultBucket
+                    - !Sub "${QSS3BucketName}-${AWS::Region}"
+                    - !Ref QSS3BucketName
+            020_run_bootstrap:
+              command:
+                - /tmp/ait_bootstrap.sh
     Properties:
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
@@ -358,6 +373,7 @@ Resources:
               - !Sub 'arn:${AWS::Partition}:s3:::${ConfigBucketName}/*'
           - Action:
               - 's3:GetObject'
+              - s3:ListBucket
             Resource: !Sub
               - arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}*
               - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
