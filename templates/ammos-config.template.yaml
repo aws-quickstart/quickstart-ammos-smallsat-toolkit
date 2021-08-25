@@ -61,6 +61,7 @@ Resources:
         DestinationBucket: !Ref ConfigBucket
         QSS3BucketName: !Ref "QSS3BucketName"
         QSS3KeyPrefix: !Ref "QSS3KeyPrefix"
+        StripPrefixAtDestination: 'true'
         SourceObjects: !Join
           - ','
           - - configs/ait/ait-config.zip
