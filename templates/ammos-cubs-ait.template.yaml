@@ -86,6 +86,8 @@ Parameters:
     Type: String
   ListenerCertificateArn:
     Type: String
+  ALBArn:
+    Type: String
 Conditions:
   SshEnabled: !Not
     - !Equals
@@ -314,8 +316,7 @@ Resources:
             TargetGroups:
               - TargetGroupArn: !Ref AitMctTargetGroup
                 Weight: 1
-      LoadBalancerArn: !ImportValue
-        Fn::Sub: ${ProjectName}-AlbArn
+      LoadBalancerArn: !Ref ALBArn
       Port: 8082
       Protocol: HTTPS
       Certificates:

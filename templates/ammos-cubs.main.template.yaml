@@ -303,6 +303,7 @@ Resources:
           - GenerateSSL
           - ConfigureSSLStack.Outputs.ACMCertificateArn
           - !Ref SSLCertificateArn
+        ALBArn: !GetAtt AmmosCubsALBStack.Outputs.AlbArn
   ConfigureSSLStack:
     DependsOn: CFNEndpoint
     Condition: GenerateSSL
