@@ -1,93 +1,97 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: (qs-1s6abjf87)
 Parameters:
+  QSS3BucketName:
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
+    ConstraintDescription: Quick Start bucket name can include numbers, lowercase
+      letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
+      (-).
+    Default: aws-quickstart
+    Description: S3 bucket name for the Quick Start assets. This string can include
+      numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start
+      or end with a hyphen (-).
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: ^[0-9a-zA-Z-/]*$
+    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slash (/).
+    Default: quickstart-jpl-nasa-cubs/
+    Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
+      can include numbers, lowercase letters, uppercase letters, hyphens (-), and
+      forward slash (/).
+    Type: String
+  QSS3BucketRegion:
+    Default: 'us-east-1'
+    Description: The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value.
+    Type: String
   ProjectName:
     Description: Name of your project
     Type: String
-  # TODO: Enforce AllowedValues
   RolePath:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
     Default: ''
-  # TODO: Enforce AllowedValues
   PermissionsBoundaryArn:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
     Default: ''
-
-Metadata:
-  QuickStartDocumentation:
-    EntrypointName: 'Launch a New VPC'
-    OptionalParameters:
-      - RolePath
-      - PermissionsBoundaryArn
-  AWS::CloudFormation::Interface:
-    ParameterGroups:
-      - Label:
-          default: IAM Configuration
-        Parameters:
-          - RolePath
-          - PermissionsBoundaryArn
-      - Label:
-          default: Project Configuration
-        Parameters:
-          - ProjectName
-    ParameterLabels:
-      ProjectName:
-        default: Project Name
-      PermissionsBoundaryArn:
-        default: PermissionsBoundary Policy ARN
-      RolePath:
-        default: IAM Role Path
-
 Conditions:
   RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
   PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
-
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, "aws-quickstart"]
 Resources:
   ConfigBucket:
-    DeletionPolicy: Retain
     Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
-  BucketSeedFunction:
-    Type: AWS::Lambda::Function
+  CopyZipsStack:
+    Type: AWS::CloudFormation::Stack
     Properties:
-      Code:
-        S3Bucket: ammos-cubs-assets
-        S3Key: bucket-seed-function.zip
-      Handler: cfn_cognito_inspect.lambda_handler
-      Role: !GetAtt LambdaRole.Arn
-      Runtime: python3.8
-  LambdaRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-        Version: "2012-10-17"
-      ManagedPolicyArns:
-        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
-      PermissionsBoundary:  !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
-      Policies:
-        - PolicyDocument:
-            Statement:
-              - Action: s3:PutObject
-                Effect: Allow
-                Resource:
-                  - !Sub 'arn:${AWS::Partition}:s3:::${ConfigBucket}/*'
-            Version: "2012-10-17"
-          PolicyName: config-bucket-put-objects
-  SeedBucket:
-    Type: AWS::CloudFormation::CustomResource
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
-    Properties:
-      ServiceToken: !Ref BucketSeedFunction
-
+      TemplateURL: !Sub
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/lambda-copyzips/templates/copy-zips.template.yaml
+        - S3Region:
+            !If [UsingDefaultBucket, !Ref "AWS::Region", !Ref QSS3BucketRegion]
+          S3Bucket:
+            !If [
+              UsingDefaultBucket,
+              !Sub "${QSS3BucketName}-${AWS::Region}",
+              !Ref QSS3BucketName,
+            ]
+      Parameters:
+        DestinationBucket: !Ref ConfigBucket
+        QSS3BucketName: !Ref "QSS3BucketName"
+        QSS3KeyPrefix: !Ref "QSS3KeyPrefix"
+        StripPrefixAtDestination: 'true'
+        SourceObjects: !Join
+          - ','
+          - - configs/ait/ait-config.zip
+            - configs/ait/ait-example-config.yaml
+            - configs/ait/ait_server_ssl_cert.pem
+            - configs/ait/cloudwatch-agent-ait.json
+            - configs/ait/config/bsc.yaml
+            - configs/ait/config/ccsds_header.yaml
+            - configs/ait/config/cmd.pkl
+            - configs/ait/config/cmd.yaml
+            - configs/ait/config/config.yaml
+            - configs/ait/config/core_set_op_mode.yaml
+            - configs/ait/config/evr.pkl
+            - configs/ait/config/evr.yaml
+            - configs/ait/config/leapseconds.dat
+            - configs/ait/config/limits.pkl
+            - configs/ait/config/limits.yaml
+            - configs/ait/config/table.yaml
+            - configs/ait/config/tlm.pkl
+            - configs/ait/config/tlm.yaml
+            - configs/ait/config.zip
+            - configs/ait/httpd_proxy.conf
+            - configs/ait/httpd_proxy_old.conf
+            - configs/ait/httpd_ssl.conf
+            - configs/ait/test-config.yaml
+            - configs/editor/cloudwatch-agent-editor.json
+            - configs/modules/openmct-0.14.tgz
+            - configs/modules/openmct-static.tgz
+            - configs/modules/openmct.tgz
 Outputs:
-  ExportsOutputRefConfigBucket2112C5EC685752CB:
-    Export:
-      Name: !Sub "${ProjectName}-ConfigBucketName"
+  ConfigBucket:
+      # Name: !Sub "${ProjectName}-ConfigBucketName"
     Value: !Ref ConfigBucket

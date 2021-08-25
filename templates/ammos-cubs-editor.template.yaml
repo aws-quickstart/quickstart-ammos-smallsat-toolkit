@@ -1,3 +1,5 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: (qs-1s6abjf7k)
 Parameters:
   ProjectName:
     Description: Name of your project
@@ -11,111 +13,65 @@ Parameters:
   PrivateSubnetIds:
     Description: Private Subnet IDs for deploying application server Instances
     Type: List<AWS::EC2::Subnet::Id>
-  VpcId:
+  VPCID:
     Description: VPC ID for deploying project resources
     Type: AWS::EC2::VPC::Id
   InstanceType:
     Description: Instance type to be used for AIT Server instances; see deployment guide for recommendations
     Type: String
-    # TODO: Prescribe allowed Instance Types
-    # AllowedValues:
-    # - ""
-  SshKeyName:
+    Default: m5.large
+  KeyPairName:
     Description: Name of created SSH Key for instance access - must use SSM sessions if no key supplied
     Type: AWS::EC2::KeyPair::KeyName
   SessionTimeout:
     Description: The maximum duration of the authentication session, in seconds.
     Type: Number
-    Default: 604800 # One day
+    Default: 604800  # One day
     MinValue: 60
     MaxValue: 604800
-  # TODO: Enforce AllowedValues
   RolePath:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
     Default: ''
-  # TODO: Enforce AllowedValues
   PermissionsBoundaryArn:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
     Default: ''
-
-  # NOTE: This will be obsolete once AIT Editor is open sourced and publicly available
-  EditorEcrRepoArn:
+  ALBSecurityGroupID:
+    Description: ID of Pre-configured Security Group attached to the ALB
     Type: String
-
-Metadata:
-  QuickStartDocumentation:
-    EntrypointName: 'Provision the AIT Editor resources'
-    OptionalParameters:
-      - InstanceType
-      - SshKeyName
-      - SessionTimeout
-      - RolePath
-      - PermissionsBoundaryArn
-  AWS::CloudFormation::Interface:
-    ParameterGroups:
-      - Label:
-          default: Network Configuration
-        Parameters:
-          - VpcId
-          - PrivateSubnetIds
-          - SessionTimeout
-      - Label:
-          default: Instance Configuration
-        Parameters:
-          - InstanceType
-          - SshKeyName
-      - Label:
-          default: Project Configuration
-        Parameters:
-          - ProjectName
-          - ConfigBucketName
-          - FQDN
-      - Label:
-          default: IAM Configuration
-        Parameters:
-          - RolePath
-          - PermissionsBoundaryArn
-    ParameterLabels:
-      ProjectName:
-        default: Project Name
-      PermissionsBoundaryArn:
-        default: PermissionsBoundary Policy ARN
-      RolePath:
-        default: IAM Role Path
-      ConfigBucketName:
-        default: Config Bucket Name
-      FQDN:
-        default: FQDN
-      PrivateSubnetIds:
-        default: Private Subnet IDs
-      VpcId:
-        default: VPC ID
-      InstanceType:
-        default: Instance Type
-      SshKeyName:
-        default: SSH KeyPair Name
-      SessionTimeout:
-        default: Auth Session Timeout
-
+  CognitoClientID:
+    Description: Client ID from pre-configured cognito environment
+    Type: String
+    NoEcho: true
+  CognitoClientSecret:
+    Description: Client Secret from pre-configured cognito environment
+    Type: String
+    NoEcho: true
+  CognitoProviderUrl:
+    Description: Provider URL from pre-configured cognito environment
+    Type: String
+  CognitoDomainName:
+    Description: Domain Name from pre-configured cognito environment
+    Type: String
+  ALBHttpsListenerArn:
+    Description: ALB HTTPS Listener ARN
+    Type: String
 Mappings:
   AWSAMIRegionMap:
     us-east-1:
-      RHEL76HVM: example
+      RHELHA84HVM: ami-02e0bb36c61bb9715
     us-east-2:
-      RHEL76HVM: example
+      RHELHA84HVM: ami-0b2e47f3b2e23d235
     us-west-1:
-      RHEL76HVM: example
+      RHELHA84HVM: ami-054965c6cd7c6e462
     us-west-2:
-      RHEL76HVM: example
-
+      RHELHA84HVM: ami-0b28dfc7adc325ef4
 Conditions:
-  SshEnabled: !Not [!Equals ['', !Ref SshKeyName]]
+  SshEnabled: !Not [!Equals ['', !Ref KeyPairName]]
   IsGovCloud: !Not [!Equals ['aws', !Ref AWS::Partition]]
   RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
   PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
-
 Resources:
   AitEditorSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -130,10 +86,8 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          SourceSecurityGroupId: !ImportValue
-            Fn::Sub: '${ProjectName}-AlbSecurityGroupId'
-      VpcId: !Ref VpcId
-
+          SourceSecurityGroupId: !Ref ALBSecurityGroupID
+      VpcId: !Ref VPCID
   EditorTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -143,7 +97,7 @@ Resources:
       Targets:
         - Id: !Ref Instance
           Port: 80
-      VpcId: !Ref VpcId
+      VpcId: !Ref VPCID
   EditorListenerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
@@ -151,39 +105,21 @@ Resources:
         - Type: authenticate-oidc
           Order: 1
           AuthenticateOidcConfig:
-            ClientId: !ImportValue
-              Fn::Sub: ${ProjectName}-CognitoClientId
-            ClientSecret: !ImportValue
-              Fn::Sub: ${ProjectName}-CognitoClientSecret
-            Issuer: !ImportValue
-              Fn::Sub: ${ProjectName}-CognitoProviderUrl
+            ClientId: !Ref CognitoClientID
+            ClientSecret: !Ref CognitoClientSecret
+            Issuer: !Ref CognitoProviderUrl
             UserInfoEndpoint:
-              Fn::Join:
-                - ''
-                - - 'https://'
-                  - !ImportValue
-                    Fn::Sub: ${ProjectName}-CognitoDomainName
-                  - !If [IsGovCloud, '.auth-fips.', '.auth.']
-                  - !Ref AWS::Region
-                  - '.amazoncognito.com/oauth2/userInfo'
+              Fn::Sub:
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/userInfo
+                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
             AuthorizationEndpoint:
-              Fn::Join:
-                - ''
-                - - 'https://'
-                  - !ImportValue
-                    Fn::Sub: ${ProjectName}-CognitoDomainName
-                  - !If [IsGovCloud, '.auth-fips.', '.auth.']
-                  - !Ref AWS::Region
-                  - '.amazoncognito.com/oauth2/authorize'
+              Fn::Sub:
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/authorize
+                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
             TokenEndpoint:
-              Fn::Join:
-                - ''
-                - - 'https://'
-                  - !ImportValue
-                    Fn::Sub: ${ProjectName}-CognitoDomainName
-                  - !If [IsGovCloud, '.auth-fips.', '.auth.']
-                  - !Ref AWS::Region
-                  - '.amazoncognito.com/oauth2/token'
+              Fn::Sub:
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/token
+                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
             OnUnauthenticatedRequest: authenticate
             Scope: openid
             SessionTimeout: !Ref SessionTimeout
@@ -196,8 +132,7 @@ Resources:
           HostHeaderConfig:
             Values:
               - !Sub 'editor.${FQDN}'
-      ListenerArn: !ImportValue
-        Fn::Sub: '${ProjectName}-HttpsListenerArn'
+      ListenerArn: !Ref ALBHttpsListenerArn
       Priority: 125
   Instance:
     Type: AWS::EC2::Instance
@@ -208,9 +143,6 @@ Resources:
     DependsOn:
       - InstanceRole
     Properties:
-      Tags:
-        - Key: Name
-          Value: !Sub '${ProjectName}/EditorServer'
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
           Ebs:
@@ -220,14 +152,15 @@ Resources:
       ImageId: !FindInMap
         - AWSAMIRegionMap
         - !Ref AWS::Region
-        - RHEL76HVM
+        - RHELHA84HVM
       InstanceType: !Ref InstanceType
-      KeyName: !If [SshEnabled, !Ref SshKeyName, !Ref AWS::NoValue]
+      KeyName: !If [SshEnabled, !Ref KeyPairName, !Ref AWS::NoValue]
       SecurityGroupIds:
         - !GetAtt AitEditorSecurityGroup.GroupId
       SubnetId: !Select [0, !Ref PrivateSubnetIds]
       UserData:
-        Fn::Base64: !Sub |
+        Fn::Base64:
+          !Sub |
           #!/bin/bash
           exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 
@@ -256,10 +189,9 @@ Resources:
           SETUP_DIR=$PROJECT_HOME/setup
           AWS_REGION=${AWS::Region}
           AWS_ACCOUNT_ID=${AWS::AccountId}
-          EDITOR_IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/aerie/aerie-editor
+          EDITOR_IMAGE_URI=codercom/code-server
+          EDITOR_IMAGE_TAG=3.11.0
 
-          # EDITOR_IMAGE_TAG=release-0.8.0
-          EDITOR_IMAGE_TAG=latest
           echo "Starting user data"
 
           # General tools
@@ -277,7 +209,7 @@ Resources:
           mkdir -p $SETUP_DIR
           cd $SETUP_DIR
           /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 cp \
-            s3://$CONFIG_BUCKET_NAME/editor/cloudwatch-agent-editor.json \
+            s3://$CONFIG_BUCKET_NAME/configs/editor/cloudwatch-agent-editor.json \
             $SETUP_DIR/cloudwatch-agent-editor.json
 
           # Docker + Docker-Compose
@@ -288,12 +220,6 @@ Resources:
           usermod -aG docker $USER
           systemctl enable docker
           systemctl start docker
-
-          echo "Authenticating to ECR"
-          /usr/local/aws-cli/v2/current/bin/aws ecr get-login-password --region $AWS_REGION | \
-            docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-
-          # docker-compose up --detach
 
           echo "Creating Editor Users"
           groupadd editor-users
@@ -314,7 +240,7 @@ Resources:
           disable-telemetry: true
           disable-update-check: true
           extra-extensions-dir: ['/home/coder/extra-extensions']
-          username: $USERNAME
+          # username: $USERNAME
           EOF
           chown -R $USERNAME: /home/$USERNAME
 
@@ -346,16 +272,6 @@ Resources:
       Policies:
         - PolicyDocument:
             Statement:
-              - Action: ecr:GetAuthorizationToken
-                Effect: Allow
-                Resource: '*'
-              - Action:
-                  - ecr:BatchCheckLayerAvailability
-                  - ecr:GetDownloadUrlForLayer
-                  - ecr:BatchGetImage
-                Effect: Allow
-                Resource:
-                  - !Ref EditorEcrRepoArn
               - Action:
                   - s3:GetBucketAcl
                   - s3:GetBucketLocation
@@ -376,7 +292,6 @@ Resources:
     Properties:
       Roles:
         - !Ref InstanceRole
-
 Outputs:
   InstanceId:
     Value: !Ref Instance

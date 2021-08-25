@@ -1,114 +1,77 @@
 AWSTemplateFormatVersion: 2010-09-09
+Description: (qs-1s6abjf80)
 Parameters:
-  ProjectName:
-    Description: Project name
+  ElasticsearchDomainName:
+    Description: Name of the Elasticsearch domain
     Type: String
-  BastionAmiId:
-    Description: AMI to use for the Elasticsearch bastion host
-    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
-    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
   CloudWatchLogsRetentionPeriod:
     Description: The number of days to retain log events in CloudWatch log groups
     Type: Number
     Default: 30
-  # TODO: Enforce AllowedValues
   PermissionsBoundaryArn:
     Description: Will be attached to all created IAM Roles to satisfy security requirements
     Type: String
     Default: ''
-  # TODO: Enforce AllowedValues
   RolePath:
     Description: Will be attached to all created IAM Roles to satisfy security requirements
     Type: String
     Default: ''
-  SshKeyName:
-    Description: Name of created SSH Key for instance access - can also connect via SSM
-    Type: AWS::EC2::KeyPair::KeyName
-  PrivateSubnetIds:
-    Description: List of Private Subnet IDs for deploying the AIT Autoscaling Group
-    Type: List<AWS::EC2::Subnet::Id>
-  VpcId:
-    Description: VPC ID for deploying project resources
+  VPCID:
     Type: AWS::EC2::VPC::Id
-  AccessSgId:
-    Description: Cidr Block to allow ingress to ALB
-    Type: AWS::EC2::SecurityGroup::Id
-  PublicSubnetIds:
-    Description: Comma-separated list of Pulbic Subnet ID's for bastion deployment
-    Type: List<AWS::EC2::Subnet::Id>
-
-Metadata:
-  QuickStartDocumentation:
-    EntrypointName: 'Launch centralized logging resources'
-    OptionalParameters:
-      - BastionAmiId
-      - CloudWatchLogsRetentionPeriod
-      - PermissionsBoundaryArn
-      - RolePath
-      - SshKeyName
-  AWS::CloudFormation::Interface:
-    ParameterGroups:
-      - Label:
-          default: Project Configuration
-        Parameters:
-          - ProjectName
-      - Label:
-          default: Network Configuration
-        Parameters:
-          - VpcId
-          - PrivateSubnetIds
-          - PublicSubnetIds
-          - AccessSgId
-      - Label:
-          default: IAM Configuration
-        Parameters:
-          - RolePath
-          - PermissionsBoundaryArn
-      - Label:
-          default: Bastion Configuration
-        Parameters:
-          - BastionAmiId
-          - SshKeyName
-      - Label:
-          default: Logging Configuration
-        Parameters:
-          - CloudWatchLogsRetentionPeriod
-    ParameterLabels:
-      ProjectName:
-        default: Project Name
-      PermissionsBoundaryArn:
-        default: PermissionsBoundary Policy ARN
-      RolePath:
-        default: IAM Role Path
-      BastionAmiId:
-        default: Bastion AMI ID
-      CloudWatchLogsRetentionPeriod:
-        default: Logs Retention Period
-      SshKeyName:
-        default: SSH KeyPair Name
-      PrivateSubnetIds:
-        default: Private Subnet IDs
-      VpcId:
-        default: VPC ID
-      AccessSgId:
-        default: Access Security Group ID
-      PublicSubnetIds:
-        default: Public Subnet IDs
-
+    Description: The ID of your existing VPC.
+  PrivateSubnet1ID:
+    Type: AWS::EC2::Subnet::Id
+    Description: The ID of the private subnet in Availability Zone 1 in your existing VPC.
+  PrivateSubnet2ID:
+    Type: AWS::EC2::Subnet::Id
+    Description: The ID of the private subnet in Availability Zone 2 in your existing VPC.
+  PrivateSubnet3ID:
+    Type: AWS::EC2::Subnet::Id
+    Description: The ID of the private subnet in Availability Zone 3 in your existing VPC.
+  QSS3BucketName:
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
+    ConstraintDescription: Quick Start bucket name can include numbers, lowercase
+      letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
+      (-).
+    Default: aws-quickstart
+    Description: S3 bucket name for the Quick Start assets. This string can include
+      numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start
+      or end with a hyphen (-).
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: ^[0-9a-zA-Z-/]*$
+    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slash (/).
+    Default: quickstart-boomi-molecule/
+    Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
+      can include numbers, lowercase letters, uppercase letters, hyphens (-), and
+      forward slash (/).
+    Type: String
 Conditions:
   RolePathProvided: !Not [!Equals ["", !Ref RolePath]]
   PermissionsBoundaryProvided: !Not [!Equals ["", !Ref PermissionsBoundaryArn]]
-
 Resources:
   ElasticsearchSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      VpcId: !Ref VpcId
-      SecurityGroupEgress:
-        - CidrIp: 0.0.0.0/0
-          Description: Allow all outbound traffic by default
-          IpProtocol: "-1"
+      VpcId: !Ref VPCID
       GroupDescription: Security group for access to AMMOS Cubs Elasticsearch domain.
+      SecurityGroupIngress:
+        - CidrIp: 128.149.0.0/16
+          Description: JPL Internal
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+        - CidrIp: 137.78.0.0/16
+          Description: JPL Internal
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+        - CidrIp: 137.79.0.0/16
+          Description: JPL Internal
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
 
   ElasticsearchSecurityGroupIngress:
     Type: AWS::EC2::SecurityGroupIngress
@@ -122,7 +85,7 @@ Resources:
   ElasticsearchDomain:
     Type: AWS::Elasticsearch::Domain
     Properties:
-      DomainName: !Sub "${ProjectName}-es-domain"
+      DomainName: !Ref ElasticsearchDomainName
       ElasticsearchVersion: "7.10"
       ElasticsearchClusterConfig:
         DedicatedMasterCount: 3
@@ -145,76 +108,91 @@ Resources:
         EnforceHTTPS: true
         TLSSecurityPolicy: Policy-Min-TLS-1-2-2019-07
       VPCOptions:
-        SubnetIds: !Ref PrivateSubnetIds
+        SubnetIds:
+          - !Ref PrivateSubnet1ID
+          - !Ref PrivateSubnet2ID
         SecurityGroupIds:
           - !GetAtt ElasticsearchSecurityGroup.GroupId
-          - !Ref AccessSgId
       AccessPolicies:
         Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
               AWS: "*"
-            Action: es:*
-            Resource: !Sub arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/${ProjectName}-es-domain/*
-
+            Action:
+              - es:AcceptInboundCrossClusterSearchConnection
+              - es:AddTags
+              - es:AssociatePackage
+              - es:CreateElasticsearchDomain
+              - es:CreateElasticsearchServiceRole
+              - es:CreateOutboundCrossClusterSearchConnection
+              - es:CreatePackage
+              - es:DeleteElasticsearchDomain
+              - es:DeleteElasticsearchServiceRole
+              - es:DeleteInboundCrossClusterSearchConnection
+              - es:DeleteOutboundCrossClusterSearchConnection
+              - es:DeletePackage
+              - es:DescribeElasticsearchDomain
+              - es:DescribeElasticsearchDomainConfig
+              - es:DescribeElasticsearchDomains
+              - es:DescribeElasticsearchInstanceTypeLimits
+              - es:DescribeInboundCrossClusterSearchConnections
+              - es:DescribeOutboundCrossClusterSearchConnections
+              - es:DescribePackages
+              - es:DescribeReservedElasticsearchInstanceOfferings
+              - es:DescribeReservedElasticsearchInstances
+              - es:DissociatePackage
+              - es:ESCrossClusterGet
+              - es:ESHttpDelete
+              - es:ESHttpGet
+              - es:ESHttpHead
+              - es:ESHttpPatch
+              - es:ESHttpPost
+              - es:ESHttpPut
+              - es:GetCompatibleElasticsearchVersions
+              - es:GetPackageVersionHistory
+              - es:GetUpgradeHistory
+              - es:GetUpgradeStatus
+              - es:ListDomainNames
+              - es:ListDomainsForPackage
+              - es:ListElasticsearchInstanceTypeDetails
+              - es:ListElasticsearchInstanceTypes
+              - es:ListElasticsearchVersions
+              - es:ListPackagesForDomain
+              - es:ListTags
+              - es:PurchaseReservedElasticsearchInstanceOffering
+              - es:RejectInboundCrossClusterSearchConnection
+              - es:RemoveTags
+              - es:UpdateElasticsearchDomainConfig
+              - es:UpdatePackage
+              - es:UpgradeElasticsearchDomain
+            Resource: !Sub arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/${ElasticsearchDomainName}/*
   AitEditorAgentLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /cloudwatch-agent/ait-editor/agent
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
-
   AitEditorSyslogLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /cloudwatch-agent/ait-editor/syslog
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
-
   AitServerAgentLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /cloudwatch-agent/ait-server/agent
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
-
   AitServerSyslogLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /cloudwatch-agent/ait-server/syslog
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
-
-  Ec2SecurityGroupSsh:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      VpcId: !Ref VpcId
-      SecurityGroupEgress:
-        - CidrIp: 0.0.0.0/0
-          Description: Allow all outbound traffic by default
-          IpProtocol: "-1"
-      GroupDescription: Security group for access to bastion.
-
-  ElasticsearchBastion:
-    Type: AWS::EC2::Instance
-    Properties:
-      ImageId: !Ref BastionAmiId
-      InstanceType: t2.micro
-      KeyName: !Ref SshKeyName
-      NetworkInterfaces:
-        - AssociatePublicIpAddress: true
-          DeleteOnTermination: true
-          DeviceIndex: "0"
-          GroupSet:
-            - !Ref Ec2SecurityGroupSsh
-            - !Ref ElasticsearchSecurityGroup
-            - !Ref AccessSgId
-          SubnetId: !Select [0, !Ref PublicSubnetIds]
-      Tags:
-        - Key: Name
-          Value: ammo-cubs-logging-bastion
-
   LoggingBucket:
     Type: AWS::S3::Bucket
-
   FirehoseRole:
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - EIAMPolicyWildcardResource
+          ignore_reasons:
+            EIAMPolicyWildcardResource: Network interface permissions are a circular dependency. Specific nodes/interfaces of an Elasticsearch domain are not easily surfaced to CFN
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -259,8 +237,8 @@ Resources:
                   - ec2:DescribeSecurityGroups
                   - ec2:DescribeNetworkInterfaces
                   - ec2:CreateNetworkInterface
-                  - ec2:CreateNetworkInterfacePermission
                   - ec2:DeleteNetworkInterface
+                  - ec2:CreateNetworkInterfacePermission
                 Resource: "*"
         - PolicyName: firehose-elasticsearch
           PolicyDocument:
@@ -296,7 +274,6 @@ Resources:
   FirehoseLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /kinesisfirehose/logging-firehose
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
 
   ElasticsearchDeliveryLogStream:
@@ -356,7 +333,10 @@ Resources:
           RoleARN: !GetAtt FirehoseRole.Arn
           SecurityGroupIds:
             - !GetAtt ElasticsearchSecurityGroup.GroupId
-          SubnetIds: !Ref PrivateSubnetIds
+          SubnetIds:
+            - !Ref PrivateSubnet1ID
+            - !Ref PrivateSubnet2ID
+            - !Ref PrivateSubnet3ID
   CloudWatchLogRole:
     Type: AWS::IAM::Role
     Properties:
@@ -382,7 +362,18 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - firehose:*
+                  - firehose:CreateDeliveryStream
+                  - firehose:DeleteDeliveryStream
+                  - firehose:DescribeDeliveryStream
+                  - firehose:ListDeliveryStreams
+                  - firehose:ListTagsForDeliveryStream
+                  - firehose:PutRecord
+                  - firehose:PutRecordBatch
+                  - firehose:StartDeliveryStreamEncryption
+                  - firehose:StopDeliveryStreamEncryption
+                  - firehose:TagDeliveryStream
+                  - firehose:UntagDeliveryStream
+                  - firehose:UpdateDestination
                 Resource:
                   - !GetAtt LogKinesisDeliveryStream.Arn
 
@@ -443,7 +434,18 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - firehose:*
+                  - firehose:CreateDeliveryStream
+                  - firehose:DeleteDeliveryStream
+                  - firehose:DescribeDeliveryStream
+                  - firehose:ListDeliveryStreams
+                  - firehose:ListTagsForDeliveryStream
+                  - firehose:PutRecord
+                  - firehose:PutRecordBatch
+                  - firehose:StartDeliveryStreamEncryption
+                  - firehose:StopDeliveryStreamEncryption
+                  - firehose:TagDeliveryStream
+                  - firehose:UntagDeliveryStream
+                  - firehose:UpdateDestination
                 Resource:
                   - !Sub arn:${AWS::Partition}:firehose:${AWS::Region}:${AWS::AccountId}:deliverystream/*
                   # - !GetAtt LogKinesisDeliveryStream.Arn # XXX: can't reference stream directly because of circular dependency
@@ -461,10 +463,13 @@ Resources:
       VpcConfig:
         SecurityGroupIds:
           - !GetAtt ElasticsearchSecurityGroup.GroupId
-        SubnetIds: !Ref PrivateSubnetIds
+        SubnetIds:
+          - !Ref PrivateSubnet1ID
+          - !Ref PrivateSubnet2ID
+          - !Ref PrivateSubnet3ID
       Code:
-        S3Bucket: ammos-cubs-assets
-        S3Key: logging_processor.zip
+        S3Bucket: !Ref QSS3BucketName
+        S3Key: !Sub "${QSS3KeyPrefix}functions/packages/LoggingProcessorLambda/lambda.zip"
 
 Outputs:
   LoggingBucketName:
