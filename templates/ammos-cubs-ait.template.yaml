@@ -84,6 +84,8 @@ Parameters:
     Type: String
   ALBHttpsListenerArn:
     Type: String
+  ListenerCertificateArn:
+    Type: String
 Conditions:
   SshEnabled: !Not
     - !Equals
@@ -317,8 +319,7 @@ Resources:
       Port: 8082
       Protocol: HTTPS
       Certificates:
-        - CertificateArn: !ImportValue
-            Fn::Sub: ${ProjectName}-ListenerCertificateArn
+        - CertificateArn: !Ref ListenerCertificateArn
       SslPolicy: ELBSecurityPolicy-FS-1-2-2019-08
   InstanceRole:
     Type: AWS::IAM::Role
