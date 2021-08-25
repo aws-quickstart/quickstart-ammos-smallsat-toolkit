@@ -301,7 +301,7 @@ Resources:
         ALBHttpsListenerArn: !GetAtt AmmosCubsALBStack.Outputs.HttpsListenerArn
         ListenerCertificateArn: !If
           - GenerateSSL
-          - ConfigureSSLStack.Outputs.ACMCertificateArn
+          - !GetAtt ConfigureSSLStack.Outputs.ACMCertificate
           - !Ref SSLCertificateArn
         ALBArn: !GetAtt AmmosCubsALBStack.Outputs.AlbArn
   ConfigureSSLStack:
