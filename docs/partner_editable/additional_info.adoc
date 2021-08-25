@@ -5,7 +5,7 @@
 
 == Test the deployment
 
-TODO: @MF @KM add input if necessary
+// TODO: @MF @KM add input if necessary
 
 // If steps are required to test the deployment, add them here. If not, remove the heading
 Once the Quick Start has finished deploying, there are some quick sanity tests you can perform to verify that the various components have been provisioned successfully.
