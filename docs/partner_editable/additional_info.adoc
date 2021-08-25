@@ -284,7 +284,7 @@ OpenMCT:
 - https://nasa.github.io/openmct/docs/guide/index.html#open-mct-developer-guide[Open MCT - Developer Guide]
 - https://github.com/nasa/openmct-tutorial[OpenMCT - Integration Tutorials]
 
-AIT Editor:
+// AIT Editor:
 
 //TODO: @MF links to AIT Editor once available
 // ^ Request is pending final open source approval
