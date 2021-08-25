@@ -5,7 +5,7 @@
 _Describe any setup required in the AWS account prior to template launch_
 
 === Deploy vpc and config stacks (pre-deploy)
-Two prerequisite stacks must be deployed prior to launching the Quick Start. Templates for these stacks are included in the repository with the appropriate resources and exports required by the Quick Start. These stacks are deployed separately because both require some slight modification by the user prior to launching. These modifications are detailed below in *Add ingress rules to "access-sg" and "Check config bucket contents and replace with mission-specific config".
+Two prerequisite stacks must be deployed prior to launching the Quick Start. Templates for these stacks are included in the repository with the appropriate resources and exports required by the Quick Start. These stacks are deployed separately because both require some slight modification by the user prior to launching. These modifications are detailed below in *Add ingress rules to "access-sg"* and *"Check config bucket contents and replace with mission-specific config"*.
 
 //TODO: @AG any more guidance needed on deploying these prereq stacks?
 
@@ -26,7 +26,7 @@ As part of the VPC deployed above, a Security Group is created to manage allowed
 
 [NOTE]
 ====
-If Security Group is opened to the world, resources will still be protected by ALB Authentication Actions and AWS SSM; for more info, see TODO: link to security
+If Security Group is opened to the world, resources will still be protected by ALB Authentication Actions and AWS SSM; for more info, see LINK: link to security
 ====
 
 For more information on adding Security Group Ingress Rules, see: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html[AWS Docs - Security Groups Basics]
@@ -49,7 +49,7 @@ The deployment relies on a user-provided domain (referred to as `fqdn`); This FQ
 
 For guidance on creating a Route 53 Hosted Zone, see: https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html[AWS Docs - Configuring Route53 as your DNS Service]
 
-If the user chooses not to use Route53, they are responsible for deploying the appropriate records as detailed in TODO: link to post-deployment step
+If the user chooses not to use Route53, they are responsible for deploying the appropriate records as detailed in LINK: link to post-deployment step
 
 == Import ssl certificate to AWS ACM
 HTTPS is enabled on the ALB, requiring a valid SSL certificate for the aforementioned `FQDN`; additionally, the certificate should include the following alternative SANs (`*.{FQDN}` may be used if desired):

@@ -5,7 +5,8 @@
 This guide provides instructions for deploying the {partner-product-short-name} Quick Start reference architecture on the AWS Cloud.
 
 == Target Audience
+This deployment is targeted at operations teams for CubeSat and Instrument Missions. It is assumed that the user will be acting as system admin and has some familiarity with AWS concepts and services.
 
-// TODO: @CC may add content
+// TODO: @CC may expand the above
 
-// TODO: Link to specialized_knowledge?
+// LINK: Link to specialized_knowledge
