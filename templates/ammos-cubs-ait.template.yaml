@@ -154,7 +154,7 @@ Resources:
             - download_bootstrap_script
         download_bootstrap_script:
           files:
-            /tmp/molecule_install.sh:
+            /tmp/ait_bootstrap.sh:
               source: !Sub
                 - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/ait_bootstrap.sh
                 - S3Bucket: !If
@@ -169,7 +169,10 @@ Resources:
               owner: 'root'
               group: 'root'
               authentication: S3AccessCreds
-
+          commands:
+            010_run_bootstrap:
+              command: !Sub |
+                /tmp/ait_bootstrap.sh
     Properties:
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
@@ -210,12 +213,14 @@ Resources:
       Port: 80
       Protocol: HTTP
       TargetType: instance
+      VpcId: !Ref VPCID
   AitMctTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       Port: 8082
       Protocol: HTTP
       TargetType: instance
+      VpcId: !Ref VPCID
   AitAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     CreationPolicy:
@@ -284,15 +289,15 @@ Resources:
             Issuer: !Ref CognitoProviderUrl
             UserInfoEndpoint:
               Fn::Sub:
-                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/userInfo"
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/userInfo
                 - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
             AuthorizationEndpoint:
               Fn::Sub:
-                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/authorize"
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/authorize
                 - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
             TokenEndpoint:
               Fn::Sub:
-                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/token"
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/token
                 - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
             OnUnauthenticatedRequest: authenticate
             Scope: openid
