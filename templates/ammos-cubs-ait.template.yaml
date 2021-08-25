@@ -194,19 +194,14 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
-          if [ $UID -eq 0 ]; then
-            sudo chmod 777 "$0"
-            exec su ec2-user "$0"
-          fi
           export PATH=$PATH:/usr/local/bin
-          sudo yum install git -y || apt-get install -y git || zypper -n install git
-          sudo git clone https://github.com/aws-quickstart/quickstart-linux-utilities.git /quickstart-linux-utilities
+          yum install git -y || apt-get install -y git || zypper -n install git
+          git clone https://github.com/aws-quickstart/quickstart-linux-utilities.git /quickstart-linux-utilities
           cd /quickstart-linux-utilities
           source quickstart-cfn-tools.source
-          qs_update-os
-          qs_aws-cfn-bootstrap
-          sudo cfn-init -v --stack ${AWS::StackName} --resource AitAutoScalingGroupLaunchConfig --region ${AWS::Region}
-          sudo cfn-signal -e $? --stack ${AWS::StackName} --resource AitAutoScalingGroup --region ${AWS::Region}
+          $(qs_get-python-path) -m easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+          /usr/local/bin/cfn-init -v --stack ${AWS::StackName} --resource AitAutoScalingGroupLaunchConfig --region ${AWS::Region}
+          /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource AitAutoScalingGroup --region ${AWS::Region}
   AitWebTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
