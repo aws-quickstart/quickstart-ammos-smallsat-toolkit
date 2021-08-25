@@ -170,22 +170,18 @@ Resources:
   AitEditorAgentLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /cloudwatch-agent/ait-editor/agent
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
   AitEditorSyslogLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /cloudwatch-agent/ait-editor/syslog
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
   AitServerAgentLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /cloudwatch-agent/ait-server/agent
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
   AitServerSyslogLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /cloudwatch-agent/ait-server/syslog
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
   LoggingBucket:
     Type: AWS::S3::Bucket
@@ -278,7 +274,6 @@ Resources:
   FirehoseLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /kinesisfirehose/logging-firehose
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
 
   ElasticsearchDeliveryLogStream:

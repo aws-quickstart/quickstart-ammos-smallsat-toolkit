@@ -84,6 +84,10 @@ Parameters:
     Type: String
   ALBHttpsListenerArn:
     Type: String
+  ListenerCertificateArn:
+    Type: String
+  ALBArn:
+    Type: String
 Conditions:
   SshEnabled: !Not
     - !Equals
@@ -98,13 +102,13 @@ Conditions:
 Mappings:
   AWSAMIRegionMap:
     us-east-1:
-      RHEL76HVM: ami-08a7d2bfef687328f
+      RHELHA84HVM: ami-02e0bb36c61bb9715
     us-east-2:
-      RHEL76HVM: ami-0e166e72fda655c63
+      RHELHA84HVM: ami-0b2e47f3b2e23d235
     us-west-1:
-      RHEL76HVM: ami-056efb42b219f9abb
+      RHELHA84HVM: ami-054965c6cd7c6e462
     us-west-2:
-      RHEL76HVM: ami-02deb4589e0f0d95e
+      RHELHA84HVM: ami-0b28dfc7adc325ef4
 
 Resources:
   AitServerSecurityGroup:
@@ -150,7 +154,7 @@ Resources:
             - download_bootstrap_script
         download_bootstrap_script:
           files:
-            /tmp/molecule_install.sh:
+            /tmp/ait_bootstrap.sh:
               source: !Sub
                 - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/ait_bootstrap.sh
                 - S3Bucket: !If
@@ -165,7 +169,10 @@ Resources:
               owner: 'root'
               group: 'root'
               authentication: S3AccessCreds
-
+          commands:
+            010_run_bootstrap:
+              command: !Sub |
+                /tmp/ait_bootstrap.sh
     Properties:
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
@@ -176,7 +183,7 @@ Resources:
       ImageId: !FindInMap
         - AWSAMIRegionMap
         - !Ref AWS::Region
-        - RHEL76HVM
+        - RHELHA84HVM
       InstanceType: !Ref 'InstanceType'
       KeyName: !If
         - SshEnabled
@@ -206,12 +213,14 @@ Resources:
       Port: 80
       Protocol: HTTP
       TargetType: instance
+      VpcId: !Ref VPCID
   AitMctTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       Port: 8082
       Protocol: HTTP
       TargetType: instance
+      VpcId: !Ref VPCID
   AitAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     CreationPolicy:
@@ -245,16 +254,16 @@ Resources:
             Issuer: !Ref CognitoProviderUrl
             UserInfoEndpoint:
               Fn::Sub:
-                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/userInfo"
-                - AuthSuffix: !If [IsGovCloud, ".auth-fips.", ".auth."]
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/userInfo
+                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
             AuthorizationEndpoint:
               Fn::Sub:
-                - https://${ProjectName}-${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/authorize"
-                - AuthSuffix: !If [IsGovCloud, ".auth-fips.", ".auth."]
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/authorize
+                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
             TokenEndpoint:
               Fn::Sub:
-                - https://${ProjectName}-${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/token"
-                - AuthSuffix: !If [IsGovCloud, ".auth-fips.", ".auth."]
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/token
+                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
             OnUnauthenticatedRequest: authenticate
             Scope: openid
             SessionTimeout: !Ref SessionTimeout
@@ -280,16 +289,16 @@ Resources:
             Issuer: !Ref CognitoProviderUrl
             UserInfoEndpoint:
               Fn::Sub:
-                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/userInfo"
-                - AuthSuffix: !If [IsGovCloud, ".auth-fips.", ".auth."]
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/userInfo
+                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
             AuthorizationEndpoint:
               Fn::Sub:
-                - https://${ProjectName}-${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/authorize"
-                - AuthSuffix: !If [IsGovCloud, ".auth-fips.", ".auth."]
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/authorize
+                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
             TokenEndpoint:
               Fn::Sub:
-                - https://${ProjectName}-${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/token"
-                - AuthSuffix: !If [IsGovCloud, ".auth-fips.", ".auth."]
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/token
+                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
             OnUnauthenticatedRequest: authenticate
             Scope: openid
             SessionTimeout: !Ref SessionTimeout
@@ -312,13 +321,11 @@ Resources:
             TargetGroups:
               - TargetGroupArn: !Ref AitMctTargetGroup
                 Weight: 1
-      LoadBalancerArn: !ImportValue
-        Fn::Sub: ${ProjectName}-AlbArn
+      LoadBalancerArn: !Ref ALBArn
       Port: 8082
       Protocol: HTTPS
       Certificates:
-        - CertificateArn: !ImportValue
-            Fn::Sub: ${ProjectName}-ListenerCertificateArn
+        - CertificateArn: !Ref ListenerCertificateArn
       SslPolicy: ELBSecurityPolicy-FS-1-2-2019-08
   InstanceRole:
     Type: AWS::IAM::Role

@@ -60,13 +60,13 @@ Parameters:
 Mappings:
   AWSAMIRegionMap:
     us-east-1:
-      RHEL76HVM: ami-08a7d2bfef687328f
+      RHELHA84HVM: ami-02e0bb36c61bb9715
     us-east-2:
-      RHEL76HVM: ami-0e166e72fda655c63
+      RHELHA84HVM: ami-0b2e47f3b2e23d235
     us-west-1:
-      RHEL76HVM: ami-056efb42b219f9abb
+      RHELHA84HVM: ami-054965c6cd7c6e462
     us-west-2:
-      RHEL76HVM: ami-02deb4589e0f0d95e
+      RHELHA84HVM: ami-0b28dfc7adc325ef4
 Conditions:
   SshEnabled: !Not [!Equals ['', !Ref KeyPairName]]
   IsGovCloud: !Not [!Equals ['aws', !Ref AWS::Partition]]
@@ -110,16 +110,16 @@ Resources:
             Issuer: !Ref CognitoProviderUrl
             UserInfoEndpoint:
               Fn::Sub:
-                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/userInfo"
-                - AuthSuffix: !If [IsGovCloud, ".auth-fips.", ".auth."]
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/userInfo
+                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
             AuthorizationEndpoint:
               Fn::Sub:
-                - https://${ProjectName}-${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/authorize"
-                - AuthSuffix: !If [IsGovCloud, ".auth-fips.", ".auth."]
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/authorize
+                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
             TokenEndpoint:
               Fn::Sub:
-                - https://${ProjectName}-${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/token"
-                - AuthSuffix: !If [IsGovCloud, ".auth-fips.", ".auth."]
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/token
+                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
             OnUnauthenticatedRequest: authenticate
             Scope: openid
             SessionTimeout: !Ref SessionTimeout
@@ -141,7 +141,6 @@ Resources:
         Count: 1
         Timeout: PT1H
     DependsOn:
-      - InstanceRoleDefaultPolicy
       - InstanceRole
     Properties:
       BlockDeviceMappings:
@@ -153,7 +152,7 @@ Resources:
       ImageId: !FindInMap
         - AWSAMIRegionMap
         - !Ref AWS::Region
-        - RHEL76HVM
+        - RHELHA84HVM
       InstanceType: !Ref InstanceType
       KeyName: !If [SshEnabled, !Ref KeyPairName, !Ref AWS::NoValue]
       SecurityGroupIds:
@@ -210,7 +209,7 @@ Resources:
           mkdir -p $SETUP_DIR
           cd $SETUP_DIR
           /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 cp \
-            s3://$CONFIG_BUCKET_NAME/editor/cloudwatch-agent-editor.json \
+            s3://$CONFIG_BUCKET_NAME/configs/editor/cloudwatch-agent-editor.json \
             $SETUP_DIR/cloudwatch-agent-editor.json
 
           # Docker + Docker-Compose
