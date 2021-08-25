@@ -24,6 +24,9 @@ As shown in <<architecture1>>, the Quick Start sets up the following:
 
 == Prereq Components
 // Add bullet points for any additional components that are included in the deployment. Make sure that the additional components are also represented in the architecture diagram. End each bullet with a period.
+
+
+// TODO: pre-deployment should be in the pre-deployment steps, this area should only contain information that is pertinent to the architecture diagram and nothing else.
 Cover Pre-Deployment Resources here?
 
 * VPC stack

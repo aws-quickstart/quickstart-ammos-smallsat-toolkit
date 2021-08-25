@@ -1,3 +1,24 @@
+=== Overview of Deployment Steps
+
+<<_prepare_your_aws_account>>
+
+1. Deploy vpc and config stacks (pre-deploy)
+2. Deploy SLR for ES
+3. Add ingress rules to “access-sg”
+4. Check config bucket contents and replace with mission-specific config
+5. Import user-owned domain to Route53 (optional)
+6. Import ssl certificate to AWS ACM
+
+<<_launch_the_quick_start>>
+
+7. Launch the Quick Start
+
+<<_post_deployment_steps>>
+
+8. Deploy CNAMEs if not using R53
+9. Add users to Cognito UserPool
+10. Validate web interfaces and services
+
 === Confirm your AWS account configuration
 . Sign in to your AWS account at https://aws.amazon.com with an IAM user role that has the necessary permissions. For details, see link:#_planning_the_deployment[Planning the deployment] earlier in this guide.
 . Make sure that your AWS account is configured correctly, as discussed in the link:#_technical_requirements[Technical requirements] section.
@@ -34,25 +55,3 @@ Each deployment takes about {deployment_time} to complete.
 . Check the AWS Region that’s displayed in the upper-right corner of the navigation bar, and change it if necessary. This Region is where you build the network infrastructure. The template is launched in the {default_deployment_region} Region by default. For other choices, see link:#_supported_regions[Supported Regions] earlier in this guide.
 . On the *Create stack* page, keep the default setting for the template URL, and then choose *Next*.
 . On the *Specify stack details* page, change the stack name if needed. Review the parameters for the template. Provide values for the parameters that require input. For all other parameters, review the default settings and customize them as necessary. For details on each parameter, see the link:#_parameter_reference[Parameter reference] section of this guide. When you finish reviewing and customizing the parameters, choose *Next*.
-
-== Overview of Deployment Steps
-
-//LINK: Link to Pre-Reqs
-1. Deploy vpc and config stacks (pre-deploy)
-2. Deploy SLR for ES
-3. Add ingress rules to “access-sg”
-4. Check config bucket contents and replace with mission-specific config
-5. Import user-owned domain to Route53 (optional)
-6. Import ssl certificate to AWS ACM
-// Main deploy
-7. Deploy QS
-// LINK: link to post-deploy
-8. Deploy CNAMEs if not using R53
-9. Add users to Cognito UserPool
-10. Validate web interfaces and services
-
-[NOTE]
-====
-Step 1-6 is before QS +
-Step 8-10 is post QS
-====

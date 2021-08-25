@@ -8,11 +8,11 @@
 // TODO: @MF @KM add input if necessary
 
 // If steps are required to test the deployment, add them here. If not, remove the heading
-Once the Quick Start has finished deploying, there are some quick sanity tests you can perform to verify that the various components have been provisioned successfully.
+Once the Quick Start has finished deploying, there are some tests you can perform to verify that the various components have been provisioned successfully.
 
 === Connect to AIT server/editor instances
-Once the Quick Start deployment has completed, you can verify that the AIT server and AIT editor server instances have been launched successfully. In the AWS Management Console, navigate to the EC2 section, and then click on "Instances" in the left hand navigation.
-Under the list of instances, verify that there is an instance labeled `AitAutoScalingGroup` and `EditorServer`. Verify that these instances are running and are passing status checks. Additionally, you can connect to these servers via <<SSM, SSM>> (similar to SSH) to do a quick sanity check that these servers have been provisioned successfully. After connecting to the server, you may run the following to test that application processes are running normally.
+To verify that the AIT server and AIT editor server instances have been launched successfully, in the AWS Management Console, navigate to the EC2 section, and then click on "Instances" in the left hand navigation.
+Under the list of instances, verify that there is an instance labeled *AitAutoScalingGroup* and *EditorServer*. Verify that these instances are running and are passing status checks. Additionally, you can connect to these servers via <<SSM, SSM>> (similar to SSH) to do a quick sanity check that these servers have been provisioned successfully. After connecting to the server, you may run the following to test that application processes are running normally.
 
 For AIT Server, verify that these services are in the "active" state:
 
@@ -51,13 +51,14 @@ To validate that logs are successfully being sent to CloudWatch, navigate to the
 
 In each of these log groups, there should also be a few log streams containing log data. You should verify that there is log data in each of these log streams. If this verification is done shortly after Quick Start deployment is completed, you may not see a large amount of log data.
 
+//TODO: is this input complete? is more needed?
 _Awaiting input from testing lead_
 
 == Post-deployment steps
 // If post-deployment steps are required, add them here. If not, remove the heading
 
 === DNS Management
-If the user has opted to not use Route53 (see LINK: link to pre-req) for domain management and prefers to manage their domain using some other DNS service, they will be responsible for deploying the appropriate name records to their DNS. Refer to your DNS provider’s documentation for guidance on this process. The following records must be deployed:
+If you have opted to not use Route53 (see <<_optional_import_user_owned_domain_to_route53>>) for domain management and prefer to manage your domain using some other DNS service, you will be responsible for deploying the appropriate name records to your DNS. Refer to your DNS provider’s documentation for guidance on this process. The following records must be deployed:
 
     CNAME         fqdn            →    ALB
     Alias    |    ait.fqdn        →    fqdn
@@ -65,7 +66,7 @@ If the user has opted to not use Route53 (see LINK: link to pre-req) for domain 
     Alias    |    editor.fqdn     →    fqdn
     Alias    |    logs.fqdn       →    fqdn
 
-//LINK: Link to ALB Stack or properly name once available
+//TODO LINK: Link to ALB Stack or properly name once available  -- Is this done?
 The ALB DNS name can be obtained from the Outputs section of the ALB Stack
 
 [NOTE]
@@ -169,22 +170,22 @@ sudo systemctl restart ait-server
 
 The service itself will run the AIT Core Server which listens for, processes, and exposes telemetry. Additionally, any configured plugins (such as `AIT-GUI`) will also be run according to the main AIT config file.
 
-//TODO: @AG - not sure on placement of the following
-=== Logging (CloudWatch Agent)
+== Logging (CloudWatch Agent)
 
 To facilitate centralized logging for the various applications, the Amazon CloudWatch Agent is installed on all of the deployed EC2 Instances during the bootstrap process. This agent is initialized by a provided default config file which informs the agent which files to monitor and where to direct the logs in AWS CloudWatch.
 
+//TODO: please confirm these links? are they links to section in this guide?
 The default configuration files can be inspected at LINK: link to S3 config. Users may modify this file in the post-deployment steps as detailed in LINK: link to post-deploy.
 
 For more information about the CloudWatch Agent, see:
 
 https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent.html[Collecting metrics and logs from Amazon EC2 instances and on-premises servers with the CloudWatch agent - Amazon CloudWatch]
 
-==== Log Retention Settings
+=== Log Retention Settings
 
 The AWS CloudWatch log groups that receive logs from the various applications have been configured with a log retention period. The retention period is a parameter in the logging CloudFormation template and can be adjusted by changing the parameter value prior to deployment or by https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#SettingLogRetention[manually changing the retention period]. The default log retention period is 30 days (a month). Keep in mind that increasing the log retention period will increase the costs associated with storing the logs for a longer time.
 
-==== Modifying the CloudWatch Agent
+=== Modifying the CloudWatch Agent
 The CloudWatch Agent monitors specified log files and pipes their content to AWS CloudWatch Logs. This file can be found on each server at:
 /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
@@ -229,13 +230,14 @@ SELinux is enabled and enforced on the application servers. Apache HTTP Server a
 
 Side effects may occur if settings and/or configuration files are modified or moved after the initial deployment of the application. If you have any issues with SELinux file and process contexts, please refer to a fresh deployment of the Quick Start or redeploy the Quick Start.
 
-IMPORTANT: We highly recommend that you do not disable SELinux unless you are aware of unintended security consequences or have the need to disable SELinux for compatibility or debugging purposes.
+IMPORTANT: We highly recommend you do not disable SELinux unless you are aware of unintended security consequences or have the need to disable SELinux for compatibility or debugging purposes.
 
 === Elasticsearch/Kibana
 This Quick Start deploys an Elasticsearch domain under the AWS Elasticsearch Service. The Elasticsearch domain contains logging data that is received from application servers. It is deployed within a VPC (see https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-vpc.html[VPC support]) and all master and data nodes reside within private subnets. Encryption for data at rest is enabled by default, and the security group associated with the domain is configured prior to deploying this Quick Start.
 
 IMPORTANT: The Elasticsearch domain currently uses an open access policy, with access controlled via by an EC2 security group. For more security, use fine-grained access control or modify the access policy to specify IAM users or roles. See https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/security.html[Elasticsearch security] for more details.
 
+//TODO: what needs to be added/clarified here?
 @MF:
 
 === Authentication
@@ -247,11 +249,12 @@ For more information on ALB Authentication Actions, see:
 - https://aws.amazon.com/blogs/aws/built-in-authentication-in-alb/[AWS Blog - Built-in Authentication in ALB]
 
 === Code Server Access
-The Editor server runs cdr/code-server as described in LINK: link to `product_description`. VS Code includes an integrated terminal that allows the user to execute system-level commands from the browser interface. To mitigate impact, the VS Code server is run within a docker container with volumes mounted to the following locations:
+The Editor server runs cdr/code-server as described in <<_ait_editor>>. VS Code includes an integrated terminal that allows the user to execute system-level commands from the browser interface. To mitigate impact, the VS Code server is run within a docker container with volumes mounted to the following locations:
 - `/home/editor-user/.aerie-editor-data:/home/coder/.local/share/code-server`
 - `/home/editor-user/.aerie-editor-config:/home/coder/.config`
 - `/home/editor-user:/home/coder/project`
 
+// TODO: which section is this link for?
 This web application is protected behind an authentication action on the ALB as described in LINK: link to. Authentication can also be enforced at the application level as described in https://coder.com/docs/code-server/v3.11.1/FAQ#how-do-i-change-the-password[Code Server FAQ - Password]
 
 === SSL
