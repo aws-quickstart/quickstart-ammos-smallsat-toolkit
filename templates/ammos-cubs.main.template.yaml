@@ -298,7 +298,11 @@ Resources:
         CognitoClientID: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientId
         CognitoClientSecret: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientSecret
         CognitoProviderUrl: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolProviderUrl
-        ALBHttpsListenerArn: !GetAtt AmmosCubsALBStack.Outputs.ALBHttpsListenerArn
+        ALBHttpsListenerArn: !GetAtt AmmosCubsALBStack.Outputs.HttpsListenerArn
+        ListenerCertificateArn: !If
+          - GenerateSSL
+          - ConfigureSSLStack.Outputs.ACMCertificateArn
+          - !Ref SSLCertificateArn
   ConfigureSSLStack:
     DependsOn: CFNEndpoint
     Condition: GenerateSSL
