@@ -1,3 +1,4 @@
 functions/source/*.zip
-index.html
-docs/generated
+functions/packages/*/*.zip
+.taskcat/
+taskcat_outputs/
