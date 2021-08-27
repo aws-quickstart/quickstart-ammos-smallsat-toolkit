@@ -5,6 +5,3 @@
 
 This Quick Start also assumes familiarity with Spacecraft Ground Data Systems. The applications deployed in this Quick Start require extensive knowledge of mission parameters, common standards, operating procedures, and terminology related to spacecraft operations (cubesat, smallsat, instruments).
 
-// Disclaimer regarding liability or usage of applications?
-
-// TODO: @CC / @AG - thoughts on above?
