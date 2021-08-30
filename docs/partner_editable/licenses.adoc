@@ -1,3 +1,5 @@
 // Include details about any licenses and how to sign up. Provide links as appropriate. If no licenses are required, clarify that. The following paragraphs provide examples of details you can provide. Remove italics, and rephrase as appropriate.
 
-No licenses are required to deploy this Quick Start. 
+No licenses are required to deploy this Quick Start. https://calculator.aws/#/estimate?id=31a5cbc66adab9af6a4b55f2dda6ca727fc6398f[An AWS Pricing Calculator cost estimate is available].
+
+NOTE: AWS Pricing Calculator provides only an estimate of your AWS fees and doesn't include any taxes that might apply. Your actual fees depend on a variety of factors, including your actual usage of AWS services. https://aws.amazon.com/calculator/calculator-assumptions/[Learn More]
