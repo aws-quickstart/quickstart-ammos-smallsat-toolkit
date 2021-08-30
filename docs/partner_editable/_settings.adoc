@@ -1,8 +1,8 @@
 // Change the following attributes.
-:quickstart-project-name: quickstart-nasa-jpl-cubs
-:partner-product-name: NASA Multi-Mission Ops System Starter
+:quickstart-project-name: quickstart-jpl-ammos-smallsat-toolkit
+:partner-product-name: NASA AMMOS SmallSat Toolkit
 // For the following attribute, if you have no short name, enter the same name as partner-product-name.
-:partner-product-short-name: NASA Multi-Mission Ops System Starter
+:partner-product-short-name: NASA AMMOS SmallSat Toolkit
 // If there's no partner, comment partner-company-name.
 :partner-company-name: Jet Propulsion Laboratory
 :doc-month: September
