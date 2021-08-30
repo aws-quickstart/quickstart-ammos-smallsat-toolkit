@@ -1,0 +1,43 @@
+
+.AIT configuration
+[width="100%",cols="16%,11%,73%",options="header",]
+|===
+|Parameter label (name) |Default value|Description|AIT Instance Type
+(`AITInstanceType`)|`m5.large`|Instance type to be used for AIT Server instances; see deployment guide for recommendations|Elasticsearch Domain Name
+(`ElasticsearchDomainName`)|`**__Requires input__**`|Name of the Elasticsearch domain|CloudWatch Retention Period
+(`CloudWatchLogsRetentionPeriod`)|`30`|The number of days to retain log events in CloudWatch log groups|Key Pair Name
+(`KeyPairName`)|`**__Requires input__**`|A public/private key pair, which allows you to connect securely to your instance after it launches.|FQDN
+(`FQDN`)|`**__Requires input__**`|Fully Qualified Domain Name to use for project resources root.|SSL Certificate ARN
+(`SSLCertificateArn`)|`**__Blank string__**`|The ARN of the SSL certificate to use for the load balancer. Use 'SSLCertificateArn' if you are not using 'FQDN' and 'HostedZoneID'.|Hosted Zone ID
+(`HostedZoneID`)|`**__Blank string__**`|Route 53 Hosted Zone ID of the domain name. Used in conjunction with a 'FQDN'.|Project Name
+(`ProjectName`)|`**__Requires input__**`|Name of your project
+|===
+.IAM configuration
+[width="100%",cols="16%,11%,73%",options="header",]
+|===
+|Parameter label (name) |Default value|Description|Role Path
+(`RolePath`)|`**__Blank string__**`|Will be attached to all created IAM Roles to satisfy security requirements|Permissions Boundary ARN
+(`PermissionsBoundaryArn`)|`**__Blank string__**`|Will be attached to all created IAM Roles to satisfy security requirements
+|===
+.Network configuration
+[width="100%",cols="16%,11%,73%",options="header",]
+|===
+|Parameter label (name) |Default value|Description|Availability Zones
+(`AvailabilityZones`)|`**__Requires input__**`|List of Availability Zones to use for the subnets in the VPC. This deployment uses two Availability Zones, and the logical order of your selections is preserved.|VPC CIDR
+(`VPCCIDR`)|`10.0.0.0/16`|The CIDR block for the VPC.|Private subnet 1 CIDR
+(`PrivateSubnet1CIDR`)|`10.0.128.0/24`|The CIDR block used for the private subnet located in Availability Zone 1.|Private subnet 2 CIDR
+(`PrivateSubnet2CIDR`)|`10.0.192.0/24`|The CIDR block used for the private subnet located in Availability Zone 2.|Private subnet 3 CIDR
+(`PrivateSubnet3CIDR`)|`10.0.200.0/24`|The CIDR block used for the private subnet located in Availability Zone 2.|Public subnet 1 CIDR
+(`PublicSubnet1CIDR`)|`10.0.32.0/24`|The CIDR block used for the public subnet located in Availability Zone 1.|Public subnet 2 CIDR
+(`PublicSubnet2CIDR`)|`10.0.64.0/24`|The CIDR block used for the public subnet located in Availability Zone 2.|Public subnet 3 CIDR
+(`PublicSubnet3CIDR`)|`10.0.70.0/24`|The CIDR block used for the public subnet located in Availability Zone 2.|RemoteAccessCIDR
+(`RemoteAccessCIDR`)|`**__Requires input__**`|The CIDR IP range that is permitted to access the instances. We recommend that you set this value to a trusted IP range.
+|===
+.AWS Quick Start configuration
+[width="100%",cols="16%,11%,73%",options="header",]
+|===
+|Parameter label (name) |Default value|Description|Quick Start S3 bucket name
+(`QSS3BucketName`)|`aws-quickstart`|S3 bucket name for the Quick Start assets. This string can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).|Quick Start S3 key prefix
+(`QSS3KeyPrefix`)|`quickstart-nasa-jpl-cubs/`|S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).|Quick Start S3 bucket region
+(`QSS3BucketRegion`)|`us-east-1`|The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value.
+|===

@@ -52,7 +52,7 @@ To validate that logs are successfully being sent to CloudWatch, navigate to the
 In each of these log groups, there should also be a few log streams containing log data. You should verify that there is log data in each of these log streams. If this verification is done shortly after Quick Start deployment is completed, you may not see a large amount of log data.
 
 //TODO: is this input complete? is more needed?
-_Awaiting input from testing lead_
+//_Awaiting input from testing lead_
 
 == Post-deployment steps
 // If post-deployment steps are required, add them here. If not, remove the heading
@@ -238,7 +238,7 @@ This Quick Start deploys an Elasticsearch domain under the AWS Elasticsearch Ser
 IMPORTANT: The Elasticsearch domain currently uses an open access policy, with access controlled via by an EC2 security group. For more security, use fine-grained access control or modify the access policy to specify IAM users or roles. See https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/security.html[Elasticsearch security] for more details.
 
 //TODO: what needs to be added/clarified here?
-@MF:
+//@MF:
 
 === Authentication
 The application load balancer is deployed to a public subnet and brokers access to the application resources deployed in private subnets. Each application is accessible via a Listener Rule which directs traffic according to the host header and performs an authentication action prior to forwarding the traffic to the appropriate target group. This authentication action is configured with the deployed AWS Cognito User Pool as an OIDC provider. Access is granted on a full-access basis, if a user can authenticate as a known identity, they are allowed through the ALB to the underlying resource.

@@ -1,0 +1,17 @@
+
+.Environment configuration
+[width="100%",cols="16%,11%,73%",options="header",]
+|===
+|Parameter label (name) |Default value|Description|Project Name
+(`ProjectName`)|`**__Requires input__**`|Name of your project|Permissions Boundary ARN
+(`PermissionsBoundaryArn`)|`**__Blank string__**`|Will be attached to all created IAM Roles to satisfy security requirements|Role Path
+(`RolePath`)|`**__Blank string__**`|Will be attached to all created IAM Roles to satisfy security requirements
+|===
+.AWS Quick Start configuration
+[width="100%",cols="16%,11%,73%",options="header",]
+|===
+|Parameter label (name) |Default value|Description|Quick Start S3 bucket name
+(`QSS3BucketName`)|`aws-quickstart`|S3 bucket name for the Quick Start assets. This string can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).|Quick Start S3 key prefix
+(`QSS3KeyPrefix`)|`quickstart-nasa-jpl-cubs/`|S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).|Quick Start S3 bucket region
+(`QSS3BucketRegion`)|`us-east-1`|The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value.
+|===

@@ -1,0 +1,6 @@
+
+=== Pre-Configure your AWS account
+include::ammos-cubs.preconfig.template.adoc[]
+
+=== Launch into a new VPC
+include::ammos-cubs.main.template.adoc[]

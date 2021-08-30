@@ -22,21 +22,3 @@ As shown in <<architecture1>>, the Quick Start sets up the following:
 * Lambda Functions that preprocesses logs and prepares them for delivery to Kinesis Data Firehose
 * S3 Bucket containing application and server configuration files
 
-== Prereq Components
-// Add bullet points for any additional components that are included in the deployment. Make sure that the additional components are also represented in the architecture diagram. End each bullet with a period.
-
-
-// TODO: pre-deployment should be in the pre-deployment steps, this area should only contain information that is pertinent to the architecture diagram and nothing else.
-Cover Pre-Deployment Resources here?
-
-* VPC stack
-** VPC
-** Private Subnets for deploying the application servers and ElasticSearch Domain
-** Public Subnets for deploying the Application load balancer and bastion servers
-* Config stack
-** S3 Bucket to hold project-specific application config files
-** Custom resource to seed this bucket with default reference config files
-** LINK: See <<pre-reqs.adoc#Configuration-Files-in-S3,Configuration Files in S3>> for more information on the contents of this bucket
-
-
-[.small]#* The template that deploys the Quick Start into an existing VPC skips the components marked by asterisks and prompts you for your existing VPC configuration.#

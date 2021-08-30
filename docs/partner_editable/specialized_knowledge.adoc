@@ -3,5 +3,5 @@
 // Include links if helpful.
 // You don't need to list AWS services or point to general info about AWS; the boilerplate already covers this.
 
-This Quick Start also assumes familiarity with Spacecraft Ground Data Systems. The applications deployed in this Quick Start require extensive knowledge of mission parameters, common standards, operating procedures, and terminology related to spacecraft operations (cubesat, smallsat, instruments).
+This Quick Start also assumes familiarity with Spacecraft Ground Data Systems. The applications deployed in this Quick Start require extensive knowledge of mission parameters, common standards, operating procedures, and terminology related to spacecraft operations.
 
