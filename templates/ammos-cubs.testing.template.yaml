@@ -1,90 +1,6 @@
 ---
 AWSTemplateFormatVersion: "2010-09-09"
 Description: (qs-1s6abjf8q)
-Metadata:
-  QuickStartDocumentation:
-    EntrypointName: "Launch into a new VPC"
-  'AWS::CloudFormation::Interface':
-    ParameterGroups:
-      - Label:
-          default: AIT configuration
-        Parameters:
-          - AITInstanceType
-          - ElasticsearchDomainName
-          - CloudWatchLogsRetentionPeriod
-          - KeyPairName
-          - FQDN
-          - SSLCertificateArn
-          - HostedZoneID
-          - ProjectName
-      - Label:
-          default: IAM configuration
-        Parameters:
-          - RolePath
-          - PermissionsBoundaryArn
-      - Label:
-          default: Network configuration
-        Parameters:
-          - AvailabilityZones
-          - VPCCIDR
-          - PrivateSubnet1CIDR
-          - PrivateSubnet2CIDR
-          - PrivateSubnet3CIDR
-          - PublicSubnet1CIDR
-          - PublicSubnet2CIDR
-          - PublicSubnet3CIDR
-          - RemoteAccessCIDR
-      - Label:
-          default: AWS Quick Start configuration
-        Parameters:
-          - QSS3BucketName
-          - QSS3KeyPrefix
-          - QSS3BucketRegion
-    ParameterLabels:
-      AITInstanceType:
-        default: AIT Instance Type
-      AvailabilityZones:
-        default: Availability Zones
-      CloudWatchLogsRetentionPeriod:
-        default: CloudWatch Retention Period
-      ElasticsearchDomainName:
-        default: Elasticsearch Domain Name
-      FQDN:
-        default: FQDN
-      HostedZoneID:
-        default: Hosted Zone ID
-      KeyPairName:
-        default: Key Pair Name
-      PermissionsBoundaryArn:
-        default: Permissions Boundary ARN
-      ProjectName:
-        default: Project Name
-      RemoteAccessCIDR:
-        default: RemoteAccessCIDR
-      RolePath:
-        default: Role Path
-      SSLCertificateArn:
-        default: SSL Certificate ARN
-      VPCCIDR:
-        default: VPC CIDR
-      PrivateSubnet1CIDR:
-        default: Private subnet 1 CIDR
-      PrivateSubnet2CIDR:
-        default: Private subnet 2 CIDR
-      PrivateSubnet3CIDR:
-        default: Private subnet 3 CIDR
-      PublicSubnet1CIDR:
-        default: Public subnet 1 CIDR
-      PublicSubnet2CIDR:
-        default: Public subnet 2 CIDR
-      PublicSubnet3CIDR:
-        default: Public subnet 3 CIDR
-      QSS3BucketName:
-        default: Quick Start S3 bucket name
-      QSS3KeyPrefix:
-        default: Quick Start S3 key prefix
-      QSS3BucketRegion:
-        default: Quick Start S3 bucket region
 Parameters:
   AITInstanceType:
     Description: Instance type to be used for AIT Server instances; see deployment
@@ -222,22 +138,23 @@ Conditions:
     - !Not [!Equals [!Ref FQDN, '']]
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
 Resources:
-  # AmmosConfigStack:
-  #   Type: AWS::CloudFormation::Stack
-  #   Properties:
-  #     TemplateURL: !Sub
-  #       - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ammos-config.template.yaml'
-  #       - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-  #         S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-  #     Parameters:
-  #       QSS3BucketName: !Ref QSS3BucketName
-  #       QSS3KeyPrefix: !Ref QSS3KeyPrefix
-  #       QSS3BucketRegion: !Ref QSS3BucketRegion
-  #       ProjectName: !Ref ProjectName
-  #       RolePath: !Ref RolePath
-  #       PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
+  AmmosConfigStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ammos-config.template.yaml'
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Parameters:
+        QSS3BucketName: !Ref QSS3BucketName
+        QSS3KeyPrefix: !Ref QSS3KeyPrefix
+        QSS3BucketRegion: !Ref QSS3BucketRegion
+        ProjectName: !Ref ProjectName
+        RolePath: !Ref RolePath
+        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
 # ---
   VPCStack:
+    DependsOn: AmmosConfigStack
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL:
@@ -344,6 +261,7 @@ Resources:
         CognitoClientSecret: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientSecret
         CognitoDomainName: !GetAtt AmmosCognitoStack.Outputs.CognitoDomainName
         CognitoProviderUrl: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolProviderUrl
+        ConfigBucketName: !GetAtt AmmosConfigStack.Outputs.ConfigBucket
         FQDN: !Ref FQDN
         KeyPairName: !Ref KeyPairName
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
@@ -361,8 +279,7 @@ Resources:
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         ProjectName: !Ref ProjectName
-        # ConfigBucketName: Fn::ImportValue:
-        #   !Sub "${ProjectName}-ConfigBucketName"
+        ConfigBucketName: !GetAtt AmmosConfigStack.Outputs.ConfigBucket
         FQDN: !Ref FQDN
         PrivateSubnetIds: !Join [',', [!GetAtt VPCStack.Outputs.PrivateSubnet1AID,!GetAtt VPCStack.Outputs.PrivateSubnet2AID]]
         VPCID: !GetAtt VPCStack.Outputs.VPCID

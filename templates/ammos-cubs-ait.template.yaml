@@ -94,11 +94,12 @@ Conditions:
       - ''
       - !Ref 'KeyPairName'
   UsingDefaultBucket: !Equals
-    - ''
-    - ''
+    - !Ref QSS3BucketName
+    - aws-quickstart
   IsGovCloud: !Not [!Equals ['aws', !Ref AWS::Partition]]
   RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
   PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
+  UserProvidedConfigBucket: !Not [!Equals ['', !Ref ConfigBucketName]]
 Mappings:
   AWSAMIRegionMap:
     us-east-1:
@@ -361,8 +362,20 @@ Resources:
               - s3:ListBucket
             Effect: Allow
             Resource:
-              - !Sub 'arn:${AWS::Partition}:s3:::${ConfigBucketName}'
-              - !Sub 'arn:${AWS::Partition}:s3:::${ConfigBucketName}/*'
+              - !Sub
+                - 'arn:${AWS::Partition}:s3:::${ConfigBucket}'
+                - ConfigBucket: !If
+                  - UserProvidedConfigBucket
+                  - !Ref ConfigBucketName
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ProjectName}-ConfigBucketName"
+              - !Sub
+                - 'arn:${AWS::Partition}:s3:::${ConfigBucket}/*'
+                - ConfigBucket: !If
+                  - UserProvidedConfigBucket
+                  - !Ref ConfigBucketName
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ProjectName}-ConfigBucketName"
           - Action:
               - 's3:GetObject'
             Resource: !Sub

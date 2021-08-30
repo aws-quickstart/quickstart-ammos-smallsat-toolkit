@@ -93,5 +93,6 @@ Resources:
             - configs/modules/openmct.tgz
 Outputs:
   ConfigBucket:
-      # Name: !Sub "${ProjectName}-ConfigBucketName"
+    Export:
+      Name: !Sub "${ProjectName}-ConfigBucketName"
     Value: !Ref ConfigBucket

@@ -30,4 +30,4 @@ tests:
       FQDN: $[taskcat_random-string]-cubs.andglenn.people.a2z.com
       HostedZoneID: Z1OSWG7ERMLIWV
       ProjectName: $[taskcat_random-string]
-    template: templates/ammos-cubs.main.template.yaml
+    template: templates/ammos-cubs.testing.template.yaml
