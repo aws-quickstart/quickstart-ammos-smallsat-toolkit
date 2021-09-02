@@ -14,7 +14,7 @@ Once the Quick Start has finished deploying, there are some tests you can perfor
 . Open the https://console.aws.amazon.com/ec2/[Amazon EC2 console^].
 . Choose *Instances* from the left navigation bar.
 . On the *Instances* page, confirm that *AitAutoScalingGroup* and *EditorServer* instances display.
-. In the *Status checks* column for each instance, verify that there are no failed checks.
+. For each instance, ensure that there are no failed checks in the the *Status checks* column.
 . Verify that you can connect to each instance using AWS Systems Manager (formerly knows as SSM). 
 . Run the following commands to verify that the AIT server `httpd` and `ait-server` services are active:
 * `service httpd status`
@@ -22,33 +22,37 @@ Once the Quick Start has finished deploying, there are some tests you can perfor
 
 . Run `docker ps` to verify that the AIT Editor Docker container is running.
 
-=== Open AIT/OpenMCT applications in web browser
-In a web browser, navigate to the `FQDN` (fully qualified domain name) URL that was supplied as a parameter to the Quick Start deployment. As part of the deployment, the `FQDN` is used in a Route 53 CNAME DNS record that is an alias for the Application Load Balancer that directs traffic to each of the AMMOS individual applications.
+=== Open AIT and Open MCT applications in a web browser
+Navigate to the fully qualified domain name (FQDN) entered in the `FQDN` parameter during Quick Start deployment. The deployment uses the `FQDN` parameter in an Amazon Route 53 Canonical Name Record (CNAME record). This record serves as an alias for the Application Load Balancer that directs traffic to AIT server, OpenMCT, and AIT Editor.
 
-Once you have navigated to that URL, you should see a basic HTML landing page with links to each of the individual web applications, AIT, OpenMCT, and AIT Editor.
+Once you have navigated to that URL, you should see an HTML landing page with links to the individual web applications (AIT, OpenMCT, and AIT Editor). Test the links to ensure that you can access each application.
 
-Navigate to each of these applications in your browser and make sure that each page loads successfully. When you visit these applications for the first time, they may prompt you for login credentials. Login credentials are managed by Cognito - you can find more info about Cognito authentication in this deployment guide <<Cognito User Management,here>>.
+When you visit these applications for the first time, they may prompt you for login credentials. Login credentials are managed by Cognito. For more information, see link:#_cognito_user_management[Cognito User Management], later in this guide.
 
-=== Validate sample telemetry generation
-The AIT software includes sample scripts to generate fake or mock telemetry that can be used to test if the deployment has been successful. These scripts are CLI programs that should be run on the AIT server itself. Refer to the previous section <<Connect to AIT server instance,Connect to AIT server instance>> for information on how to connect to the AIT server. The scripts `ait-example` as well as `ait-tlm-simulate` generate mock telemetry and are installed alongside the AIT server software in a virtual environment (named `ait`) on the AIT server.
+=== Generate test telemetry
+The AIT software includes sample scripts `ait-example` and `ait-tlm-simulate`. They are command line interface (CLI) programs that you run on the AIT server to generate telemetry to test the deployment.
 
-Once you are connected to the AIT server, begin by sourcing/activating the Python virtual environment where AIT and the sample telemetry scripts are installed. As part of the activation, the virtual environment modifies your `PATH` variable to include a few AIT scripts that should now be executable.
+Once you are connected to the AIT server, begin by sourcing and activating the Python virtual environment where AIT and the sample telemetry scripts are installed. The deployment installs the scripts in a virtual environment named `ait` on the AIT server. As part of the activation, the virtual environment modifies your `PATH` variable to include a few AIT scripts that should now be executable.
 
-Run the scripts by running the commands `ait-example` and/or `ait-tlm-simulate`. The two scripts are quite similar - they both output sample telemetry, however `ait-example` has a hard-coded packet structure and will send telemetry for 100 seconds. `ait-tlm-simulate` emits telemetry once per second and can be used to simulate different packet types. It is programmed to run indefinitely until the script is stopped.
+NOTE: For more information about connecting to the AIT server, see link:#_connect_to_ait_server_and_ait_editor[Connect to AIT server and AIT Editor instances], earlier in this guide.
 
-In your browser, navigate to the AIT application (`ait.<fqdn>` in most cases) and click on the "Telemetry" tab. If you are using the default configuration files for AIT provided by the Quick Start deployment, you should see two graphs, one for Voltages and one for Currents. While the telemetry scripts are running you should see new data points being plotted on these graphs and a line plot forming. This indicates that telemetry is flowing successfully through AIT software.
+Use the commands `ait-example` and `ait-tlm-simulate` to run each script, respectively. The two scripts both generate sample telemetry, but `ait-example` has a hard-coded packet structure and will send telemetry for 100 seconds. `ait-tlm-simulate` emits telemetry once per second and can be used to simulate different packet types. `ait-tlm-simulate` is programmed to run indefinitely until the script is stopped.
+
+Navigate to the AIT application (`ait.<fqdn>` in most cases) and choose the *Telemetry* tab. If you are using the default configuration files for AIT provided by the Quick Start deployment, you should see two graphs, one for voltages and one for currents. While the telemetry scripts are running, you should see new data points displaying on the graphs and a line plot forming. This indicates that telemetry is flowing successfully through AIT software.
 
 ==== Validate logs in CloudWatch Logs
 The Quick Start deployment sets up CloudWatch agents on the AIT server and AIT Editor server that send log data to CloudWatch. The default configuration of these agents sends CloudWatch Agent logs and server syslog logs to CloudWatch.
 
-To validate that logs are successfully being sent to CloudWatch, navigate to the CloudWatch section in the AWS Management Console in your browser. On the left side, click "Log groups" under the "Logs" section. In the list of log groups on the right, locate the following log groups:
+To validate that logs are successfully being sent to CloudWatch, open the https://console.aws.amazon.com/cloudwatch/[AWS CloudWatch console]. In the left navigation bar, under *Logs*, choose *Log groups*. On the *Log groups* page, locate the following log groups:
 
 * `/cloudwatch-agent/ait-editor/agent`
 * `/cloudwatch-agent/ait-editor/syslog`
 * `/cloudwatch-agent/ait-server/agent`
 * `/cloudwatch-agent/ait-server/syslog`
 
-In each of these log groups, there should also be a few log streams containing log data. You should verify that there is log data in each of these log streams. If this verification is done shortly after Quick Start deployment is completed, you may not see a large amount of log data.
+Verify that there are log data in log streams for each log group. 
+
+NOTE: There will not be a lot of log data in log streams if you check shortly after the Quick Start is deployed.
 
 //TODO: is this input complete? is more needed?
 //_Awaiting input from testing lead_
