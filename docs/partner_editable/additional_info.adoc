@@ -2,7 +2,6 @@
 //Should any sections not be applicable, remove them
 = Additional Info
 
-
 == Test the deployment
 
 // TODO: @MF @KM add input if necessary
@@ -10,18 +9,18 @@
 // If steps are required to test the deployment, add them here. If not, remove the heading
 Once the Quick Start has finished deploying, there are some tests you can perform to verify that the various components have been provisioned successfully.
 
-=== Connect to AIT server/editor instances
-To verify that the AIT server and AIT editor server instances have been launched successfully, in the AWS Management Console, navigate to the EC2 section, and then click on "Instances" in the left hand navigation.
-Under the list of instances, verify that there is an instance labeled *AitAutoScalingGroup* and *EditorServer*. Verify that these instances are running and are passing status checks. Additionally, you can connect to these servers via <<SSM, SSM>> (similar to SSH) to do a quick sanity check that these servers have been provisioned successfully. After connecting to the server, you may run the following to test that application processes are running normally.
+=== Connect to AIT server and AIT Editor instances
 
-For AIT Server, verify that these services are in the "active" state:
-
+. Open the https://console.aws.amazon.com/ec2/[Amazon EC2 console^].
+. Choose *Instances* from the left navigation bar.
+. On the *Instances* page, confirm that *AitAutoScalingGroup* and *EditorServer* instances display.
+. In the *Status checks* column for each instance, verify that there are no failed checks.
+. Verify that you can connect to each instance using AWS Systems Manager (formerly knows as SSM). 
+. Run the following commands to verify that the AIT server `httpd` and `ait-server` services are active:
 * `service httpd status`
 * `service ait-server status`
 
-For AIT Editor, verify that the editor docker container is running:
-
-* `docker ps`
+. Run `docker ps` to verify that the AIT Editor Docker container is running.
 
 === Open AIT/OpenMCT applications in web browser
 In a web browser, navigate to the `FQDN` (fully qualified domain name) URL that was supplied as a parameter to the Quick Start deployment. As part of the deployment, the `FQDN` is used in a Route 53 CNAME DNS record that is an alias for the Application Load Balancer that directs traffic to each of the AMMOS individual applications.

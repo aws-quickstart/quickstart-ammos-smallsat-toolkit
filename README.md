@@ -1,5 +1,5 @@
 
-## quickstart-nasa-jpl-cubs-—Quick Start
+## NASA AMMOS SmallSat Toolkit
 
 For architectural details, step-by-step instructions, and customization options, see the [deployment guide](https://aws-quickstart.github.io/quickstart-nasa-jpl-cubs-/).
 
