@@ -1,3 +1,3 @@
-This QuickStart will work in all regions that support the required underlying services. Additionally, the deployment is compatible with the aws-us-gov partition.
+This QuickStart will work in all Regions that support the required underlying services. Additionally, the deployment is compatible with the aws-us-gov partition.
 
-//Full list: https://docs.aws.amazon.com/general/latest/gr/rande.html
+//TODO Andrew, By default, the content in this file (regions.adoc) is now omitted from the generated guide. Our docs use the boilerplate blurb in regions_default.adoc. If this content must be custom, I recommend pasting in the boilerplate blurb here and customizing as needed. Then uncomment the :custom_supported_regions: attribute in _settings.adoc. (Phrasing relating to GovCloud Regions requires extra care. See "Region" in the AWS Style Guide usage dictionary: https://alpha-docs-aws.amazon.com/awsstyleguide/latest/styleguide/dictionary.html#style-R-terms)
