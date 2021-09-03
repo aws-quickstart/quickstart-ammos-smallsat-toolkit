@@ -12,6 +12,8 @@ This software has three main components:
 * Open Mission Control Technologies (Open MCT) Toolkit
 * AIT Editor
 
+//TODO Andrew, Elsewhere we refer to "AIT Server" as a proper noun. Is that the same thing as "AIT"?
+
 === AIT
 // Following pulled from AIT-Core readthedocs
 // https://ait-core.readthedocs.io/en/latest/index.html#welcome-to-the-ammos-instrument-toolkit-ait-documentation
@@ -29,5 +31,4 @@ You use AIT Editor to generate and edit spacecraft command-sequence files. An ex
 
 NOTE: Since code-server can't use Microsoft's extension marketplace due to Microsoft's terms of service for VSC, you install the AIT Editor extension manually from the VSIX file published on GitHub and the Marketplace. For details, see the https://coder.com/docs/code-server/v3.11.1/FAQ#why-cant-code-server-use-microsofts-extension-marketplace[code-server FAQ^].
 
-
-//LINK: link to resources section in additional_info
+//TODO Andrew, What could we say about Docker and containers here? Seems like an important part of the architecture, and it's mentioned only briefly in passing.
