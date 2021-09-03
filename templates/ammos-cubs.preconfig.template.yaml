@@ -1,9 +1,10 @@
 ---
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Pre-Configure Stack (qs-1s6abjf8q)
+Description: Preconfigure stack (qs-1s6abjf8q)
 Metadata:
   QuickStartDocumentation:
-    EntrypointName: "Pre-Configure your AWS account"
+    EntrypointName: "Preconfigure your AWS account"
+    Order: 1
     OptionalParameters:
       - PermissionsBoundaryArn
       - RolePath
@@ -24,13 +25,13 @@ Metadata:
           - QSS3BucketRegion
     ParameterLabels:
       PermissionsBoundaryArn:
-        default: Permissions Boundary ARN
+        default: Permissions boundary ARN
       RolePath:
-        default: Role Path
+        default: Role path
       ProjectName:
-        default: Project Name
+        default: Project name
       QSS3BucketRegion:
-        default: Quick Start S3 bucket region
+        default: Quick Start S3 bucket Region
       QSS3BucketName:
         default: Quick Start S3 bucket name
       QSS3KeyPrefix:
@@ -38,37 +39,49 @@ Metadata:
 Parameters:
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
-    ConstraintDescription: Quick Start bucket name can include numbers, lowercase
-      letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
-      (-).
+    ConstraintDescription: The Quick Start bucket name can include numbers, lowercase
+      letters, uppercase letters, and hyphens (-). It cannot start or end with a 
+      hyphen (-).
     Default: aws-quickstart
-    Description: S3 bucket name for the Quick Start assets. This string can include
-      numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start
-      or end with a hyphen (-).
+    Description: Name of the S3 bucket for your copy of the Quick Start assets. 
+      Keep the default name unless you are customizing the template. 
+      Changing the name updates code references to point to a new Quick 
+      Start location. This name can include numbers, lowercase letters, 
+      uppercase letters, and hyphens, but do not start or end with a hyphen (-). 
+      See https://aws-quickstart.github.io/option1.html.
     Type: String
   QSS3BucketRegion:
     Default: 'us-east-1'
-    Description: "The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value."
+    Description: "AWS Region where the Quick Start S3 bucket (QSS3BucketName) is 
+    hosted. Keep the default Region unless you are customizing the template. 
+    Changing this Region updates code references to point to a new Quick Start location. 
+    When using your own bucket, specify the Region. 
+    See https://aws-quickstart.github.io/option1.html."
     Type: String
   QSS3KeyPrefix:
     AllowedPattern: ^[0-9a-zA-Z-/]*$
-    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
-      uppercase letters, hyphens (-), and forward slash (/).
+    ConstraintDescription: The Quick Start S3 key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slashes (/). The prefix should
+      end with a forward slash (/).
     Default: quickstart-nasa-jpl-cubs/
-    Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
-      can include numbers, lowercase letters, uppercase letters, hyphens (-), and
-      forward slash (/).
+    Description: S3 key prefix that is used to simulate a directory for your copy of the 
+      Quick Start assets. Keep the default prefix unless you are customizing 
+      the template. Changing this prefix updates code references to point to 
+      a new Quick Start location. This prefix can include numbers, lowercase 
+      letters, uppercase letters, hyphens (-), and forward slashes (/). End with 
+      a forward slash. See https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html 
+      and https://aws-quickstart.github.io/option1.html.
     Type: String
   PermissionsBoundaryArn:
-    Description: Will be attached to all created IAM Roles to satisfy security requirements
+    Description: ARN attached to all created IAM roles to satisfy security requirements.
     Type: String
     Default: ''
   RolePath:
-    Description: Will be attached to all created IAM Roles to satisfy security requirements
+    Description: Path attached to all created IAM roles to satisfy security requirements.
     Type: String
     Default: ''
   ProjectName:
-    Description: Name of your project
+    Description: Name of your project.
     Type: String
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']

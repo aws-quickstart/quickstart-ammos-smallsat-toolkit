@@ -2,7 +2,7 @@
 // Identify your target audience and explain how/why they would use this Quick Start.
 //Avoid borrowing text from third-party websites (copying text from AWS service documentation is fine). Also, avoid marketing-speak, focusing instead on the technical aspect.
 
-This guide provides instructions for deploying the {partner-product-short-name} Quick Start reference architecture on the AWS Cloud.
+This guide provides instructions for deploying the National Aeronautics and Space Administration (NASA) Advanced Multi-Mission Operations System (AMMOS) {partner-product-short-name} Quick Start on the AWS Cloud. The Quick Start deploys a suite of mission-control software for use by researchers at universities and their partner space agencies.
 
 // == Target Audience
 
