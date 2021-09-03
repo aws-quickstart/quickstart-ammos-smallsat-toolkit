@@ -265,12 +265,9 @@ An X.509 certificate must be provided during Quick Start deployment in order to 
 SSL termination occurs at the Application Load Balancer. Communication to the server targets behind the Application Load Balancer is unencrypted, albeit through private VPC subnets.
 
 === AWS Systems Manager
-Users are directed to connect to the application servers via AWS Systems Manager for improved security and monitoring. To facilitate this, the deployment installs AWS Systems Manager Agent (SSM Agent) on all instances. Additionally, each instance profile is assigned the AWS managed service role `AmazonSSMManagedInstanceCore`.
+Users should connect to the application servers via AWS Systems Manager for improved security and monitoring. The deployment installs AWS Systems Manager Agent (SSM Agent) on all instances. Additionally, each instance profile is assigned the AWS managed service role `AmazonSSMManagedInstanceCore`.
 
-Additionally, users can provide the SshKeyName parameter to the relevant templates to enable standard ssh connections. However, because the instances are provisioned in a private subnet, they will not be directly discoverable from the internet. To connect via SSH, a vpc-deployed bastion or “jump server” will need to be provisioned. Alternatively, see the below documentation for guidance on starting an SSH session via AWS SSM
-
-Sessions can be started via the AWS-provided web interface, or from a terminal. Both methods are documented here: +
-https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html[Start a session - AWS Systems Manager]
+Users can provide the `SshKeyName` parameter to the relevant templates to enable standard SSH connections. The Quick Start deploys instances in a private subnet which are not discoverable directly from the internet. To connect via SSH, you must provision a bastion host (jump server). For more information on starting a session with Systems Manager, see https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html[Start a session].
 
 == Resources
 
@@ -300,7 +297,7 @@ OpenMCT:
 == Software version requirements
 
 === Operating system and dependency versions
-All applications are deployed on EC2 instances running Red Hat Enterprise Linux 8 (RHEL8). Although the applications installed via this Quick Start do not have a hard dependency on this specific operating system, it is the officially supported operating system for all AMMOS applications.
+The Quick Start deploys AIT, Open MCT, and AIT Editor on EC2 instances running Red Hat Enterprise Linux 8 (RHEL8). RHEL8 is the officially supported operating system for all AMMOS applications. Although the applications installed via this Quick Start do not have a hard dependency on this specific operating system, it is the officially supported operating system for all AMMOS applications.
 
 The AIT software has only been tested against Python 3.7.x (see the https://ait-core.readthedocs.io/en/latest/installation.html[AIT Docs]), and that is the Python version installed on the application EC2 servers. Python 3.7 is currently not found in any of the official Red Hat Enterprise Linux 8 software repositories, nor is it found in the Red Hat Software Collections. Thus, as part of the deployment, this Quick Start will build/install Python 3.7.9 from source.
 
