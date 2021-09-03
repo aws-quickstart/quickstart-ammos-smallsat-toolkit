@@ -5,19 +5,21 @@
 
 | VPCs | 1
 | Subnets | 6
-| Route Tables | 2
-| Internet Gateway | 1
-| NAT Gateway | 1
-| Security Groups | 5
+| Route tables | 2
+| Internet gateways | 1
+| NAT gateways | 1
+| Security groups | 5
 | AWS Identity and Access Management (IAM) roles | 5
-| Auto Scaling Groups | 1
-| EC2 Instances | 2
+| Auto Scaling groups | 1
+| EC2 instances | 2
 | Application Load Balancers | 1
-| Cognito User Pools | 1
-| ElasticSearch Domains | 1
+| Amazon Cognito user pools | 1
+| Amazon ES domains | 1
 | S3 Buckets | 2
-| CloudWatch Log Groups | 5
-| Route53 Records | 5
-| Kinesis Data Firehose Delivery Stream | 1
-| Lambda Functions | 3
+| CloudWatch Logs log groups | 5
+| Route53 records | 5
+| Kinesis Data Firehose delivery streams | 1
+| Lambda functions | 3
 |===
+
+//TODO Andrew, I added "Logs" to make it "CloudWatch Logs log groups." Is that correct?
