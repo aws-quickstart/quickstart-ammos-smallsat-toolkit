@@ -17,18 +17,21 @@ As shown in <<architecture1>>, the Quick Start sets up the following:
 ** A bastion host that ___.
 //TODO Andrew, What to say about the bastion host?
 ** An Application Load Balancer to route traffic from the web to the appropriate application resources.
-//TODO Andrew, Does the Application Load Balancer go outside the subnet? If so, please move the icon and this subbullet. (I've updated the .pptx file; work from the latest version in GitHub.)
+//TODO Andrew, Does the Application Load Balancer belong inside the subnet? If not, please move the icon and this subbullet. (I've updated the .pptx file; work from the latest version in GitHub.)
 ** A network address translation (NAT) gateway to allow outbound internet access.
 * In the private subnet:
 ** An Auto Scaling group that contains AIT Server, which exposes the AIT graphical user interface (AIT-GUI) and Open MCT application using Apache HTTP Server.
 //TODO Andrew, Please add the Auto Scaling group to the diagram.
+//TODO Andrew, In various places we talk about AIT Server, AIT Editor, and Open MCT as a triad. How might we show all three components in the diagram?
 ** An EC2 instance to serve the AIT Editor application using Docker.
 * An Amazon Cognito user pool to manage identities and authenticate users.
 * Amazon CloudWatch Logs log groups to receive log data from application servers from the CloudWatch Logs agent.
 * Amazon Kinesis Data Firehose to deliver log data from CloudWatch Logs to Amazon S3 (for long-term storage) and Amazon Elasticsearch Service (Amazon ES).
-//TODO Andrew, Do we want Amazon ES to be the only service icon inside the VPC?
+//TODO Andrew, Is it accurate for Amazon ES to be the only service icon inside the VPC?
 * A Lambda function that ingests logs and prepares them for delivery to Kinesis Data Firehose.
 * An S3 bucket that contains application and server configuration files.
 * Amazon Route 53 to __
 //TODO Andrew, please fill in the above blank.
-//TODO Andrew, how could the diagram show the flow described here between some of these components?
+//TODO Andrew, how could the diagram show the flow between some of these free-floating components?
+//TODO Andrew, How would we show the Docker container come into play in the diagram?
+//TODO Andrew, How would we describe the Docker container's function in the bulleted list?

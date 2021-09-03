@@ -70,11 +70,9 @@ If you do not use Route 53 for domain management, you are responsible for deploy
 
 //TODO LINK: Link to ALB Stack or properly name once available  -- Is this done?
 
-[NOTE]
-====
-* To view the Application Load Balancer DNS name, see the value displayed in the *Outputs* tab for the stack.
-* The Application Load Balancer handles redirection based on the host header in request. It is sufficient to deploy a single CNAME record pointing to the Application Load Balancer, and to deploy all subdomains as aliases redirecting to the Application Load Balancer CNAME record.
-====
+To view the Application Load Balancer DNS name, see the value displayed in the *Outputs* tab for the stack.
+
+The Application Load Balancer handles redirection based on the host header in request. It's sufficient to deploy a single CNAME record pointing to the Application Load Balancer and to deploy all subdomains as aliases that redirect to the Application Load Balancer CNAME record.
 
 === Cognito user management
 The Application Load Balancer defines an authentication action to protect the AIT, Open MCT, and AIT Editor applications. To access the applications, a user must authenticate using an identity managed by Cognito. You must create user identities in the Cognito user pool or set up federation with an existing identity provider. For more information, see https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html[Creating User Accounts as Administrator] and https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-federation.html[Adding User Pool Sign-in Through a Third Party].
@@ -156,7 +154,7 @@ The default CloudWatch agent configuration files can be viewed at LINK: link to 
 
 For more information about the CloudWatch Agent, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent.html[Collecting metrics and logs from Amazon EC2 instances and on-premises servers with the CloudWatch agent^]
 
-=== Log retention settings
+=== Log-retention settings
 
 The AWS CloudWatch Logs log groups that receive application logs are configured with the default log retention period of 30 days. You can choose a different retention period during deployment using the `l` parameter. To change the retention period after deployment, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#SettingLogRetention[Change log data retention in CloudWatch Logs]. Increasing the log retention period will result in higher log-storage costs.
 
@@ -249,8 +247,7 @@ Users can provide the `SshKeyName` parameter to the relevant templates to enable
 
 == Resources
 
-=== Docs
-AIT
+AIT:
 
 - https://ait-core.readthedocs.io/en/latest/[Welcome to the AMMOS Instrument Toolkit (AIT) documentation!^]
 - https://ait-gui.readthedocs.io/en/latest/index.html[Welcome to the AMMOS Instrument Toolkit GUI documentation!^]
@@ -267,7 +264,7 @@ OpenMCT
 //TODO: @MF links to AIT Editor once available
 // ^ Request is pending final open source approval
 
-=== Community
+Community:
 
 - https://groups.google.com/g/ait-dev[AIT Users Mailing Group^]
 - https://github.com/nasa/openmct/discussions[Open MCT - Github Discussions^]
@@ -283,4 +280,5 @@ The Quick Start builds and installs Python 3.7.x on the application EC2 instance
 This Quick Start deploys and supports https://github.com/NASA-AMMOS/AIT-Core/releases/tag/2.3.5[AIT version 2.3.5] and https://github.com/nasa/openmct/releases/tag/1.6.2[Open MCT version 1.6.2^].
 
 === InfluxDB
-This Quick Start deploys InfluxDB version 1.2.4 on the AIT server EC2 instances. The influxdb Python library used by AIT to interface with InfluxDB is only compatible with InfluxDB versions 1.x.
+
+This Quick Start deploys InfluxDB version 1.2.4 on the AIT server EC2 instances. The influxdb Python library used by AIT to interface with InfluxDB is compatible only with InfluxDB versions 1.x.
