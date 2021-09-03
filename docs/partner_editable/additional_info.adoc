@@ -41,7 +41,7 @@ Use the commands `ait-example` and `ait-tlm-simulate` to run each script, respec
 Navigate to the AIT application (`ait.<fqdn>` in most cases) and choose the *Telemetry* tab. If you are using the default configuration files for AIT provided by the Quick Start deployment, you should see two graphs, one for voltages and one for currents. While the telemetry scripts are running, you should see new data points displaying on the graphs and a line plot forming. This indicates that telemetry is flowing successfully through AIT software.
 
 ==== Validate logs in CloudWatch Logs
-The Quick Start deployment sets up CloudWatch agents on the AIT server and AIT Editor server that send log data to CloudWatch. The default configuration of these agents sends CloudWatch Agent logs and server syslog logs to CloudWatch.
+This deployment includes CloudWatch agents on the AIT and AIT Editor servers configured to send agent and syslog logs to CloudWatch.
 
 To validate that logs are successfully being sent to CloudWatch, open the https://console.aws.amazon.com/cloudwatch/[AWS CloudWatch console]. In the left navigation bar, under *Logs*, choose *Log groups*. On the *Log groups* page, locate the following log groups:
 
@@ -52,7 +52,7 @@ To validate that logs are successfully being sent to CloudWatch, open the https:
 
 Verify that there are log data in log streams for each log group. 
 
-NOTE: There will not be a lot of log data in log streams if you check shortly after the Quick Start is deployed.
+NOTE: Do not expect a lot of log data in streams if you check shortly after the Quick Start is deployed.
 
 //TODO: is this input complete? is more needed?
 //_Awaiting input from testing lead_
@@ -60,8 +60,8 @@ NOTE: There will not be a lot of log data in log streams if you check shortly af
 == Post-deployment steps
 // If post-deployment steps are required, add them here. If not, remove the heading
 
-=== DNS Management
-If you have opted to not use Route53 (see <<_optional_import_user_owned_domain_to_route53>>) for domain management and prefer to manage your domain using some other DNS service, you will be responsible for deploying the appropriate name records to your DNS. Refer to your DNS provider’s documentation for guidance on this process. The following records must be deployed:
+=== DNS management
+If you have opted to not use Route 53 for domain management, you are responsible for deploying the appropriate name records to your DNS. Refer to your DNS provider’s documentation for guidance on this process. The following records must be deployed:
 
     CNAME         fqdn            →    ALB
     Alias    |    ait.fqdn        →    fqdn
@@ -70,23 +70,20 @@ If you have opted to not use Route53 (see <<_optional_import_user_owned_domain_t
     Alias    |    logs.fqdn       →    fqdn
 
 //TODO LINK: Link to ALB Stack or properly name once available  -- Is this done?
-The ALB DNS name can be obtained from the Outputs section of the ALB Stack
 
 [NOTE]
 ====
-The ALB will handle redirection based on host header in request, thus it is sufficient to deploy a single CNAME record pointing at the ALB, and all subdomains as aliases redirecting to the ALB CNAME.
+* To view the Application Load Balancer DNS name, see the value displayed in the *Outputs* tab for the stack.
+* The Application Load Balancer will handle redirection based on host header in request, thus it is sufficient to deploy a single CNAME record pointing at the Application Load Balancer, and all subdomains as aliases redirecting to the Application Load Balancer CNAME.
 ====
 
-=== Cognito User Management
-Each of the applications is protected by a basic authentication action on the Application Load Balancer. In order for users to access the deployed web applications (AIT, OpenMCT, or Editor), they will need to authenticate using an identity managed by Cognito. It is up to the system administrator to create appropriate user identities in the Cognito User Pool, or set up federation with an existing identity provider.
+=== Cognito user management
+The Application Load Balancer defines an authentication action to protect the AIT, Open MCT, and AIT Editor applications. To access the applications, a user must authenticate using an identity managed by Cognito. You must create user identities in the Cognito user pool or set up federation with an existing identity provider. For more information, see https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html[Creating User Accounts as Administrator] and https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-federation.html[Adding User Pool Sign-in Through a Third Party].
 
-https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html[Creating User Accounts as Administrator - Amazon Cognito]
-https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-federation.html[Adding User Pool Sign-in Through a Third Party - Amazon Cognito]
-
-=== AIT Server Management
+=== AIT server management
 The AIT Server will likely require further adaptation by the mission both at launch, and as the needs and parameters of the mission evolves over its lifetime. These changes can be made directly on the server over an SSH or SSM-Managed session; some common adaptations are described below.
 
-==== Virtual Environment (virtualenvwrapper)
+==== Virtual environment (virtualenvwrapper)
 The AIT Server installs AIT-Core, several plugins, and various dependencies to a python virtual environment. This is facilitated by the virtualenvwrapper python tool as suggested by the AIT Core documentation; see: +
 https://ait-core.readthedocs.io/en/master/installation.html#installation[Installation and Environment Configuration — AIT-Core 2.3.5 documentation.]
 
@@ -98,7 +95,7 @@ workon ait
 ==== Plugin installation
 //TODO: awaiting @KM
 // ^ Request is pending, for now the following is sufficient
-AIT is a highly extensible framework and is designed to allow missions to easily adapt it to their specific needs. AIT provides several extensions such as the Data Archive, DSN, and OpenMCT plugins, and also allows users to develop and include their own plugins. More information can be found in the AIT documentation:
+AIT is a highly extensible framework designed to allow mission teams to adapt it to their specific needs. AIT provides several extensions such as the Data Archive, DSN, and Open MCT plugins, and also allows users to develop and include their own plugins. More information can be found in the AIT documentation:
 
 - https://ait-core.readthedocs.io/en/master/server_architecture.html#plugins[AIT Docs - Plugins]
 - https://ait-core.readthedocs.io/en/master/extensions.html[AIT Docs - Extensions]
@@ -123,8 +120,8 @@ If the user desires to upgrade AIT-Core or any of the other included application
 
 To upgrade any of the applications, the user should refer to that applications user guide. Be sure to backup any the config directory and any other modified files. The cloned application repositories can then be updated and reinstalled to the virtual environment as noted below.
 
-==== OpenMCT Static Built Files
-The OpenMCT framework is written in JavaScript and can be compiled, minified, and bundled into a set of static assets that can be served from a web server. In this Quick Start, the latest version of OpenMCT has been packaged and uploaded to S3 as a zip file.
+==== Open MCT Static Built Files
+The Open MCT framework is written in JavaScript and can be compiled, minified, and bundled into a set of static assets that can be served from a web server. In this Quick Start, the latest version of Open MCT has been packaged and uploaded to S3 as a zip file.
 
 Upon deployment of the Quick Start, the zip file is downloaded from S3 and extracted so that it can be served by Apache HTTP Server.
 
@@ -132,7 +129,7 @@ On the server, the static files are extracted and located at `var/www/html/openm
 
 Any configuration changes and additional plugins for OpenMCT will have to be placed in this directory. Visit the dogs for more information on https://github.com/nasa/openmct/blob/master/API.md#building-applications-with-open-mct[Building Applications with OpenMCT].
 
-==== Systemd Services - AIT Server
+==== Systemd services - AIT server
 The following services are managed by `systemd` on the application server:
 
 ===== HTTPD
@@ -173,7 +170,7 @@ sudo systemctl restart ait-server
 
 The service itself will run the AIT Core Server which listens for, processes, and exposes telemetry. Additionally, any configured plugins (such as `AIT-GUI`) will also be run according to the main AIT config file.
 
-== Logging (CloudWatch Agent)
+== Logging (CloudWatch agent)
 
 To facilitate centralized logging for the various applications, the Amazon CloudWatch Agent is installed on all of the deployed EC2 Instances during the bootstrap process. This agent is initialized by a provided default config file which informs the agent which files to monitor and where to direct the logs in AWS CloudWatch.
 
@@ -184,11 +181,11 @@ For more information about the CloudWatch Agent, see:
 
 https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent.html[Collecting metrics and logs from Amazon EC2 instances and on-premises servers with the CloudWatch agent - Amazon CloudWatch]
 
-=== Log Retention Settings
+=== Log retention settings
 
 The AWS CloudWatch log groups that receive logs from the various applications have been configured with a log retention period. The retention period is a parameter in the logging CloudFormation template and can be adjusted by changing the parameter value prior to deployment or by https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#SettingLogRetention[manually changing the retention period]. The default log retention period is 30 days (a month). Keep in mind that increasing the log retention period will increase the costs associated with storing the logs for a longer time.
 
-=== Modifying the CloudWatch Agent
+=== Modifying the CloudWatch agent
 The CloudWatch Agent monitors specified log files and pipes their content to AWS CloudWatch Logs. This file can be found on each server at:
 /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
@@ -222,10 +219,10 @@ In order to facilitate compliance with organizational restrictions on IAM Role c
 
 These attributes will not be set if the parameter is not supplied.
 
-=== Security Groups
+=== Security groups
 As part of the Quick Start deployment, you will need to specify security groups that define inbound/outbound network traffic rules. Typically this means creating inbound rules for the security groups, defining the appropriate CIDR/IP ranges that should be allowed inbound access to various resources deployed by this Quick Start. For more information, see the https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security-groups.html[documentation for security groups].
 
-=== Private Subnets
+=== Private subnets
 The application servers for AIT Server and AIT Editor as well as the Elasticsearch domain are deployed to private subnets within a VPC. An Application Load Balancer (deployed to a public subnet in the same VPC) is used to route requests to these servers. This minimizes the publicly exposed footprint of resources deployed using this Quick Start. To access these servers in the private subnets, please refer to <<SSM,documentation section on SSM (Systems Manager)>>.
 
 === SELinux
@@ -244,14 +241,14 @@ IMPORTANT: The Elasticsearch domain currently uses an open access policy, with a
 //@MF:
 
 === Authentication
-The application load balancer is deployed to a public subnet and brokers access to the application resources deployed in private subnets. Each application is accessible via a Listener Rule which directs traffic according to the host header and performs an authentication action prior to forwarding the traffic to the appropriate target group. This authentication action is configured with the deployed AWS Cognito User Pool as an OIDC provider. Access is granted on a full-access basis, if a user can authenticate as a known identity, they are allowed through the ALB to the underlying resource.
+The application load balancer is deployed to a public subnet and brokers access to the application resources deployed in private subnets. Each application is accessible via a Listener Rule which directs traffic according to the host header and performs an authentication action prior to forwarding the traffic to the appropriate target group. This authentication action is configured with the deployed AWS Cognito User Pool as an OIDC provider. Access is granted on a full-access basis, if a user can authenticate as a known identity, they are allowed through the Application Load Balancer to the underlying resource.
 
-For more information on ALB Authentication Actions, see:
+For more information on Application Load Balancer authentication actions, see the following resources:
 
-- https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-authenticate-users.html[AWS Documentation - Application Load Balancers: Authenticate users]
-- https://aws.amazon.com/blogs/aws/built-in-authentication-in-alb/[AWS Blog - Built-in Authentication in ALB]
+- https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-authenticate-users.html[Authenticate users using an Application Load Balancer]
+- https://aws.amazon.com/blogs/aws/built-in-authentication-in-alb/[Simplify Login with Application Load Balancer Built-in Authentication]
 
-=== Code Server Access
+=== Code server access
 The Editor server runs cdr/code-server as described in <<_ait_editor>>. VS Code includes an integrated terminal that allows the user to execute system-level commands from the browser interface. To mitigate impact, the VS Code server is run within a docker container with volumes mounted to the following locations:
 - `/home/editor-user/.aerie-editor-data:/home/coder/.local/share/code-server`
 - `/home/editor-user/.aerie-editor-config:/home/coder/.config`
@@ -261,14 +258,14 @@ The Editor server runs cdr/code-server as described in <<_ait_editor>>. VS Code 
 This web application is protected behind an authentication action on the ALB as described in LINK: link to. Authentication can also be enforced at the application level as described in https://coder.com/docs/code-server/v3.11.1/FAQ#how-do-i-change-the-password[Code Server FAQ - Password]
 
 === SSL
-The Application Load Balancer routing traffic to the individual application servers uses HTTPS listeners. Clients that access applications through the ALB will have their traffic encrypted using SSL/TLS and any normal HTTP traffic going to the Application Load Balancer is redirected to the HTTPS listener.
+The Application Load Balancer routing traffic to the individual application servers uses HTTPS listeners. Clients that access applications through the Application Load Balancer will have their traffic encrypted using SSL/TLS and any normal HTTP traffic going to the Application Load Balancer is redirected to the HTTPS listener.
 
 An X.509 certificate must be provided during Quick Start deployment in order to configure the Application Load Balancer for SSL/TLS.
 
-SSL termination occurs at the Application Load Balancer. Communication to the backend targets behind the ALB is unencrypted, albeit through private VPC subnets.
+SSL termination occurs at the Application Load Balancer. Communication to the server targets behind the Application Load Balancer is unencrypted, albeit through private VPC subnets.
 
-=== SSM
-Users are directed to connect to the application servers via AWS SSM for improved security and monitoring. To facilitate this, the AWS SSM Agent is installed on all instances during bootstrapping. Additionally, each Instance Profile is assigned the AWS-managed service role   `AmazonSSMManagedInstanceCore`.
+=== AWS Systems Manager
+Users are directed to connect to the application servers via AWS Systems Manager for improved security and monitoring. To facilitate this, the deployment installs AWS Systems Manager Agent (SSM Agent) on all instances. Additionally, each instance profile is assigned the AWS managed service role `AmazonSSMManagedInstanceCore`.
 
 Additionally, users can provide the SshKeyName parameter to the relevant templates to enable standard ssh connections. However, because the instances are provisioned in a private subnet, they will not be directly discoverable from the internet. To connect via SSH, a vpc-deployed bastion or “jump server” will need to be provisioned. Alternatively, see the below documentation for guidance on starting an SSH session via AWS SSM
 
@@ -302,7 +299,7 @@ OpenMCT:
 
 == Software version requirements
 
-=== Operating System and dependency versions
+=== Operating system and dependency versions
 All applications are deployed on EC2 instances running Red Hat Enterprise Linux 8 (RHEL8). Although the applications installed via this Quick Start do not have a hard dependency on this specific operating system, it is the officially supported operating system for all AMMOS applications.
 
 The AIT software has only been tested against Python 3.7.x (see the https://ait-core.readthedocs.io/en/latest/installation.html[AIT Docs]), and that is the Python version installed on the application EC2 servers. Python 3.7 is currently not found in any of the official Red Hat Enterprise Linux 8 software repositories, nor is it found in the Red Hat Software Collections. Thus, as part of the deployment, this Quick Start will build/install Python 3.7.9 from source.
