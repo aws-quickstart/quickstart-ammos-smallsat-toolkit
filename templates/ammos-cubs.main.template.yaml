@@ -52,7 +52,7 @@ Metadata:
       FQDN:
         default: Fully qualified domain name
       HostedZoneID:
-        default: Hosted zone ID
+        default: Hosted-zone ID
       KeyPairName:
         default: Key-pair name
       PermissionsBoundaryArn:
@@ -87,67 +87,68 @@ Metadata:
         default: Quick Start S3 bucket Region
 Parameters:
   AITInstanceType:
-    Description: Instance type to be used for AIT Server instances. See deployment
+    Description: Instance type to be used for AIT. See deployment
       guide for recommendations.
     Type: String
     Default: m5.large
   CloudWatchLogsRetentionPeriod:
-    Description: The number of days to retain log events in CloudWatch log groups.
+    Description: Number of days to retain log events in CloudWatch Logs log groups.
     Type: Number
     Default: 30
   ElasticsearchDomainName:
-    Description: Name of the Elasticsearch domain
+    Description: Name of the Amazon ES domain. If both ElasticsearchDomainName and HostedZoneID are populated, this deployment generates an ACM certificate.
     Type: String
   KeyPairName:
-    Description: A public/private key pair, which allows you to connect securely to your instance after it launches.
+    Description: Name of the key pair that you will use to connect securely to your instance after it launches.
     Type: AWS::EC2::KeyPair::KeyName
-    ConstraintDescription: Must be the name of an existing Keyname
+    ConstraintDescription: Must be the name of an existing key pair.
   VPCCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
     Default: 10.0.0.0/16
-    Description: The CIDR block for the VPC.
+    Description: CIDR block for the VPC.
     Type: String
   PublicSubnet1CIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
     Default: 10.0.32.0/24
-    Description: The CIDR block used for the public subnet located in Availability Zone 1.
+    Description: CIDR block used for the public subnet located in Availability Zone 1.
     Type: String
   PublicSubnet2CIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
     Default: 10.0.64.0/24
-    Description: The CIDR block used for the public subnet located in Availability Zone 2.
+    Description: CIDR block used for the public subnet located in Availability Zone 2.
     Type: String
   PublicSubnet3CIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
     Default: 10.0.70.0/24
-    Description: The CIDR block used for the public subnet located in Availability Zone 2.
+    Description: CIDR block used for the public subnet located in Availability Zone 3.
     Type: String
   PrivateSubnet1CIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
     Default: 10.0.128.0/24
-    Description: The CIDR block used for the private subnet located in Availability Zone 1.
+    Description: CIDR block used for the private subnet located in Availability Zone 1.
     Type: String
   PrivateSubnet2CIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
     Default: 10.0.192.0/24
-    Description: The CIDR block used for the private subnet located in Availability Zone 2.
+    Description: CIDR block used for the private subnet located in Availability Zone 2.
     Type: String
   PrivateSubnet3CIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
     Default: 10.0.200.0/24
-    Description: The CIDR block used for the private subnet located in Availability Zone 2.
+    Description: CIDR block used for the private subnet located in Availability Zone 3.
     Type: String
   AvailabilityZones:
-    Description: List of Availability Zones to use for the subnets in the VPC. This deployment uses two
+    Description: Availability Zones to use for the subnets in the VPC. This deployment uses two
       Availability Zones, and the logical order of your
       selections is preserved.
+       # TODO: Andrew, What should we say here about the third Availability Zone?
     Type: List<AWS::EC2::AvailabilityZone::Name>
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
@@ -155,35 +156,48 @@ Parameters:
       letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
       (-).
     Default: aws-quickstart
-    Description: S3 bucket name for the Quick Start assets. This string can include
-      numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start
-      or end with a hyphen (-).
+    Description: Name of the S3 bucket for your copy of the Quick Start assets. 
+      Keep the default name unless you are customizing the template. 
+      Changing the name updates code references to point to a new Quick 
+      Start location. This name can include numbers, lowercase letters, 
+      uppercase letters, and hyphens, but do not start or end with a hyphen (-). 
+      See https://aws-quickstart.github.io/option1.html.
     Type: String
   QSS3BucketRegion:
     Default: 'us-east-1'
-    Description: "The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value."
+    Description: 'AWS Region where the Quick Start S3 bucket (QSS3BucketName) is 
+    hosted. Keep the default Region unless you are customizing the template. 
+    Changing this Region updates code references to point to a new Quick Start location. 
+    When using your own bucket, specify the Region. 
+    See https://aws-quickstart.github.io/option1.html.'
     Type: String
   QSS3KeyPrefix:
     AllowedPattern: ^[0-9a-zA-Z-/]*$
-    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
-      uppercase letters, hyphens (-), and forward slash (/).
+    ConstraintDescription: The Quick Start S3 key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slashes (/). The prefix should
+      end with a forward slash (/).
     Default: quickstart-nasa-jpl-cubs/
-    Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
-      can include numbers, lowercase letters, uppercase letters, hyphens (-), and
-      forward slash (/).
+    Description: S3 key prefix that is used to simulate a directory for your copy of the 
+      Quick Start assets. Keep the default prefix unless you are customizing 
+      the template. Changing this prefix updates code references to point to 
+      a new Quick Start location. This prefix can include numbers, lowercase 
+      letters, uppercase letters, hyphens (-), and forward slashes (/). End with 
+      a forward slash. See https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html 
+      and https://aws-quickstart.github.io/option1.html.
     Type: String
   RemoteAccessCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/x
-    Description: The CIDR IP range that is permitted to access the instances. We recommend
-      that you set this value to a trusted IP range.
+    Description: CIDR IP range that is permitted to access the instances. Set this value to a trusted IP range.
     Type: String
   SSLCertificateArn:
-    Description: ARN of the SSL certificate to use for the load balancer. Use SSLCertificateArn if you are not using FQDN and HostedZoneID.
+    Description: (Optional) Amazon Resource Name of the SSL certificate to use for the load balancer. Use SSLCertificateArn if you are not using FQDN and HostedZoneID.
+     # TODO Andrew, I added "(Optional)" here. Correct? Which others should we label optional?
     Type: String
     Default: ''
   HostedZoneID:
-    Description: Route 53 Hosted Zone ID of the domain name. Used in conjunction with an FQDN.
+    Description: (Optional) ID of the Route 53 hosted-zone domain. Used in conjunction with an FQDN. If both ElasticsearchDomainName and HostedZoneID are populated, this deployment generates an ACM certificate.
+      # TODO Andrew, I added "(Optional)" here. Correct? Which others should we label optional?
     Type: String
     MaxLength: 32
     Default: ''
@@ -191,15 +205,17 @@ Parameters:
     Description: Fully qualified domain name to use for project resources root.
     Type: String
   PermissionsBoundaryArn:
-    Description: Will be attached to all created IAM Roles to satisfy security requirements
+    Description: (Optional) Amazon Resource Name that will be attached to all IAM roles created to satisfy security requirements.
+       # TODO Andrew, I added "(Optional)" here since the default value is blank. Correct? Which others should we label optional?
     Type: String
     Default: ''
   RolePath:
-    Description: Will be attached to all created IAM Roles to satisfy security requirements
+    Description: (Optional) Path that will be attached to all IAM roles created to satisfy security requirements.
+       # TODO Andrew, I added "(Optional)" here since the default value is blank. Correct? Which others should we label optional?
     Type: String
     Default: ''
   ProjectName:
-    Description: Name of your project
+    Description: Name of your project.
     Type: String
 Rules:
   DomainNamePresentWithHostedID:

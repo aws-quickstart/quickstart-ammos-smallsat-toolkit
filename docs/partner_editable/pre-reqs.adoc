@@ -19,7 +19,7 @@ http://qs_launch_permalink[Deploy the preconfiguration stack^].
 
 ===  3. Customize the configuration files
 
-The preconfiguration stack that you deployed in the previous step contains an S3 bucket that's populated with base configuration files for AIT Server, AIT Editor, and Open MCT. Customize these files as follows:
+The preconfiguration stack that you deployed in the previous step contains an S3 bucket that's populated with base configuration files for AIT, AIT Editor, and Open MCT. Customize these files as follows:
 
 . Sign in to the AWS Management Console, and open the AWS CloudFormation console.
 . Select the newly deployed preconfiguration stack, choose the *Outputs* tab, and note the configuration bucket name (the value of the *ConfigBucket* key).
@@ -96,22 +96,30 @@ This file is a tarball of the static files for Open MCT. The JavaScript files in
 
 If you want to modify the Open MCT framework or configure or install plugins for Open MCT, make your changes, create a new tarball, and then upload the new file to overwrite the existing file in S3.
 
-=== 4. (Optional) Import a user-owned domain into Route 53
-The deployment relies on a user-provided fully qualified domain name (FQDN). This FQDN is used to discover the Application Load Balancer and subdomains to identify each application. The following records will be deployed in the user-provided Route53 Hosted Zone for each application:
+=== 4. (Optional) Configure Route 53 as your DNS service
+This deployment relies on a user-provided fully qualified domain name (FQDN). This FQDN is used to discover the Application Load Balancer and subdomains to identify each application. The following records are deployed in the user-provided Route 53 hosted zone for each application:
 
-    fqdn            →    ALB
-    ait.fqdn        →    AIT ASG [apache → ait-gui bottle app]
-    mct.fqdn        →    AIT ASG [apache → mct static built app]
-    editor.fqdn     →    Editor EC2 instance [docker container]
-    logs.fqdn       →    Amazon ES/Kibana
+[cols="1,3"]
+|===
 
-For guidance on creating a Route 53 Hosted Zone, see: https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html[AWS Docs - Configuring Route53 as your DNS Service]
+| fqdn | → Application Load Balancer
+| ait.fqdn | → AIT Auto Scaling group [Apache → ait-gui bottle app]
+| mct.fqdn | → AIT Auto Scaling group [Apache → mct static built app]
+| editor.fqdn | → AIT Editor EC2 instance [Docker container]
+| logs.fqdn | → Amazon ES and Kibana
+|===
 
-If you choose not to use Route53, you are responsible for deploying the appropriate records as detailed in <<_dns_management>>. Additionally, you will need to import an SSL certificate into AWS Certificate Manager (ACM), as outlined below.
+//TODO Andrew, Should "bottle" be "built"?
 
-=== 5. Import SSL certificate to ACM
+//TODO Andrew, What do we want to say about Kibana here (or earlier)? 
 
-This deployment applies an SSL certificate to the Application Load Balancer. This certificate can be imported manually into ACM, or generated as part of the deployment.
+For guidance on creating a Route 53 hosted zone, see https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html[Configuring Amazon Route 53 as your DNS service^].
+
+If you choose not to use Route 53, you are responsible for deploying the appropriate name records in your DNS, as detailed in <<_dns_management>> later in this guide. 
+
+=== 5. Import an SSL certificate into AWS Certificate Manager
+
+This deployment applies an SSL certificate to the Application Load Balancer. This certificate can be imported manually into AWS Certificate Manager (ACM) or generated as part of the deployment.
 
 HTTPS is enabled on the Application Load Balancer, requiring a valid SSL certificate for the FQDN. Additionally, the certificate should include the following alternative SANs (`*.{FQDN}` may be used):
 
@@ -120,9 +128,15 @@ HTTPS is enabled on the Application Load Balancer, requiring a valid SSL certifi
 - `editor.{FQDN}`
 - `logs.{FQDN}`
 
-This certificate needs to be available in ACM for attachment to the Application Load Balancer. For details on requesting or importing a certificate with ACM, see the following:
+//TODO Andrew, What does SAN stand for?
 
-- https://docs.aws.amazon.com/acm/latest/userguide/gs.html[AWS User Guide - ACM: Issue and Manage Certificates]
-- https://docs.aws.amazon.com/acm/latest/userguide/import-certificate.html[AWS User Guide - ACM: Import Certificates]
+//TODO Andrew, What do the {brackets} signify? If this is placeholder text, our standard is to use <angle brackets>. We also explicitly say in the body text what to replace this text with. (Global note for brackets throughout the doc.)
 
-If the `DomainName` and `HostedZoneID` parameters are populated, this deployment generates an ACM certificate. This deployment method uses DNS validation. All underlying DNS records relating to the ACM certificate will be created as necessary.
+This certificate needs to be available in ACM for attachment to the Application Load Balancer. For details, see the following:
+
+- https://docs.aws.amazon.com/acm/latest/userguide/gs.html[Issuing and managing certificates^]
+- https://docs.aws.amazon.com/acm/latest/userguide/import-certificate.html[Importing certificates into AWS Certificate Manager^]
+
+If the `ElasticsearchDomainName` and `HostedZoneID` parameters are populated, this deployment generates an ACM certificate. This deployment method uses DNS validation. All underlying DNS records relating to the ACM certificate will be created as necessary.
+
+//TODO Andrew, FYI, I changed `DomainName` to `ElasticsearchDomainName` above. If incorrect, let me know. (I'll also need to correct the parameter descriptions).

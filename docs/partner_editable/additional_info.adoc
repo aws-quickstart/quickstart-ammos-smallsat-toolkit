@@ -1,14 +1,14 @@
 // Add steps as necessary for accessing the software, post-configuration, and testing. Don’t include full usage instructions for your software, but add links to your product documentation for that information.
 //Should any sections not be applicable, remove them
 
-= Additional Info
+//TODO Andrew, Which template or templates shall we add this output to? "Outputs: Postdeployment: Value: <Permalink to deployment guide>. Description: See the deployment guide for testing and post-deployment steps."
 
 == Test the deployment
 
 // TODO: @MF @KM add input if necessary
 
 // If steps are required to test the deployment, add them here. If not, remove the heading
-After you'ved deployed the Quick Start, you can do the following tests to verify that the various components have been provisioned successfully.
+After you deploy the Quick Start, do the following tests to verify that the components have been provisioned successfully.
 
 === Connect to AIT server and AIT Editor instances
 
@@ -24,7 +24,7 @@ After you'ved deployed the Quick Start, you can do the following tests to verify
 . Run `docker ps` to verify that the AIT Editor Docker container is running.
 
 === Open AIT and Open MCT applications in a web browser
-Navigate to the fully qualified domain name (FQDN) entered in the `FQDN` parameter during Quick Start deployment. The deployment uses the `FQDN` parameter in an Amazon Route 53 Canonical Name Record (CNAME record). This record serves as an alias for the Application Load Balancer that directs traffic to AIT server, OpenMCT, and AIT Editor.
+Navigate to the fully qualified domain name (FQDN) entered in the `FQDN` parameter during Quick Start deployment. The deployment uses the `FQDN` parameter in an Amazon Route 53 CNAME record. This record serves as an alias for the Application Load Balancer that directs traffic to AIT server, OpenMCT, and AIT Editor.
 
 Once you have navigated to that URL, you should see an HTML landing page with links to the individual web applications (AIT, OpenMCT, and AIT Editor). Test the links to ensure that you can access each application.
 
@@ -35,7 +35,7 @@ The AIT software includes sample scripts `ait-example` and `ait-tlm-simulate`. T
 
 Once you are connected to the AIT server, begin by sourcing and activating the Python virtual environment where AIT and the sample telemetry scripts are installed. The deployment installs the scripts in a virtual environment named `ait` on the AIT server. As part of the activation, the virtual environment modifies your `PATH` variable to include a few AIT scripts that should now be executable.
 
-NOTE: For more information about connecting to the AIT server, see link:#_connect_to_ait_server_and_ait_editor[Connect to AIT server and AIT Editor instances], earlier in this guide.
+NOTE: For more information about connecting to the AIT server, see link:#_connect_to_ait_server_and_ait_editor[Connect to AIT server and AIT Editor instances] earlier in this guide.
 
 Use the commands `ait-example` and `ait-tlm-simulate` to run each script, respectively. The two scripts both generate sample telemetry, but `ait-example` has a hard-coded packet structure and will send telemetry for 100 seconds. `ait-tlm-simulate` emits telemetry once per second and can be used to simulate different packet types. `ait-tlm-simulate` is programmed to run indefinitely until the script is stopped.
 
@@ -57,10 +57,9 @@ In each of these log groups, there should also be a few log streams containing l
 //_Awaiting input from testing lead_
 
 == Post-deployment steps
-// If post-deployment steps are required, add them here. If not, remove the heading
 
-=== DNS management
-If you do not use Route 53 for domain management, you are responsible for deploying the appropriate name records to your DNS. Refer to your DNS provider’s documentation for guidance on this process. The following records must be deployed:
+=== (Optional) Deploy DNS records
+If you aren't using Route 53 for domain management, as described under <<_prepare_your_aws_account>> earlier in this guide, you are responsible for deploying the appropriate name records to your DNS. Refer to your DNS provider’s documentation for guidance on this process. Deploy the following records:
 
     CNAME         fqdn            →    ALB
     Alias    |    ait.fqdn        →    fqdn
@@ -74,11 +73,13 @@ To view the Application Load Balancer DNS name, see the value displayed in the *
 
 The Application Load Balancer handles redirection based on the host header in request. It's sufficient to deploy a single CNAME record pointing to the Application Load Balancer and to deploy all subdomains as aliases that redirect to the Application Load Balancer CNAME record.
 
-=== Cognito user management
-The Application Load Balancer defines an authentication action to protect the AIT, Open MCT, and AIT Editor applications. To access the applications, a user must authenticate using an identity managed by Cognito. You must create user identities in the Cognito user pool or set up federation with an existing identity provider. For more information, see https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html[Creating User Accounts as Administrator] and https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-federation.html[Adding User Pool Sign-in Through a Third Party].
+=== Create Amazon Cognito user identities
+The Application Load Balancer defines an authentication action to protect the AIT, Open MCT, and AIT Editor applications. To access the applications, you must authenticate using an identity that's managed by Amazon Cognito. You must create user identities in the Amazon Cognito user pool or set up federation with an existing identity provider. 
 
-=== AIT server management
-The AIT Server will likely require further adaptation by the mission both at launch, and as the needs and parameters of the mission evolves over its lifetime. These changes can be made directly on the server over an SSH or SSM-Managed session; some common adaptations are described below.
+For more information, see https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html[Creating User Accounts as Administrator] and https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-federation.html[Adding User Pool Sign-in Through a Third Party].
+
+=== Manage the AIT server
+The AIT server will likely require further adaptation by the mission, both at launch and as the needs and parameters of the mission evolve over its lifetime. These changes can be made directly on the server over an SSH- or SSM-managed session. Some common adaptations are described below.
 
 ==== Virtual environment (virtualenvwrapper)
 The AIT server installs AIT-Core, several plugins, and various dependencies to a virtual Python environment using the `virtualenvwrapper` Python tool. The environment can be activated using the `workon ait` command. For more information, see https://ait-core.readthedocs.io/en/master/installation.html#installation[Installation and Environment Configuration].
@@ -87,7 +88,7 @@ The AIT server installs AIT-Core, several plugins, and various dependencies to a
 //TODO: awaiting @KM
 // ^ Request is pending, for now the following is sufficient
 
-AIT is a highly extensible framework that allows mission teams to adapt it to their use case. AIT provides several https://ait-core.readthedocs.io/en/master/extensions.html[extensions] such as the Data Archive, DSN, and Open MCT plugins, and also allows users to develop and include their own https://ait-core.readthedocs.io/en/master/server_architecture.html#plugins[plugins]. 
+AIT is an extensible framework that allows mission teams to adapt it to their use case. AIT provides several https://ait-core.readthedocs.io/en/master/extensions.html[extensions] such as the Data Archive, DSN, and Open MCT plugins, and also allows users to develop and include their own https://ait-core.readthedocs.io/en/master/server_architecture.html#plugins[plugins]. 
 
 ==== Configuration management
 The deployment retrieves configuration files from an S3 bucket and places them in `/home/ec2-user/AIT-Core/config`. Configuration files can be modified directly on the server or replaced by new files uploaded to S3. After changing configuration files, you must restart the `ait-server` systemd service. For more information, see link:#_ait_server_systemd_services[AIT server systemd services]. 
@@ -98,13 +99,13 @@ Run the following command to retrieve new files from the S3 bucket.
 
 For more information, see https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html[sync^].
 
-==== Server Restarts
+==== Server restarts
 The AIT server and other critical services (InfluxDB and HTTPD) are enabled as `systemd` services. The EC2 Instance can be stopped and restarted as needed. All system services are brought online upon restart. For more information, see link:#_ait_server_systemd_services[AIT server systemd services] later in this guide.
 
-
 ==== Upgrades
-// TODO: Andrew: the software versions that are supported by the QS are stated in the "Supported application software versions" section already; can this section be removed?
-To upgrade AIT-Core or any of the other deployed applications, they can do so at their own risk; however, this Quick Start only supports those versions listed below LINK: link to `Software version requirements`.
+To upgrade AIT-Core or any of the other deployed applications, you do so at your own risk. This Quick Start supports only those versions listed under LINK: link to `Software version requirements`.
+
+//TODO Fix internal links throughout. 
 
 // TODO: Andrew: why give any instructions related to upgrading at all if it is at your own risk? 
 To upgrade any of the applications, refer to that application's documentation. Be sure to backup any the config directory and any other modified files. The cloned application repositories can then be updated and reinstalled to the virtual environment as noted below.
@@ -121,7 +122,6 @@ The following services are managed by `systemd` on the application server.
 ===== HTTPD
 Apache HTTP Server is installed and managed as a `systemd` service (`/usr/lib/systemd/system/httpd.service`).
 
-// TODO: Andrew, ss this the same procedure documented in the section "Connect to AIT server and AIT Editor instances" previously, and if so, can it be removed?
 You can check if the service is running after deployment using the command `sudo systemctl status httpd`.
 
 The Apache HTTP Server routes incoming traffic to both AIT and Open MCT. Apache configuration files are located at `/etc/httpd`. The base configuration can be found at `/etc/httpd/conf/httpd.conf`, and supplemental configuration files can be found at `/etc/httpd/conf.d`.
@@ -129,7 +129,6 @@ The Apache HTTP Server routes incoming traffic to both AIT and Open MCT. Apache 
 ===== InfluxDB
 InfluxDB iis installed and managed as a `systemd` service. The service file can be found at `/usr/lib/systemd/system/influxdb.service`.
 
-// TODO: Is this the same procedure documented in the section "Connect to AIT server and AIT Editor instances" previously, and if so, can it be removed?
 You can check if the service is running after deployment using the command `sudo systemctl status influxdb`.
 
 This Quick Start uses the a default configuration of InfluxDB with a few changes. InfluxDB is used as a data storage layer for the AIT application.
@@ -137,33 +136,30 @@ This Quick Start uses the a default configuration of InfluxDB with a few changes
 ===== AIT server
 The AIT-Core server is installed and managed as a `systemd` service. The service file is located at `/etc/systemd/system/ait-server.service`.
 
-// TODO: Is this the same procedure documented in the section "Connect to AIT server and AIT Editor instances" previously, and if so, can it be removed?
 You can check if the service is running after deployment using the command `sudo systemctl status ait-server`.
 
 If you make changes to the AIT configuration files, you must restart the service using the command `sudo systemctl restart ait-server`.
 
 The service itself will run the AIT-Core server, which listens for, processes, and exposes telemetry. Configured plugins (such as AIT-GUI) are run according to the main AIT configuration file.
 
-== Logging (CloudWatch agent)
+=== Set up CloudWatch agent
 
-// TODO: Andrew, what is the name of the "provided default config file" in the second sentence?
-This Quick Start installs Amazon CloudWatch agent on all of the deployed EC2 instances. This agent is initialized by a provided default config file which tells the agent which files to monitor and where to direct the logs in AWS CloudWatch.
+This Quick Start installs Amazon CloudWatch agent on all of the deployed EC2 instances. This agent is initialized by a provided default configuration file that tells the agent which files to monitor and where to direct the logs in AWS CloudWatch.
+// TODO: Andrew, what's the name of the "provided default config file" in the second sentence?
 
-//TODO: Links o section headers
-The default CloudWatch agent configuration files can be viewed at LINK: link to S3 config. Users may modify this file in the post-deployment steps as detailed in LINK: link to post-deploy.
+The default CloudWatch agent configuration files can be viewed at LINK: link to S3 config. You can modify this file in the post-deployment steps as detailed in LINK: link to post-deploy.
+//TODO: Andrew, Which post-deployment step are these links intended to point to? 
 
-For more information about the CloudWatch Agent, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent.html[Collecting metrics and logs from Amazon EC2 instances and on-premises servers with the CloudWatch agent^]
+For more information about the CloudWatch agent, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent.html[Collecting metrics and logs from Amazon EC2 instances and on-premises servers with the CloudWatch agent^].
 
-=== Log-retention settings
+==== (Optional) Change the log-retention period
 
-The AWS CloudWatch Logs log groups that receive application logs are configured with the default log retention period of 30 days. You can choose a different retention period during deployment using the `l` parameter. To change the retention period after deployment, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#SettingLogRetention[Change log data retention in CloudWatch Logs]. Increasing the log retention period will result in higher log-storage costs.
+The AWS CloudWatch Logs log groups that receive application logs are configured with the default log retention period of 30 days. You can choose a different retention period during deployment using the `l` parameter. To change the retention period after deployment, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#SettingLogRetention[Change log data retention in CloudWatch Logs]. Increasing the log-retention period will result in higher log-storage costs.
 
-=== Modifying the CloudWatch agent
+==== (Optional) Modify the CloudWatch agent configuration file
 The CloudWatch agent monitors specified log files and sends them to CloudWatch Logs. The CloudWatch agent configuration file is stored in `/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json`.
 
-To monitor additional files, or change the configuration settings, the configuration file can be modified. For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html[Manually create or edit the CloudWatch agent configuration file^].
-
-//TODO Andrew I added "Logs" to make it "CloudWatch Logs log groups." Correct?
+To monitor additional files or change the configuration settings, you can modify the configuration file. For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html[Manually create or edit the CloudWatch agent configuration file^].
 
 After editing the file, restart the agent and apply your changes using the following command:
 [source,bash]
@@ -172,16 +168,15 @@ After editing the file, restart the agent and apply your changes using the follo
     -a fetch-config -s -m ec2 \
     -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 ----
-//TODO Andrew, In the following sections, how might we surface the actionable information? 
 
 == Security
 // Provide post-deployment best practices for using the technology on AWS, including considerations such as migrating data, backups, ensuring high performance, high availability, etc. Link to software documentation for detailed information.
 
 === IAM
 
-In order to facilitate compliance with organizational restrictions on IAM role creation, the following parameters are available on all stacks which create IAM Roles:
+To facilitate compliance with organizational restrictions on IAM role creation, the following parameters are available on all stacks that create IAM roles:
 
-* PermissionsBoundaryArn: ARN of a Managed Policy in your account to be used as the permissions boundary for the created role. +
+* PermissionsBoundaryArn: Amazon Resource Name (ARN) of a managed policy in your account to be used as the permissions boundary for the created role. +
     See https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html[Permissions boundaries for IAM entities - AWS Identity and Access Management^] for more info.
 * RolePath: String used as the path attribute for the created role. +
     See https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-friendly-names[IAM identifiers - AWS Identity and Access Management^] for more info.
@@ -192,22 +187,29 @@ These attributes will not be set if the parameter is not supplied.
 
 As part of the Quick Start deployment, you must specify security groups that define inbound and outbound network traffic rules. This involves creating inbound rules for the security groups and defining the appropriate CIDR/IP ranges that are allowed inbound access to various resources deployed by this Quick Start. For more information, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security-groups.html[Amazon EC2 security groups for Linux instances].
 
+//TODO Andrew, FYI, we put a "^" symbol just before the end bracket ("]") in link text so that the link opens in a new tab. I'll go through and add these this time. 
+
 === Private subnets
-The application servers for AIT Server and AIT Editor as well as the Elasticsearch domain are deployed to private subnets within a VPC. An Application Load Balancer (deployed to a public subnet in the same VPC) is used to route requests to these servers. This minimizes the publicly exposed footprint of resources deployed using this Quick Start. To access these servers in the private subnets, please refer to <<SSM,documentation section on SSM (Systems Manager)>>.
+The application servers for AIT and AIT Editor as well as the Amazon ES domain are deployed to private subnets within a VPC. An Application Load Balancer (deployed to a public subnet in the same VPC) is used to route requests to these servers. This minimizes the publicly exposed footprint of resources deployed using this Quick Start. To access these servers in the private subnets, refer to <<SSM,documentation section on SSM (Systems Manager)>>.
+
+//TODO Fix all internal links.
 
 === SELinux
 SELinux is enabled and enforced on the application servers. Apache HTTP Server and the various application processes have been configured for SELinux compatibility and can be run without disabling SELinux.
 
 Side effects may occur if settings and/or configuration files are modified or moved after the initial deployment of the application. If you have any issues with SELinux file and process contexts, please refer to a fresh deployment of the Quick Start or redeploy the Quick Start.
 
-IMPORTANT: We highly recommend you do not disable SELinux unless you are aware of unintended security consequences or have the need to disable SELinux for compatibility or debugging purposes.
+IMPORTANT: Do not disable SELinux unless you are aware of unintended security consequences or must disable SELinux for compatibility or debugging purposes.
 
-=== Amazon ES/Kibana
-This Quick Start deploys an Amazon ES domain under Amazon Elasticsearch Service. The Amazon ES domain contains logging data that is received from application servers. It is deployed within a VPC (see https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-vpc.html[VPC support^]). All master and data nodes reside within private subnets. Encryption for data at rest is enabled by default, and the security group associated with the domain is configured prior to deploying this Quick Start.
+=== Amazon ES and Kibana
+
+//TODO Andrew, What do we want to say about Kibana in this section? 
+
+This Quick Start deploys a domain under Amazon Elasticsearch Service. The Amazon ES domain contains logging data that is received from application servers. It is deployed within a VPC (see https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-vpc.html[VPC support^]). All master and data nodes reside within private subnets. Encryption for data at rest is enabled by default, and the security group associated with the domain is configured prior to deploying this Quick Start.
 
 //TODO Andrew, Can we say "main" instead of "master" in the above paragraph? (It does sound weird to say "All master and data nodes" ... what's the clearest phrasing?)
 
-IMPORTANT: The Amazon ES domain currently uses an open access policy, with access controlled via by an EC2 security group. For more security, use fine-grained access control or modify the access policy to specify IAM users or roles. For details, see https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/security.html[Security in Amazon Elasticsearch Service^].
+IMPORTANT: The Amazon ES domain uses an open-access policy with access controlled by an EC2 security group. For more security, use fine-grained access control or modify the access policy to specify IAM users or roles. For details, see https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/security.html[Security in Amazon Elasticsearch Service^].
 
 //TODO: what needs to be added/clarified here?
 //@MF:

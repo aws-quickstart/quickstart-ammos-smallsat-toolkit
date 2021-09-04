@@ -3,7 +3,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Preconfigure stack (qs-1s6abjf8q)
 Metadata:
   QuickStartDocumentation:
-    EntrypointName: "Preconfigure your AWS account"
+    EntrypointName: "Parameters for preconfiguring your AWS account"
     Order: 1
     OptionalParameters:
       - PermissionsBoundaryArn
@@ -73,11 +73,13 @@ Parameters:
       and https://aws-quickstart.github.io/option1.html.
     Type: String
   PermissionsBoundaryArn:
-    Description: ARN attached to all created IAM roles to satisfy security requirements.
+    Description: (Optional) Amazon Resource Name that will be attached to all IAM roles created to satisfy security requirements.
+        # TODO Andrew, I added "(Optional)" here since the default value is blank. Correct? Which others should we label optional?
     Type: String
     Default: ''
   RolePath:
-    Description: Path attached to all created IAM roles to satisfy security requirements.
+    Description: (Optional) Path that will be attached to all IAM roles created to satisfy security requirements.
+        # TODO Andrew, I added "(Optional)" here since the default value is blank. Correct? Which others should we label optional?
     Type: String
     Default: ''
   ProjectName:
