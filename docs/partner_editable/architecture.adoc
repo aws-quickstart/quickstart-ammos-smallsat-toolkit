@@ -4,34 +4,25 @@ Deploying this Quick Start for a new virtual private cloud (VPC) with
 default parameters builds the following {partner-product-short-name} environment in the
 AWS Cloud.
 
-// Replace this example diagram with your own. Follow our wiki guidelines: https://w.amazon.com/bin/view/AWS_Quick_Starts/Process_for_PSAs/#HPrepareyourarchitecturediagram. Upload your source PowerPoint file to the GitHub {deployment name}/docs/images/ directory in this repo.
-
 [#architecture1]
 .Quick Start architecture for {partner-product-short-name} on AWS
-image::../images/nasa-jpl-architecture_diagram.png[Architecture]
+image::../images/nasa-ammos-smallsat-toolkit-architecture-diagram.png[Architecture]
 
 As shown in <<architecture1>>, the Quick Start sets up the following:
 
+* A highly available architecture that spans two Availability Zones.
+//TODO Andrew, What should we say (and show) here re: the third Availability Zone? See Aerospike for example: https://aws.amazon.com/quickstart/architecture/aerospike/).
 * A VPC configured with public and private subnets, according to AWS best practices, to provide you with your own virtual network on AWS.
-* In the public subnet:
-** A bastion host that ___.
-//TODO Andrew, What to say about the bastion host?
-** An Application Load Balancer to route traffic from the web to the appropriate application resources.
-//TODO Andrew, Does the Application Load Balancer belong inside the subnet? If not, please move the icon and this subbullet. (I've updated the .pptx file; work from the latest version in GitHub.)
-** A network address translation (NAT) gateway to allow outbound internet access.
-* In the private subnet:
-** An Auto Scaling group that contains AIT Server, which exposes the AIT graphical user interface (AIT-GUI) and Open MCT application using Apache HTTP Server.
-//TODO Andrew, Please add the Auto Scaling group to the diagram.
-//TODO Andrew, In various places we talk about AIT Server, AIT Editor, and Open MCT as a triad. How might we show all three components in the diagram?
-** An EC2 instance to serve the AIT Editor application using Docker.
-* An Amazon Cognito user pool to manage identities and authenticate users.
-* Amazon CloudWatch Logs log groups to receive log data from application servers from the CloudWatch Logs agent.
-* Amazon Kinesis Data Firehose to deliver log data from CloudWatch Logs to Amazon S3 (for long-term storage) and Amazon Elasticsearch Service (Amazon ES).
-//TODO Andrew, Is it accurate for Amazon ES to be the only service icon inside the VPC?
-* A Lambda function that ingests logs and prepares them for delivery to Kinesis Data Firehose.
-* An S3 bucket that contains application and server configuration files.
-* Amazon Route 53 to __
-//TODO Andrew, please fill in the above blank.
-//TODO Andrew, how could the diagram show the flow between some of these free-floating components?
-//TODO Andrew, How would we show the Docker container come into play in the diagram?
-//TODO Andrew, How would we describe the Docker container's function in the bulleted list?
+* In the public subnets:
+** Managed network address translation (NAT) gateways to provide outbound internet access for resources in the private subnets.
+** A Linux bastion host in an Auto Scaling group to allow inbound Secure Shell (SSH) access to Amazon Elastic Compute Cloud (Amazon EC2) instances in public and private subnets.
+* In the private subnets:
+** In one Auto Scaling group, an Amazon EC2 instance that serves the AIT and Open MCT applications using Apache HTTP Server.
+** In another Auto Scaling group, an EC2 instance that serves the AIT Editor application using Docker.
+* An Application Load Balancer to route traffic from the web to the EC2 instances in the private subnets.
+* Amazon Cognito to manage identities and authenticate users.
+* Amazon CloudWatch to receive log data from the EC2 instances in the private subnets using CloudWatch Logs agents.
+* AWS Lambda to process logs for Amazon Kinesis Data Firehose.
+* Kinesis Data Firehose to deliver log data from CloudWatch Logs to Amazon S3 and Amazon Elasticsearch Service (Amazon ES).
+* Amazon Route 53 to provide a canonical name (CNAME) record, an alias for the Application Load Balancer.
+* Two S3 buckets, one for long-term storage of log files and the other for application and server configuration files.

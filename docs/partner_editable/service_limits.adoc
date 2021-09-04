@@ -15,11 +15,11 @@
 | Application Load Balancers | 1
 | Amazon Cognito user pools | 1
 | Amazon ES domains | 1
-| S3 Buckets | 2
+| S3 buckets | 2
 | CloudWatch Logs log groups | 5
-| Route53 records | 5
+| Route 53 records | 5
 | Kinesis Data Firehose delivery streams | 1
 | Lambda functions | 3
 |===
 
-//TODO Andrew, I added "Logs" to make it "CloudWatch Logs log groups." Is that correct?
+//TODO Andrew, In the parameter description for AITInstanceType, we say to see deployment guide for recommendations of instance types to use for AIT. I don't see anywhere in the guide where we give recommendations, though. Please supply recommendations.
