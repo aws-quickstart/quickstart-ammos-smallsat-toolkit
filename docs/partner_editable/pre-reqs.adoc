@@ -3,31 +3,32 @@
 == Prepare your AWS account
 
 // _Describe any setup required in the AWS account prior to template launch_
-Before you launch the Quick Start, complete the following steps.
+Before you launch the Quick Start, prepare your AWS account by completing the following tasks.
 
-=== 1. Create a service-linked role for Amazon ES
-A service-linked role allows Amazon ES to call other necessary AWS services on your behalf during the Amazon ES provisioning process. To create the role, follow the instructions under https://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html#create-service-linked-role[Creating a service-linked role^]. Specify the service name as `es.amazonaws.com`.
+=== Create a service-linked role for Amazon ES
+
+Amazon ES uses a service-linked role to call other necessary AWS services on your behalf during the Amazon ES provisioning process. To create the role, follow the instructions under https://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html#create-service-linked-role[Creating a service-linked role^]. Specify the service name as `es.amazonaws.com`.
 
 For more information, see the https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/slr-es.html[Using service-linked roles to provide Amazon Elasticsearch Service access to resources^].
 
-=== 2. Deploy the preconfiguration stack
-You must deploy the preconfiguration (prerequisite) stack so that you can customize the configuration files, as detailed in the following step.  
+=== Deploy and customize the configuration files
 
-http://qs_launch_permalink[Deploy the preconfiguration stack^].
+The preconfiguration (prerequisite) stack for this Quick Start contains an S3 bucket that's populated with base configuration files for AIT, AIT Editor, and Open MCT. Deploy this stack and customize the configuration files as follows:
 
-//TODO Andrew, What full URL should this permalink map to?
+. http://qs_launch_permalink[Deploy the preconfiguration stack^].
++
+//TODO Tech writers to create and swap in this permalink (ammos-cubs.preconfig.template.yaml).
+//TODO Andrew, Would people appreciate a "view template" link for this .yaml file too?
 
-===  3. Customize the configuration files
-
-The preconfiguration stack that you deployed in the previous step contains an S3 bucket that's populated with base configuration files for AIT, AIT Editor, and Open MCT. Customize these files as follows:
-
-. Sign in to the AWS Management Console, and open the AWS CloudFormation console.
-. Select the newly deployed preconfiguration stack, choose the *Outputs* tab, and note the configuration bucket name (the value of the *ConfigBucket* key).
-. Copy, customize, and overwrite files of the same name in the S3 configuration bucket. For details on how to customize the configuration files, see the following section. For more information, see https://ait-core.readthedocs.io/en/latest/configuration_intro.html[Introduction to AIT Configuration^].
+. Sign in to the AWS Management Console, and open the https://console.aws.amazon.com/cloudformation/[AWS CloudFormation console^].
+. Select the preconfiguration stack, choose the *Outputs* tab, and note the S3 bucket name (the value of the *ConfigBucket* key).
+. Copy, customize, and overwrite files of the same name in the S3 configuration bucket. 
++
+For more information, see the following section (<<_about_the_configuration_files>>) and https://ait-core.readthedocs.io/en/latest/configuration_intro.html[Introduction to AIT Configuration^].
 +
 IMPORTANT: Use the correct syntax and format in your configuration files so that the applications deploy.
 
-==== How to customize the configuration files
+==== About the configuration files
 The configuration files in the S3 bucket are organized by application with the following structure:
 
 ----
@@ -56,48 +57,66 @@ configs
     └── openmct-static.tgz
 ----
 
+During deployment, the Quick Start retrieves the configuration files from the S3 bucket and places them in the `/home/ec2-user/AIT-Core/config` directory on the AIT server instance.
+
+//TODO Andrew, Is the above statement accurate (as I surmised from info later in the doc)? Seems worth clarifying here. 
+
+//TODO Andrew, What to say here about the term "core"?
+
 ===== configs/ait/
-Files in this S3 path are configuration files for the AIT deployment within this Quick Start.
+This S3 folder contains configuration files for the AIT deployment within this Quick Start.
 
 ===== cloudwatch-agent-ait.json
-This file is used to configure the CloudWatch agent that runs on the AIT EC2 server instance. If you would like to add sources for logs that will be sent to CloudWatch Logs, edit this file to enable those new log sources.
+This file configures the CloudWatch agent that runs on the AIT server instance. Modify this file if you need to add sources for logs to send to CloudWatch Logs.
 
-For more information about modifying the CloudWatch agent configuration file, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html[Manually create or edit the CloudWatch agent configuration file^].
+For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html[Manually create or edit the CloudWatch agent configuration file^].
 
-===== config/
-All files in this S3 path are configuration files for the AIT application. The main configuration file is `config.yaml`. You can modify and overwrite any of the other files to customize the AIT server installation. 
-//TODO: "The main configuration file is `config.yaml`" this implies that this file should not be overwritten? Clarify here and in the following section. (People may not read both.)
+//TODO Andrew, This webpage doesn't mention this file (cloudwatch-agent-ait.json). Do we need to clarify?
+
+===== configs/ait/config/
+This S3 folder contains configuration files for the AIT application. The main configuration file is `config.yaml`. You can modify and overwrite any of the other files to customize the AIT installation. 
+//TODO Andrew, The above description seems to imply that we should not modify `config.yaml`. If true, say so.
+
+//TODO Andrew, Since we say above that you can modify ANY of the other files, why are some of them (such as bsc.yaml, cmd.pkl, and core_set_op_mode.yaml) missing from the descriptions below?
 
 ===== config.yaml
-This file is the main configuration file for AIT. On the AIT EC2 service instance, this file is located at `/home/ec2-user/AIT-Core/config/config.yaml`.
+//TODO Andrew, If we must not modify `config.yaml`, say so.
+This is the main configuration file for AIT. On the AIT server instance, this file is located at `/home/ec2-user/AIT-Core/config/config.yaml`.
 
-This main configuration file references a few other configuration files (filepaths are relative) as well as enabling a default set of AIT plugins: AIT GUI, the Data Archive plugin for InfluxDB, and the AIT Open MCT plugin.
+//TODO Andrew, It seems weird to mention the AIT-Core path for this file only. Should we do the same for the other files in this section?
+
+This main configuration file references a few other configuration files (file paths are relative) as well as enabling a default set of AIT plugins: AIT GUI, the Data Archive plugin for InfluxDB, and the AIT Open MCT plugin.
 
 For more information, see https://ait-core.readthedocs.io/en/latest/configuration_intro.html#config-yaml[config.yaml^] in the AIT documentation.
 
 ===== httpd_proxy.conf
-This configuration file defines how Apache HTTP Server proxies requests to either AIT or Open MCT. Both applications are set up as virtual hosts in Apache. Requests to AIT get proxied to the AIT backend Python process while requests to Open MCT are handled directly by the Apache web server that serves Open MCT’s static files.
+This configuration file defines how Apache HTTP Server proxies requests to either AIT or Open MCT. Both applications are set up as virtual hosts in Apache. Requests to AIT get proxied to the AIT backend Python process while requests to Open MCT are handled directly by the Apache web server that serves Open MCT's static files.
 
-You don't typically modify this file, but you can if you want a nonstandard configuration for routing traffic between applications. For more information on how to modify this file, see https://httpd.apache.org/docs[Apache HTTP Server Documentation^].
+Modify this file if you need a nonstandard configuration for routing traffic between applications. 
+
+For more information, see https://httpd.apache.org/docs[Apache HTTP Server Project^].
 
 ===== configs/editor/
-Files in this S3 path are configuration files for the AIT Editor deployment within this Quick Start.
+This S3 folder contains configuration files for the AIT Editor deployment within this Quick Start.
+//TODO Andrew, This says "files" (plural), but we show only one file above. Should this say "the configuration file"?
 
 ===== cloudwatch-agent-editor.json
-This file configures the CloudWatch agent that runs on the AIT Editor EC2 server instance. If you want to configure additional sources for logs that will be sent to CloudWatch Logs, edit this file.
+This file configures the CloudWatch agent that runs on the AIT Editor server instance. Modify this file if you need to configure additional sources for logs to send to CloudWatch Logs.
 
-For more information about modifying the CloudWatch agent configuration file, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html[Manually create or edit the CloudWatch agent configuration file^].
+For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html[Manually create or edit the CloudWatch agent configuration file^].
+
+//TODO Andrew, We give this same link for a different file (cloudwatch-agent-ait.json) above. Does it make sense to give the same URL for both? (The webpage doesn't mention either file.)
 
 ===== configs/modules/
-Files in this S3 path are static files that are served by Apache HTTP Server.
+This S3 folder contains a tarball of the static files that are served by Apache HTTP Server for Open MCT.
 
 ===== openmct-static.tgz
 This file is a tarball of the static files for Open MCT. The JavaScript files in the tarball have been minified and bundled.
 
-If you want to modify the Open MCT framework or configure or install plugins for Open MCT, make your changes, create a new tarball, and then upload the new file to overwrite the existing file in S3.
+Modify these files if you need to edit the Open MCT framework or configure or install plugins for Open MCT. Make your changes, create a new tarball, and then upload the new file to overwrite the existing file in S3.
 
-=== 4. (Optional) Configure Route 53 as your DNS service
-This deployment relies on a user-provided fully qualified domain name (FQDN). This FQDN is used to discover the Application Load Balancer and subdomains to identify each application. The following records are deployed in the user-provided Route 53 hosted zone for each application:
+=== (Optional) Configure Route 53 as your DNS service
+This deployment relies on a fully qualified domain name (FQDN) that you provide. This FQDN is used to discover the Application Load Balancer and subdomains to identify each application. If you configure Route 53 as your Domain Name System (DNS) service, the Quick Start deploys the following records in your Route 53 hosted zone for each application:
 
 [cols="1,3"]
 |===
@@ -111,32 +130,32 @@ This deployment relies on a user-provided fully qualified domain name (FQDN). Th
 
 //TODO Andrew, Should "bottle" be "built"?
 
-//TODO Andrew, What do we want to say about Kibana here (or earlier)? 
+//TODO Andrew, What do to say about Kibana here (or maybe earlier)? 
 
-For guidance on creating a Route 53 hosted zone, see https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html[Configuring Amazon Route 53 as your DNS service^].
+For more information, see https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html[Configuring Amazon Route 53 as your DNS service^].
 
-If you choose not to use Route 53, you are responsible for deploying the appropriate name records in your DNS, as detailed in <<_dns_management>> later in this guide. 
+If you choose not to use Route 53, you are responsible for deploying the appropriate name records in your DNS. For details, see <<_optional_deploy_dns_records>> later in this guide. 
 
-=== 5. Import an SSL certificate into AWS Certificate Manager
+=== Import or generate an SSL certificate
 
-This deployment applies an SSL certificate to the Application Load Balancer. This certificate can be imported manually into AWS Certificate Manager (ACM) or generated as part of the deployment.
+You must have a valid Secure Sockets Layer (SSL) certificate for your FQDN because HTTPS is enabled on the Application Load Balancer. The certificate needs to be available in AWS Certificate Manager (ACM) for attachment to the Application Load Balancer. 
 
-HTTPS is enabled on the Application Load Balancer, requiring a valid SSL certificate for the FQDN. Additionally, the certificate should include the following alternative SANs (`*.{FQDN}` may be used):
+You can import this certificate into ACM manually. Alternatively, you can generate it during deployment by populating both the `ElasticsearchDomainName` and `HostedZoneID` parameters. The deployment method, which uses DNS validation, creates all the necessary DNS records related to the ACM certificate.
 
-- `ait.{FQDN}`
-- `mct.{FQDN}`
-- `editor.{FQDN}`
-- `logs.{FQDN}`
+//TODO Andrew, FYI, I didn't find a `DomainName` parameter, so I changed the above to `ElasticsearchDomainName`. If incorrect, let me know. I'll need to correct the parameter descriptions too.
+
+Ensure that your certificate includes the following alternative SANs. You can use `*.<fqdn>` with your FQDN URL in place of the bracketed text.
+
+- `ait.<fqdn>`
+- `mct.<fqdn>`
+- `editor.<fqdn>`
+- `logs.<fqdn>`
 
 //TODO Andrew, What does SAN stand for?
 
-//TODO Andrew, What do the {brackets} signify? If this is placeholder text, our standard is to use <angle brackets>. We also explicitly say in the body text what to replace this text with. (Global note for brackets throughout the doc.)
+//TODO Andrew, I swapped in our standard <angle brackets> above instead of the {curly brackets} that were here. Let me know if the curly brackets signified something special.
 
-This certificate needs to be available in ACM for attachment to the Application Load Balancer. For details, see the following:
+For more information, see the following:
 
 - https://docs.aws.amazon.com/acm/latest/userguide/gs.html[Issuing and managing certificates^]
 - https://docs.aws.amazon.com/acm/latest/userguide/import-certificate.html[Importing certificates into AWS Certificate Manager^]
-
-If the `ElasticsearchDomainName` and `HostedZoneID` parameters are populated, this deployment generates an ACM certificate. This deployment method uses DNS validation. All underlying DNS records relating to the ACM certificate will be created as necessary.
-
-//TODO Andrew, FYI, I changed `DomainName` to `ElasticsearchDomainName` above. If incorrect, let me know. (I'll also need to correct the parameter descriptions).

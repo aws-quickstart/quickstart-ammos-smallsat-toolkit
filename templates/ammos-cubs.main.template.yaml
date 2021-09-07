@@ -92,7 +92,7 @@ Parameters:
     Type: String
     Default: m5.large
   CloudWatchLogsRetentionPeriod:
-    Description: Number of days to retain log events in CloudWatch Logs log groups.
+    Description: Number of days to retain log events in CloudWatch Logs log groups. Increasing this number results in higher log-storage costs.
     Type: Number
     Default: 30
   ElasticsearchDomainName:
@@ -148,7 +148,7 @@ Parameters:
     Description: Availability Zones to use for the subnets in the VPC. This deployment uses two
       Availability Zones, and the logical order of your
       selections is preserved.
-       # TODO: Andrew, What should we say here about the third Availability Zone?
+       # TODO Andrew, What should we say here about the third Availability Zone?
     Type: List<AWS::EC2::AvailabilityZone::Name>
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
@@ -192,26 +192,24 @@ Parameters:
     Type: String
   SSLCertificateArn:
     Description: (Optional) Amazon Resource Name of the SSL certificate to use for the load balancer. Use SSLCertificateArn if you are not using FQDN and HostedZoneID.
-     # TODO Andrew, I added "(Optional)" here. Correct? Which others should we label optional?
+     # TODO Andrew, I added "(Optional)" here and fleshed this out. Correct? 
     Type: String
     Default: ''
   HostedZoneID:
     Description: (Optional) ID of the Route 53 hosted-zone domain. Used in conjunction with an FQDN. If both ElasticsearchDomainName and HostedZoneID are populated, this deployment generates an ACM certificate.
-      # TODO Andrew, I added "(Optional)" here. Correct? Which others should we label optional?
+      # TODO Andrew, I added "(Optional)" here and fleshed this out. Correct? 
     Type: String
     MaxLength: 32
     Default: ''
   FQDN:
-    Description: Fully qualified domain name to use for project resources root.
+    Description: URL to use for the project-resources root.
     Type: String
   PermissionsBoundaryArn:
-    Description: (Optional) Amazon Resource Name that will be attached to all IAM roles created to satisfy security requirements.
-       # TODO Andrew, I added "(Optional)" here since the default value is blank. Correct? Which others should we label optional?
+    Description: (Optional) Amazon Resource Name of a managed policy in your account to be used as the permissions boundary. This ARN will be attached to all IAM roles created to satisfy your organization's security requirements. If you keep this blank, this attribute is not set. For more information, see https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html.
     Type: String
     Default: ''
   RolePath:
-    Description: (Optional) Path that will be attached to all IAM roles created to satisfy security requirements.
-       # TODO Andrew, I added "(Optional)" here since the default value is blank. Correct? Which others should we label optional?
+    Description: (Optional) Path that will be attached to all IAM roles created to satisfy your organization's security requirements. If you keep this blank, this attribute is not set. For more information, see https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-friendly-names.
     Type: String
     Default: ''
   ProjectName:

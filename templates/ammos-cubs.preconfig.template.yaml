@@ -73,13 +73,11 @@ Parameters:
       and https://aws-quickstart.github.io/option1.html.
     Type: String
   PermissionsBoundaryArn:
-    Description: (Optional) Amazon Resource Name that will be attached to all IAM roles created to satisfy security requirements.
-        # TODO Andrew, I added "(Optional)" here since the default value is blank. Correct? Which others should we label optional?
+    Description: (Optional) Amazon Resource Name of a managed policy in your account to be used as the permissions boundary. This ARN will be attached to all IAM roles created to satisfy your organization's security requirements. If you keep this blank, this attribute is not set. For more information, see https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html.
     Type: String
     Default: ''
   RolePath:
-    Description: (Optional) Path that will be attached to all IAM roles created to satisfy security requirements.
-        # TODO Andrew, I added "(Optional)" here since the default value is blank. Correct? Which others should we label optional?
+    Description: (Optional) Path that will be attached to all IAM roles created to satisfy your organization's security requirements. If you keep this blank, this attribute is not set. For more information, see https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-friendly-names.
     Type: String
     Default: ''
   ProjectName:
