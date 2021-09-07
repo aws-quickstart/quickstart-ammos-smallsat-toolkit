@@ -1,3 +1,1 @@
 This QuickStart will work in all Regions that support the required underlying services. Additionally, the deployment is compatible with the aws-us-gov partition.
-
-//TODO Andrew, Reminder: the content in this file is now ignored by default in favor of the boilerplate blurb in regions_default.adoc. I've added a reference to AWS GovCloud (US) Regions in the deployment step where people choose a Region. 

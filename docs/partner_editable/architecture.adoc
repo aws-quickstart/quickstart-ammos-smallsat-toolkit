@@ -10,8 +10,7 @@ image::../images/nasa-ammos-smallsat-toolkit-architecture-diagram.png[Architectu
 
 As shown in <<architecture1>>, the Quick Start sets up the following:
 
-* A highly available architecture that spans two Availability Zones.
-//TODO Andrew, What should we say (and show) here re: the third Availability Zone? See Aerospike for example: https://aws.amazon.com/quickstart/architecture/aerospike/).
+* A highly available architecture that spans three Availability Zones.
 * A VPC configured with public and private subnets, according to AWS best practices, to provide you with your own virtual network on AWS.
 * In the public subnets:
 ** Managed network address translation (NAT) gateways to provide outbound internet access for resources in the private subnets.
@@ -19,7 +18,7 @@ As shown in <<architecture1>>, the Quick Start sets up the following:
 * In the private subnets:
 ** An Amazon EC2 instance that serves the AIT and Open MCT applications using Apache HTTP Server. This instance runs in an Auto Scaling group.
 ** An EC2 instance that serves the AIT Editor application. This instance runs in a Docker container to mitigate the impact of ______.
-// TODO Andrew, mitigate impact of what? 
+// TODO Andrew, mitigate impact of what?
 * An Application Load Balancer to route traffic from the web to the EC2 instances in the private subnets.
 * Amazon Cognito to manage identities and authenticate users.
 * Amazon CloudWatch to receive log data from the EC2 instances in the private subnets using Amazon CloudWatch Logs agents.

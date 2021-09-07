@@ -16,7 +16,7 @@ The {partner-product-short-name} comprises three web applications:
 // https://ait-core.readthedocs.io/en/latest/index.html#welcome-to-the-ammos-instrument-toolkit-ait-documentation
 AIT is a Python-based software suite that handles a ground data system (GDS) and electronic ground-support equipment (EGSE). It also handles commanding, telemetry uplink and downlink, sequencing for the JPL International Space Station (ISS), and CubeSat missions. It's an expansion of tools that NASA's Jet Propulsion Laboratory (JPL) developed for its spacecraft missions.
 
-//TODO Andrew, What's the relationship between "AIT" and "AIT Core" (and "AIT-Core" with hyphen)? Please give some context to allay confusion.
+
 
 // Following pulled from Open MCT's README on GitHub
 // https://github.com/nasa/openmct/blob/master/README.md
@@ -24,4 +24,4 @@ Open MCT is a generalizable, open-source data-visualization framework that NASA'
 
 //TODO: @MF Replace or augment with official content from AIT Editor team when available
 // ^ request is out for AIT Editor team, what's here is fine for now
-AIT Editor is an extension to Microsoft Visual Studio Code (VS Code or VSC) that's published on the VSC Marketplace. This extension reads in the same configuration files used by AIT to perform syntax checking and validation of the files. You use AIT Editor to generate and edit spacecraft command-sequence files.  
+AIT Editor is an extension to Microsoft Visual Studio Code (VS Code or VSC) that's published on the VSC Marketplace. This extension reads in the same configuration files used by AIT to perform syntax checking and validation of the files. You use AIT Editor to generate and edit spacecraft command-sequence files.

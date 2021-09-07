@@ -1,7 +1,6 @@
 // Add steps as necessary for accessing the software, post-configuration, and testing. Don’t include full usage instructions for your software, but add links to your product documentation for that information.
 //Should any sections not be applicable, remove them
 
-//TODO Andrew, Which template or templates shall we add this output to? "Outputs: Postdeployment: Value: <Permalink to deployment guide>. Description: See the deployment guide for testing and post-deployment steps."
 
 == Test the deployment
 
@@ -15,7 +14,7 @@ Verify that all the components have been deployed by doing the following tests.
 . Sign in to the AWS Management Console, and open the https://console.aws.amazon.com/ec2/[Amazon EC2 console^].
 . Choose *Instances* from the left navigation bar. Verify that *AitAutoScalingGroup* and *EditorServer* instances appear.
 . For each instance, ensure that there are no failed checks in the the *Status checks* column.
-. Use AWS Systems Manager (formerly knows as SSM) to verify that you can connect to each instance. 
+. Use AWS Systems Manager (formerly knows as SSM) to verify that you can connect to each instance.
 . On the AIT instance, verify that the services `httpd` and `ait-server` are active by running the following commands:
 * `service httpd status`
 * `service ait-server status`
@@ -24,11 +23,11 @@ Verify that all the components have been deployed by doing the following tests.
 
 === Verify access to the applications
 
-. Open a web browser, and enter your `FQDN` URL. 
-+ 
-A landing page opens showing links to the AIT, OpenMCT, and AIT Editor applications. 
+. Open a web browser, and enter your `FQDN` URL.
++
+A landing page opens showing links to the AIT, OpenMCT, and AIT Editor applications.
 
-. Choose each link. Verify that each application opens. 
+. Choose each link. Verify that each application opens.
 +
 You may be prompted for login credentials the first time you open the applications. Login credentials are managed by Amazon Cognito. For more information, see link:#_create_amazon_cognito_user_identities[Create Amazon Cognito user identities] later in this guide.
 
@@ -36,26 +35,26 @@ You may be prompted for login credentials the first time you open the applicatio
 The AIT software includes two sample telemetry scripts: `ait-example` and `ait-tlm-simulate`. Verify the telemetry by running both of these command line interface (CLI) programs on the AIT server instance as follows.
 
 . Connect to the AIT server instance. For details, see link:#_verify_access_to_the_server_instances[Verify access to the server instances] earlier in this guide.
-. Activate the Python virtual environment where AIT and the sample telemetry scripts are installed. 
+. Activate the Python virtual environment where AIT and the sample telemetry scripts are installed.
 +
 The scripts are installed in a virtual environment named `ait` on the AIT server instance. As part of the activation, the virtual environment modifies your `PATH` variable to include a few AIT scripts that are now executable.
 
-. Use the commands `ait-example` and `ait-tlm-simulate` to run each script. 
+. Use the commands `ait-example` and `ait-tlm-simulate` to run each script.
 +
 The two scripts generate sample telemetry. `ait-example`, which has a hard-coded packet structure, sends telemetry for 100 seconds. `ait-tlm-simulate`, which can simulate different packet types, emits telemetry once per second indefinitely.
 
-. Open the AIT application. In most cases, it's `ait.<fqdn>` with your FQDN URL in place of the bracketed text. 
+. Open the AIT application. In most cases, it's `ait.<fqdn>` with your FQDN URL in place of the bracketed text.
 
-. Choose the *Telemetry* tab. 
+. Choose the *Telemetry* tab.
 +
-If you're using the default AIT configuration files, you see two graphs: one for voltages and one for currents. 
+If you're using the default AIT configuration files, you see two graphs: one for voltages and one for currents.
 
 . While the scripts are running, verify that you see new data points on the graphs and a line plot forming. This indicates that telemetry is flowing through the AIT software.
 
 === Verify that CloudWatch is receiving logs
 Quick Start deployment installs CloudWatch agents on the AIT and AIT Editor server instances. The agents send `agent` and `syslog` logs to CloudWatch. Verify that CloudWatch is receiving logs as follows:
 
-. Open the https://console.aws.amazon.com/cloudwatch/[CloudWatch console^]. 
+. Open the https://console.aws.amazon.com/cloudwatch/[CloudWatch console^].
 . In the left navigation bar, under *Logs*, choose *Log groups*. Locate the following log groups:
 +
 * `/cloudwatch-agent/ait-editor/agent`
@@ -69,12 +68,10 @@ Quick Start deployment installs CloudWatch agents on the AIT and AIT Editor serv
 //_Awaiting input from testing lead_
 
 == Post-deployment steps
-//TODO Andrew, I've guessed at which of the below tasks are optional. Please correct as needed.
-
-//TODO Andrew, In what order should people do these tasks? Please move the sections around accordingly.
+Note: The post-deployment steps are not outlined in a specific order.
 
 === (Optional) Deploy DNS records
-If you aren't using Route 53 for domain management, as described under <<_prepare_your_aws_account>> earlier in this guide, you are responsible for deploying the appropriate name records to your DNS. 
+If you aren't using Route 53 for domain management, as described under <<_prepare_your_aws_account>> earlier in this guide, you are responsible for deploying the appropriate name records to your DNS.
 
 Deploy the following records:
 
@@ -90,37 +87,35 @@ To view the Application Load Balancer DNS name, see the value displayed in the *
 
 The Application Load Balancer handles redirection based on the host header in request. It's sufficient to deploy a single CNAME record pointing to the Application Load Balancer and to deploy all subdomains as aliases that redirect to the Application Load Balancer CNAME record.
 
-For guidance on this process, see your DNS provider's documentation. 
+For guidance on this process, see your DNS provider's documentation.
 
 === Create Amazon Cognito user identities
 
-The Application Load Balancer defines an authentication action to protect the AIT, Open MCT, and AIT Editor applications. To access the applications, you authenticate using an identity that's managed by Amazon Cognito. Create user identities in the Amazon Cognito user pool or set up federation with an existing identity provider. 
+The Application Load Balancer defines an authentication action to protect the AIT, Open MCT, and AIT Editor applications. To access the applications, you authenticate using an identity that's managed by Amazon Cognito. Create user identities in the Amazon Cognito user pool or set up federation with an existing identity provider.
 
-For more information, see the following: 
+For more information, see the following:
 
-* https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html[Creating User Accounts as Administrator^] 
+* https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html[Creating User Accounts as Administrator^]
 * https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-federation.html[Adding User Pool Sign-in Through a Third Party^]
 
 === Install the AIT Editor extension
 
-While you can install the AIT Editor extension locally on any VS Code client, this Quick Start deploys a centralized browser-based integrated development environment (IDE) based on the open-source application https://github.com/cdr/code-server[code-server^]. With `code-server`, you can run VS Code on any machine. 
+While you can install the AIT Editor extension locally on any VS Code client, this Quick Start deploys a centralized browser-based integrated development environment (IDE) based on the open-source application https://github.com/cdr/code-server[code-server^]. With `code-server`, you can run VS Code on any machine.
 
-The AIT Editor server instance that's deployed in this Quick Start has the following installed and configured: code-server, the AIT Editor extension, and the mission configuration used by AIT. Since `code-server` can't use Microsoft's extension marketplace due to Microsoft's terms of service for VS Code, you install the AIT Editor extension manually from the .vsix file published on GitHub and in Marketplace. For details, see the https://coder.com/docs/code-server/v3.11.1/FAQ#why-cant-code-server-use-microsofts-extension-marketplace[code-server FAQ^].
+The AIT Editor server instance that's deployed in this Quick Start has the following installed and configured: code-server, and the mission configuration used by AIT. Since `code-server` can't use Microsoft's extension marketplace due to Microsoft's terms of service for VS Code, you install the AIT Editor extension manually from the .vsix file published on GitHub and in Marketplace. For details, see the https://coder.com/docs/code-server/v3.11.1/FAQ#why-cant-code-server-use-microsofts-extension-marketplace[code-server FAQ^].
 
-//TODO Andrew, The previous paragraph seems to contradict itself, saying that the Quick Start installs and configures the AIT Editor extension ... and then saying that you have to install that extension manually. Please clarify. If there are steps, number them (period + space).
 
 === Adapt the AIT server instance
 
-Adapt the AIT server instance to your mission's needs and parameters both at launch and as your needs and parameters evolve. You can make changes directly on the instance over an SSH- or SSM-managed session. 
+Adapt the AIT server instance to your mission's needs and parameters both at launch and as your needs and parameters evolve. You can make changes directly on the instance over an SSH- or SSM-managed session.
 
 The following sections describe some common adaptations.
 
 ==== Activate the virtual Python environment
-//TODO Andrew, Will everyone activate this environment? If not, when would we do this?
 
-The Quick Start deployment installs AIT-Core, several plugins, and various dependencies to a virtual Python environment on the AIT server instance using the `virtualenvwrapper` Python tool. 
+The Quick Start deployment installs AIT-Core, several plugins, and various dependencies to a virtual Python environment on the AIT server instance using the `virtualenvwrapper` Python tool.
 
-To activate the environment, run the command `workon ait`. 
+To activate the environment, run the command `workon ait`.
 
 For more information on installing and configuring AIT Core, see https://ait-core.readthedocs.io/en/master/installation.html[Installation and Environment Configuration^].
 
@@ -129,16 +124,13 @@ For more information on installing and configuring AIT Core, see https://ait-cor
 //TODO: awaiting @KM
 // ^ Request is pending, for now the following is sufficient
 
-AIT is an extensible framework that your mission team can adapt to your use cases. It provides several https://ait-core.readthedocs.io/en/master/extensions.html[core library extensions^], such as the https://ait-core.readthedocs.io/en/master/databases.html?highlight=data%20archive#data-archive-plugin[Data Archive plugin^], DSN, and https://ait-core.readthedocs.io/en/master/plugin_openmct.html[AIT OpenMCT plugin^]. You can also develop and include your own https://ait-core.readthedocs.io/en/master/server_architecture.html#plugins[plugins^]^. 
+AIT is an extensible framework that your mission team can adapt to your use cases. It provides several https://ait-core.readthedocs.io/en/master/extensions.html[core library extensions^], such as the https://ait-core.readthedocs.io/en/master/databases.html?highlight=data%20archive#data-archive-plugin[Data Archive plugin^], https://ait-dsn.readthedocs.io/en/latest/index.html[DSN], and https://ait-core.readthedocs.io/en/master/plugin_openmct.html[AIT OpenMCT plugin^]. You can also develop and include your own https://ait-core.readthedocs.io/en/master/server_architecture.html#plugins[plugins^]^.
 
-//TODO Andrew, The above paragraph uses "extension" and "plugin" interchangeably. The AIT-Core documentation seems to treat them as different things. Need to align our use of these terms?
-
-//TODO Andrew, Since DSN isn't mentioned in the documentation we link to above, does it make sense to mention it here? It doesn't seems to even be a plugin or extension. See https://ait-dsn.readthedocs.io/en/latest/index.html.
 
 ==== Manage the configuration files
-The Quick Start deployment retrieves configuration files from an S3 bucket and places them in `/home/ec2-user/AIT-Core/config`. You can modify configuration files directly on the server instance or replace them by uploading new files to the S3 bucket. 
+The Quick Start deployment retrieves configuration files from an S3 bucket and places them in `/home/ec2-user/AIT-Core/config`. You can modify configuration files directly on the server instance or replace them by uploading new files to the S3 bucket.
 
-After you modify AIT configuration files, you must restart the `ait-server` systemd service (as described under link:#_ait_server_systemd_services[AIT server systemd services] later in this guide). 
+After you modify AIT configuration files, you must restart the `ait-server` systemd service (as described under link:#_ait_server_systemd_services[AIT server systemd services] later in this guide).
 
 To retrieve new files from the S3 bucket, run the following command with your bucket name in place of the bracketed text:
 
@@ -147,18 +139,12 @@ To retrieve new files from the S3 bucket, run the following command with your bu
 For more information, see https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html[sync^]) in the AWS CLI command reference.
 
 ==== Restart the AIT server-instance
-You can stop and restart the AIT server instance as needed. When you restart, all system `systemd` services (AIT-Core, InfluxDB, and Adobe HTTPD Server) come online. 
+You can stop and restart the AIT server instance as needed. When you restart, all system `systemd` services (AIT-Core, InfluxDB, and Adobe HTTPD Server) come online.
 
 For more information, see link:#_ait_server_systemd_services[AIT server systemd services] later in this guide.
 
-//TODO Andrew, For context, when would someone need to restart?
-
 ==== Upgrade the deployed applications
 While you can upgrade AIT-Core or any of the other deployed applications, you do so at your own risk. This Quick Start supports only those versions listed under LINK: link to `Software version requirements`.
-
-// TODO Andrew, What is at risk? Should we advise against upgrading?
-
-//TODO Andrew, What do we mean above by "deployed applications"? "AIT-Core" isn't an application, is it?
 
 //TODO Reminder: We need to fix internal links throughout the doc after content stabilizes.
 
@@ -169,7 +155,7 @@ To upgrade any of the applications, refer to that application's documentation. B
 ==== Modify the Open MCT static built files
 The Open MCT framework is written in JavaScript. You can bundle it into a set of static assets that can be served from a web server. In this Quick Start, the latest version of Open MCT has been packaged and uploaded to an S3 bucket as a .zip file. The Quick Start deployment downloads the .zip file from the S3 bucket and extracts it so that it can be served by Apache HTTP Server. On the server, the static files are extracted and located in `var/www/html/openmct`.
 
-Save any configuration changes and additional plugins for Open MCT to `var/www/html/openmct`. 
+Save any configuration changes and additional plugins for Open MCT to `var/www/html/openmct`.
 
 For more information, see https://github.com/nasa/openmct/blob/master/API.md#building-applications-with-open-mct[Building Applications With Open MCT^].
 
@@ -193,7 +179,7 @@ To adapt this service, ___
 //TODO Andrew, How to fill in the above blank?
 
 ===== InfluxDB
-InfluxDB is installed and managed as a `systemd` service. InfluxDB acts as a data-storage layer for the AIT application. The Quick Start uses a default configuration of InfluxDB with a few changes. The service file can be found at `/usr/lib/systemd/system/influxdb.service`.  
+InfluxDB is installed and managed as a `systemd` service. InfluxDB acts as a data-storage layer for the AIT application. The Quick Start uses a default configuration of InfluxDB with a few changes. The service file can be found at `/usr/lib/systemd/system/influxdb.service`.
 
 To verify whether the service is running after deployment, use the command `sudo systemctl status influxdb`.
 
@@ -203,24 +189,17 @@ To adapt this service, ___
 
 ===== AIT-Core
 
-//TODO Andrew, what do we mean by the term "core" in "AIT-Core"?
-
 AIT-Core is installed and managed as a `systemd` service. It runs the AIT server instance, listening for, processing, and exposing telemetry. Configured plugins, such as AIT-GUI, are run according to the main AIT configuration file. The service file is located at `/etc/systemd/system/ait-server.service`.
 
 To verify whether the service is running after deployment, use the command `sudo systemctl status ait-server`.
 
 To adapt this service, ___
 
-//TODO Andrew, How to fill in the above blank?
-
 Whenever you change an AIT configuration file, you must restart this service using the command `sudo systemctl restart ait-server`.
-
-//TODO Andrew, Does the above statement belong in any of the other above sections?
 
 === Set up the CloudWatch agent
 
-This Quick Start installs an Amazon CloudWatch agent (cloudwatch-agent-ait.json) on all deployed EC2 instances. This agent is initialized by a default configuration file that tells the agent which files to monitor and where to direct the logs in CloudWatch. 
-//TODO Andrew, I added the filename above. Please correct it if necessary.
+This Quick Start installs an Amazon CloudWatch agent (cloudwatch-agent-ait.json) on all deployed EC2 instances. This agent is initialized by a default configuration file that tells the agent which files to monitor and where to direct the logs in CloudWatch.
 
 For information on viewing the default CloudWatch agent configuration files, see LINK: link to S3 config. Modify this file as detailed in the following section.
 
@@ -228,7 +207,7 @@ For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/mo
 
 ==== (Optional) Modify the CloudWatch agent configuration file
 
-The CloudWatch agent monitors the specified log files and sends them to CloudWatch Logs. The CloudWatch agent configuration file is stored in `/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json`. To monitor additional files or change the configuration settings, modify the agent configuration file. 
+The CloudWatch agent monitors the specified log files and sends them to CloudWatch Logs. The CloudWatch agent configuration file is stored in `/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json`. To monitor additional files or change the configuration settings, modify the agent configuration file.
 
 After editing the file, restart the agent and apply your changes using the following command:
 [source,bash]
@@ -244,7 +223,7 @@ For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/mo
 
 The CloudWatch Logs log groups that receive application logs are configured with the default log-retention period of 30 days. You can choose a different retention period during deployment using the `CloudWatchLogsRetentionPeriod` parameter. Increasing the log-retention period results in higher log-storage costs.
 
-For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#SettingLogRetention[Change log data retention in CloudWatch Logs^]. 
+For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#SettingLogRetention[Change log data retention in CloudWatch Logs^].
 
 == Security
 // Provide post-deployment best practices for using the technology on AWS, including considerations such as migrating data, backups, ensuring high performance, high availability, etc. Link to software documentation for detailed information.
@@ -259,14 +238,12 @@ To facilitate compliance with your organization's restrictions on IAM role creat
 
 === Security groups
 
-As part of the Quick Start deployment, you specify security groups that define inbound and outbound network traffic rules. You create inbound rules for the security groups and define appropriate CIDR/IP ranges that are allowed for inbound access to various deployed resources. 
+As part of the Quick Start deployment, you specify security groups that define inbound and outbound network traffic rules. You create inbound rules for the security groups and define appropriate CIDR/IP ranges that are allowed for inbound access to various deployed resources.
 
 For more information, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security-groups.html[Amazon EC2 security groups for Linux instances^].
 
-//TODO Andrew, FYI, we put a "^" symbol just before the end bracket ("]") in link text so that the link opens in a new tab. I'm adding these symbols throughout this time. 
-
 === Private subnets
-The Quick Start deploys application server instances to private subnets in a VPC. An Application Load Balancer, which is deployed in the same VPC, routes requests to these instances, minimizing the publicly exposed footprint of deployed resources. 
+The Quick Start deploys application server instances to private subnets in a VPC. An Application Load Balancer, which is deployed in the same VPC, routes requests to these instances, minimizing the publicly exposed footprint of deployed resources.
 
 To access the server instances in the private subnets, see <<SSM,documentation section on SSM (Systems Manager)>> elsewhere in this guide.
 
@@ -279,17 +256,13 @@ IMPORTANT: Do not disable SELinux unless you are aware of unintended security co
 
 === Amazon ES and Kibana
 
-//TODO Andrew, What to say about Kibana in this section? 
+//TODO Andrew, What to say about Kibana in this section?
 
-This Quick Start deploys a domain under Amazon Elasticsearch Service (Amazon ES). This domain, which is deployed within a VPC, contains logging data that's received from application servers. All master and data nodes reside within private subnets. Encryption for data at rest is enabled by default. The security group associated with the domain is configured prior to deploying this Quick Start.
+This Quick Start deploys a domain under Amazon Elasticsearch Service (Amazon ES). This domain, which is deployed within a VPC, contains logging data that's received from application servers. All primary and data (secondary) nodes reside within private subnets. Encryption for data at rest is enabled by default.
 
-//TODO Andrew, Can we say "main" instead of "master" in the above paragraph? (It does sound weird to say "All master and data nodes" ... what's the clearest phrasing?)
+IMPORTANT: The Amazon ES domain uses an open-access policy with access controlled by an EC2 security group. For more security, use fine-grained access control or modify the access policy to specify IAM users or roles.
 
-//TODO Andrew, Where do we talk about configuring this security group prior to deploying? I don't see it under "Prepare your AWS account." Ideally, we'd point to it from here.
-
-IMPORTANT: The Amazon ES domain uses an open-access policy with access controlled by an EC2 security group. For more security, use fine-grained access control or modify the access policy to specify IAM users or roles. 
-
-For more information, see the following: 
+For more information, see the following:
 
 * https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-vpc.html[Launching your Amazon Elasticsearch Service domains within a VPC^])
 * https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/security.html[Security in Amazon Elasticsearch Service^].
@@ -299,9 +272,7 @@ For more information, see the following:
 
 === Authentication
 
-The Application Load Balancer, which is deployed to a public subnet, brokers access to the application resources deployed in private subnets. Each application is accessible through a listener rule, which directs traffic according to the host header and performs an authentication action prior to forwarding the traffic to the appropriate target group. 
-
-//TODO Andrew, Is it true that the Application Load Balancer is deployed to a public subnet? In architecture diagrams we show ALBs outside the subnets.
+The Application Load Balancer, which is deployed to a public subnet, brokers access to the application resources deployed in private subnets. Each application is accessible through a listener rule, which directs traffic according to the host header and performs an authentication action prior to forwarding the traffic to the appropriate target group.
 
 This authentication action is configured with the deployed Amazon Cognito user pool as an OpenID Connect (OIDC) provider. Access is granted on a full-access basis. s who can authenticate as known identities are allowed through the Application Load Balancer to the underlying resource.
 
@@ -312,10 +283,10 @@ For more information, see the following:
 
 === Code-server access
 
-The AIT Editor server instance runs `cdr/code-server`. When you use Visual Studio Code's integrated terminal, you can execute system-level commands from a browser. 
+The AIT Editor server instance runs `cdr/code-server`. When you use Visual Studio Code's integrated terminal, you can execute system-level commands from a browser.
 
 To mitigate the impact of _____, the AIT Editor server instance runs in a Docker container with volumes mounted to the following locations:
-// TODO: mitigate impact of what? 
+// TODO: mitigate impact of what?
 
 - /home/editor-user/.aerie-editor-data:/home/coder/.local/share/code-server
 - /home/editor-user/.aerie-editor-config:/home/coder/.config
@@ -333,7 +304,7 @@ SSL termination occurs at the Application Load Balancer. Communication to the se
 === AWS Systems Manager
 For improved security and monitoring, use AWS Systems Manager to connect to the application servers. The deployment installs AWS Systems Manager Agent (SSM Agent) on all instances. Additionally, each instance profile is assigned the AWS managed service role `AmazonSSMManagedInstanceCore`.
 
-You can provide the `SshKeyName` parameter to the relevant templates to enable standard SSH connections. The EC2 instances are deployed in a private subnet and therefore not discoverable directly from the internet. To connect using SSH, you must provision a bastion host (jump server). 
+You can provide the `SshKeyName` parameter to the relevant templates to enable standard SSH connections. The EC2 instances are deployed in a private subnet and therefore not discoverable directly from the internet. To connect using SSH, you must provision a bastion host (jump server).
 
 For more information, see https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html[Start a session^].
 
@@ -366,7 +337,7 @@ Community:
 === Operating system and dependency versions
 The Quick Start deploys AIT, Open MCT, and AIT Editor on EC2 instances running Red Hat Enterprise Linux 8 (RHEL8). These applications do not require RHEL8, but RHEL8 is the officially supported operating system for all AMMOS applications.
 
-The Quick Start builds and installs Python 3.7.x on the application EC2 instances. This is the version that AIT software supports. Python 3.7 is not part of the official Red Hat Enterprise Linux 8 software repositories or Red Hat Software collections. 
+The Quick Start builds and installs Python 3.7.x on the application EC2 instances. This is the version that AIT software supports. Python 3.7 is not part of the official Red Hat Enterprise Linux 8 software repositories or Red Hat Software collections.
 
 For more information on installing and configuring AIT Core, see https://ait-core.readthedocs.io/en/latest/installation.html[Installation and Environment Configuration^].
 
