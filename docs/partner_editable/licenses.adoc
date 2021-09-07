@@ -4,4 +4,4 @@ No licenses are required to deploy this Quick Start.
 
 //You can use the https://calculator.aws/#/[AWS Pricing Calculator^] to estimate your AWS fees, not including any taxes that might apply. Your actual fees depend on a variety of factors, including your actual usage of AWS services. To learn more about the AWS Pricing Calculator, see https://aws.amazon.com/calculator/calculator-assumptions/[General Assumptions & Variations^].
 
-//TODO Andrew, FYI, I commented out the above paragraph. It's not germane to software licenses (the heading for this section). Ee now have a generic boilerplate section "AWS Costs." 
+//TODO Andrew, FYI, I commented out the above paragraph since it's not germane to software licenses (the heading for this section). We now have a generic boilerplate section "AWS Costs." 

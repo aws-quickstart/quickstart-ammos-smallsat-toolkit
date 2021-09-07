@@ -6,7 +6,7 @@ The {partner-product-short-name} Quick Start deploys a collection of software th
 
 //TODO Andrew, Please fill in the blank.
 
-This software has three main components:
+The {partner-product-short-name} comprises three web applications:
 
 * https://ait-core.readthedocs.io/en/master/[AMMOS Instrument Toolkit (AIT)^]
 * https://software.nasa.gov/software/ARC-15256-1D[Open Mission Control Technologies (Open MCT)^]
@@ -14,16 +14,14 @@ This software has three main components:
 
 // Following pulled from AIT-Core readthedocs
 // https://ait-core.readthedocs.io/en/latest/index.html#welcome-to-the-ammos-instrument-toolkit-ait-documentation
-At the core of this Quick Start, AIT is a Python-based software suite that handles a ground data system (GDS) and electronic ground-support equipment (EGSE). It also handles commanding, telemetry uplink and downlink, sequencing for the JPL International Space Station (ISS), and CubeSat missions. It's an expansion of tools that NASA's Jet Propulsion Laboratory (JPL) developed for its spacecraft missions.
+AIT is a Python-based software suite that handles a ground data system (GDS) and electronic ground-support equipment (EGSE). It also handles commanding, telemetry uplink and downlink, sequencing for the JPL International Space Station (ISS), and CubeSat missions. It's an expansion of tools that NASA's Jet Propulsion Laboratory (JPL) developed for its spacecraft missions.
+
+//TODO Andrew, What's the relationship between "AIT" and "AIT Core" (and "AIT-Core" with hyphen)? Please give some context to allay confusion.
 
 // Following pulled from Open MCT's README on GitHub
 // https://github.com/nasa/openmct/blob/master/README.md
-The Open MCT is an open-source data-visualization framework that NASA's Ames Research Center developed to analyze telemetry data. It provides dashboards for desktop and mobile devices. NASA uses Open MCT to analyze data from spacecraft missions and to plan and operate experimental rover systems. As a generalizable and open-source framework, you could use Open MCT as the basis for building applications for planning, operating, and analyzing any system that produces telemetry data.
+Open MCT is a generalizable, open-source data-visualization framework that NASA's Ames Research Center developed to analyze telemetry data. It provides dashboards for desktop and mobile devices. NASA uses Open MCT to analyze data from spacecraft missions and to plan and operate experimental rover systems. You can use Open MCT as the basis for building applications for planning, operating, and analyzing any system that produces telemetry data.
 
-//TODO: @MF Replace or augment with official content from AIT Editor team once available
+//TODO: @MF Replace or augment with official content from AIT Editor team when available
 // ^ request is out for AIT Editor team, what's here is fine for now
-You use AIT Editor to generate and edit spacecraft command-sequence files. AIT Editor is an extension to Microsoft Visual Studio Code (VS Code or VSC) that's published on the VSC Marketplace. This extension reads in the same configuration files used by AIT to perform syntax checking and validation of the files. 
-
-While you can install the AIT Editor extension locally on any VSC client, this Quick Start deployment includes a centralized browser-based integrated development environment (IDE) based on https://github.com/cdr/code-server[code-server^]. With this open-source application, you can run VS Code on any machine. The central AIT Editor server that's deployed in this Quick Start installs and configures `code-server`, the AIT Editor extension, and the mission configuration used by AIT. Since `code-server` can't use Microsoft's extension marketplace due to Microsoft's terms of service for VSC, you install the AIT Editor extension manually from the VSIX file published on GitHub and the Marketplace. For details, see the https://coder.com/docs/code-server/v3.11.1/FAQ#why-cant-code-server-use-microsofts-extension-marketplace[code-server FAQ^].
-
-//TODO Andrew, What might we want to say about Docker and containers here or elsewhere? Seems like an important part of the architecture. We mention it only briefly in passing.
+AIT Editor is an extension to Microsoft Visual Studio Code (VS Code or VSC) that's published on the VSC Marketplace. This extension reads in the same configuration files used by AIT to perform syntax checking and validation of the files. You use AIT Editor to generate and edit spacecraft command-sequence files.  
