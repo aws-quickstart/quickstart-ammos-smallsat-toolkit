@@ -174,7 +174,7 @@ Apache HTTP Server is installed and managed as a `systemd` service. It routes in
 
 To verify whether the service is running after deployment, use the command `sudo systemctl status httpd`.
 
-To adapt this service, ___
+To adapt this service, modify the configuration files found in the above locations and restart the service with the command `sudo systemctl restart httpd`
 
 //TODO Andrew, How to fill in the above blank?
 
@@ -183,7 +183,7 @@ InfluxDB is installed and managed as a `systemd` service. InfluxDB acts as a dat
 
 To verify whether the service is running after deployment, use the command `sudo systemctl status influxdb`.
 
-To adapt this service, ___
+To adapt this service, modify the InfluxDB configuration file identified above, and then restart the service with the command `sudo systemctl restart influxdb`.
 
 //TODO Andrew, How to fill in the above blank?
 
@@ -193,7 +193,7 @@ AIT-Core is installed and managed as a `systemd` service. It runs the AIT server
 
 To verify whether the service is running after deployment, use the command `sudo systemctl status ait-server`.
 
-To adapt this service, ___
+To adapt this service, modify the main configuration file identified above or any associated files referenced from the main configuration file, and then restart the service with the command `sudo systemctl restart ait-server`.
 
 Whenever you change an AIT configuration file, you must restart this service using the command `sudo systemctl restart ait-server`.
 
