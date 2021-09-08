@@ -27,7 +27,7 @@ tests:
       QSS3BucketRegion: $[taskcat_current_region]
       RemoteAccessCIDR: 0.0.0.0/0
       ElasticsearchDomainName: $[taskcat_random-string]
-      FQDN: $[taskcat_random-string]-cubs.andglenn.people.a2z.com
-      HostedZoneID: Z1OSWG7ERMLIWV
+      FQDN: override
+      HostedZoneID: override
       ProjectName: $[taskcat_random-string]
     template: templates/ammos-cubs.main.template.yaml
