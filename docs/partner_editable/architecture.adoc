@@ -13,16 +13,15 @@ As shown in <<architecture1>>, the Quick Start sets up the following:
 * A highly available architecture that spans three Availability Zones.
 * A VPC configured with public and private subnets, according to AWS best practices, to provide you with your own virtual network on AWS.
 * In the public subnets:
-** Managed network address translation (NAT) gateways to provide outbound internet access for resources in the private subnets.
 ** A Linux bastion host in an Auto Scaling group to allow inbound Secure Shell (SSH) access to Amazon Elastic Compute Cloud (Amazon EC2) instances in public and private subnets.
+** An Application Load Balancer to route traffic from the web to the EC2 instances in the private subnets.
+** A managed network address translation (NAT) gateway to provide outbound internet access for resources in the private subnets.
 * In the private subnets:
-** An Amazon EC2 instance that serves the AIT and Open MCT applications using Apache HTTP Server. This instance runs in an Auto Scaling group.
-** An EC2 instance that serves the AIT Editor application. This instance runs in a Docker container to mitigate the impact of system commands executed from the VS Code integrated terminal exposed in the browser.
-// TODO Andrew, mitigate impact of what?
-* An Application Load Balancer to route traffic from the web to the EC2 instances in the private subnets.
+** An EC2 instance that serves the AIT and Open MCT applications using Apache HTTP Server. This instance runs in an Auto Scaling group.
+** An EC2 instance that serves the AIT Editor application. This instance runs in a Docker container to mitigate the impact of system commands that are executed from the VS Code–integrated terminal that's exposed in the browser.
 * Amazon Cognito to manage identities and authenticate users.
 * Amazon CloudWatch to receive log data from the EC2 instances in the private subnets using Amazon CloudWatch Logs agents.
 * AWS Lambda to process logs for Amazon Kinesis Data Firehose.
 * Kinesis Data Firehose to deliver log data from CloudWatch Logs to Amazon S3 and Amazon Elasticsearch Service (Amazon ES).
 * Amazon Route 53 to provide a canonical name (CNAME) record, an alias for the Application Load Balancer.
-* Two S3 buckets, one for long-term storage of log files and the other for application and server configuration files.
+* Two S3 buckets, one for long-term storage of log files and the other for configuration files.

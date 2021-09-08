@@ -10,7 +10,7 @@
 | NAT gateways | 1
 | Security groups | 5
 | AWS Identity and Access Management (IAM) roles | 5
-| Auto Scaling groups | 1
+| Auto Scaling groups | 2
 | EC2 instances | 2
 | Application Load Balancers | 1
 | Amazon Cognito user pools | 1
@@ -22,4 +22,8 @@
 | Lambda functions | 3
 |===
 
-//TODO Andrew, In the description for the parameter AITInstanceType, we claim that the deployment guide recommends instance types to use for AIT. I don't that info in the guide, though. Please supply recommendations.
+//TODO (Andrew is working on this with JPL.) In the description for the parameter AITInstanceType, we claim that the deployment guide recommends instance types to use for AIT. I don't that info in the guide, though. Please supply recommendations.
+
+//TODO Andrew, FYI, I changed Auto Scaling groups from 1 to 2. Let me know if that's not right.
+
+//TODO Andrew, What about the bastion host?

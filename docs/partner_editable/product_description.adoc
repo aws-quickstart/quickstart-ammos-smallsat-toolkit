@@ -4,7 +4,7 @@
 
 The {partner-product-short-name} Quick Start deploys a collection of software that you can use, mostly through web-based interactions, to plan and operate small satellites (SmallSats and CubeSats). You can also use this software to control other instruments used in space missions, such as ____.
 
-//TODO Andrew, Please fill in the blank.
+//TODO (Andrew is working on this with JPL.) Please fill in the blank.
 
 The {partner-product-short-name} comprises three web applications:
 
@@ -15,8 +15,6 @@ The {partner-product-short-name} comprises three web applications:
 // Following pulled from AIT-Core readthedocs
 // https://ait-core.readthedocs.io/en/latest/index.html#welcome-to-the-ammos-instrument-toolkit-ait-documentation
 AIT is a Python-based software suite that handles a ground data system (GDS) and electronic ground-support equipment (EGSE). It also handles commanding, telemetry uplink and downlink, sequencing for the JPL International Space Station (ISS), and CubeSat missions. It's an expansion of tools that NASA's Jet Propulsion Laboratory (JPL) developed for its spacecraft missions.
-
-
 
 // Following pulled from Open MCT's README on GitHub
 // https://github.com/nasa/openmct/blob/master/README.md

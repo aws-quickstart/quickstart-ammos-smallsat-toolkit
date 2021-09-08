@@ -15,19 +15,17 @@ For more information, see the https://docs.aws.amazon.com/elasticsearch-service/
 
 The preconfiguration (prerequisite) stack for this Quick Start contains an S3 bucket that's populated with base configuration files for AIT, AIT Editor, and Open MCT. Deploy this stack and customize the configuration files as follows:
 
-. http://qs_launch_permalink[Deploy the preconfiguration stack^].
-. http://qs_template_permalink[View Template^].
+. http://qs_launch_permalink[Deploy the preconfiguration stack^] <LINK pending>.
+. http://qs_template_permalink[View Template^] <LINK pending>.
 +
-// TODO Tech writers to create and swap in this permalink (ammos-cubs.preconfig.template.yaml).
-// - plus a "View Template" link
-
+// TODO Tech writers to create and swap in the above two permalinks (for ammos-cubs.preconfig.template.yaml) and delete "<LINK pending>".
 
 . Sign in to the AWS Management Console, and open the https://console.aws.amazon.com/cloudformation/[AWS CloudFormation console^].
 . Select the preconfiguration stack, choose the *Outputs* tab, and note the S3 bucket name (the value of the *ConfigBucket* key).
 . Copy, customize, and overwrite files of the same name in the S3 configuration bucket.
 +
-For more information, see the following section (<<_about_the_configuration_files>>) and https://ait-core.readthedocs.io/en/latest/configuration_intro.html[Introduction to AIT Configuration^].
-+
+For details on customizing these files, see the following section: <<_about_the_configuration_files>>.
+
 IMPORTANT: Use the correct syntax and format in your configuration files so that the applications deploy.
 
 ==== About the configuration files
@@ -59,20 +57,24 @@ configs
     └── openmct-static.tgz
 ----
 
-During deployment, the Quick Start retrieves the configuration files from the S3 bucket and places them in the `/home/ec2-user/AIT-Core/config` directory on the AIT server instance.
+Review the descriptions in the following sections to determine which files you need to modify before you deploy the Quick Start. 
+
+During deployment, the Quick Start retrieves the whole set configuration files from the S3 bucket and places them in the `/home/ec2-user/AIT-Core/config` directory on the AIT EC2 instance.
+
+//TODO Andrew, The above path doesn't seem right. The files outside the S3 "config" folder wouldn't move into the EC2 "config" folder, would they?
+
+ For more information, see https://ait-core.readthedocs.io/en/latest/configuration_intro.html[Introduction to AIT Configuration^].
 
 ===== configs/ait/
 This S3 folder contains configuration files for the AIT deployment within this Quick Start.
 
 ===== cloudwatch-agent-ait.json
-This file configures the CloudWatch agent that runs on the AIT server instance. Modify this file if you need to add sources for logs to send to CloudWatch Logs.
+This file configures the CloudWatch agent that runs on the AIT EC2 instance. Modify this file if you need to add sources for logs to send to CloudWatch Logs.
 
 For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html[Manually create or edit the CloudWatch agent configuration file^].
 
-
-
 ===== configs/ait/config/
-This S3 folder contains configuration files for the AIT application. The main configuration file is `config.yaml`. You can modify and overwrite any of the other files to customize the AIT installation.
+This S3 folder contains configuration files for the AIT application. 
 
 ===== config.yaml
 This is the main configuration file for AIT. On the AIT server instance, this file is located at `/home/ec2-user/AIT-Core/config/config.yaml`.
@@ -92,7 +94,7 @@ For more information, see https://httpd.apache.org/docs[Apache HTTP Server Proje
 This S3 folder contains configuration files for the AIT Editor deployment within this Quick Start.
 
 ===== cloudwatch-agent-editor.json
-This file configures the CloudWatch agent that runs on the AIT Editor server instance. Modify this file if you need to configure additional sources for logs to send to CloudWatch Logs.
+This file configures the CloudWatch agent that runs on the AIT Editor EC2 instance. Modify this file if you need to configure additional sources for logs to send to CloudWatch Logs.
 
 For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html[Manually create or edit the CloudWatch agent configuration file^].
 
@@ -105,7 +107,7 @@ This file is a tarball of the static files for Open MCT. The JavaScript files in
 Modify these files if you need to edit the Open MCT framework or configure or install plugins for Open MCT. Make your changes, create a new tarball, and then upload the new file to overwrite the existing file in S3.
 
 === (Optional) Configure Route 53 as your DNS service
-This deployment relies on a fully qualified domain name (FQDN) that you provide. This FQDN is used to discover the Application Load Balancer and subdomains to identify each application. If you configure Route 53 as your Domain Name System (DNS) service, the Quick Start deploys the following records in your Route 53 hosted zone for each application:
+This deployment relies on a fully qualified domain name (FQDN) that you provide. This FQDN is used to discover the Application Load Balancer and subdomains to identify each application. If you configure Route 53 as your Domain Name System (DNS) service, the Quick Start deploys the following records in your Route 53 hosted zone for each application (where <fqdn> represents your FQDN URL):
 
 [cols="1,3"]
 |===
@@ -127,7 +129,7 @@ You must have a valid Secure Sockets Layer (SSL) certificate for your FQDN becau
 
 You can import this certificate into ACM manually. Alternatively, you can generate it during deployment by populating both the `FQDN` and `HostedZoneID` parameters. The deployment method, which uses DNS validation, creates all the necessary DNS records related to the ACM certificate.
 
-Ensure that your certificate includes the following alternative SANs. You can use `*.<fqdn>` with your FQDN URL in place of the bracketed text.
+Ensure that your certificate includes the following Subject Alternative Names (SANs). You can use `*.<fqdn>` (where <fqdn> represents your FQDN URL).
 
 - `ait.<fqdn>`
 - `mct.<fqdn>`
