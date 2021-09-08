@@ -4,7 +4,7 @@
 
 This guide provides instructions for deploying the National Aeronautics and Space Administration (NASA) Advanced Multi-Mission Operations System (AMMOS) {partner-product-short-name} Quick Start on the AWS Cloud. The Quick Start deploys a suite of mission-control software for use by researchers at universities and their partner space agencies.
 
-While NASA is an independent agency of the United States federal government, and while this Quick Start supports the AWS GovCloud (US) Region, the Quick Start is available for international deployment into a variety of AWS Regions.
+While NASA is an independent agency of the United States federal government, and while this Quick Start supports the AWS GovCloud (US) Region, the Quick Start is available for deployment into a variety of AWS Regions.
 
 //TODO Andrew, I added the above sentence to assure people that this Quick Start is not US-centric, as it may seem at first glance. Tweak for accuracy if needed.
 

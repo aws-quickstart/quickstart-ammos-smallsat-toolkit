@@ -101,18 +101,14 @@ For more information, see the following:
 
 === Install the AIT Editor extension
 
-While you could install the AIT Editor extension locally on any VS Code client, this Quick Start deploys a centralized browser-based integrated development environment (IDE) based on the open-source application https://github.com/cdr/code-server[code-server^]. With code-server, you can run VS Code on any machine.
+While you could install the https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor[AIT Editor extension^] locally on any VS Code client, this Quick Start deploys a centralized browser-based integrated development environment (IDE) based on the open-source application https://github.com/cdr/code-server[code-server^]. With code-server, you can run VS Code on any machine.
 
 After the Quick Start deploys the AIT Editor EC2 instance, it installs and configures code-server and the mission configuration used by AIT. Since code-server can't use Microsoft's extension marketplace due to Microsoft's terms of service for VS Code, you need to install the AIT Editor extension manually from the .vsix file published on GitHub and in the marketplace. 
-
-//TODO Andrew, Got links to where people will find that .vsix file on GitHub and in the marketplace?
 
 For more information, see the following: 
 
 * https://coder.com/docs/code-server/v3.11.1/FAQ#why-cant-code-server-use-microsofts-extension-marketplace[Why can't code-server use Microsoft's extension marketplace?^]
 * https://coder.com/docs/code-server/v3.11.1/FAQ#how-do-i-install-an-extension-manually[How do I install an extension manually?^]
-
-//TODO Andrew, FYI, I added the second bullet above. Let me know if those instructions do not apply.
 
 === Adapt AIT to your mission
 
@@ -155,8 +151,6 @@ For more information, see https://awscli.amazonaws.com/v2/documentation/api/late
 
 ==== (Optional) Upgrade the deployed applications
 If you upgrade AIT-Core or any of the other deployed applications, you are responsible for any impact that upgrading may have. This Quick Start supports only those versions listed under LINK: link to `Software version requirements`.
-
-//TODO Andrew, FYI, I rephrased to convey the intended message but without the alarm connoted in the phrase "at your own risk." 
 
 //TODO Reminder: We need to fix internal links throughout the doc after content stabilizes.
 

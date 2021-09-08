@@ -59,9 +59,8 @@ configs
 
 Review the descriptions in the following sections to determine which files you need to modify before you deploy the Quick Start. 
 
-During deployment, the Quick Start retrieves the whole set configuration files from the S3 bucket and places them in the `/home/ec2-user/AIT-Core/config` directory on the AIT EC2 instance.
+During deployment, the Quick Start retrieves the whole set configuration  files (under the config prefix) from the S3 bucket and places them in the `/home/ec2-user/AIT-Core/config` directory on the AIT EC2 instance.
 
-//TODO Andrew, The above path doesn't seem right. The files outside the S3 "config" folder wouldn't move into the EC2 "config" folder, would they?
 
  For more information, see https://ait-core.readthedocs.io/en/latest/configuration_intro.html[Introduction to AIT Configuration^].
 
