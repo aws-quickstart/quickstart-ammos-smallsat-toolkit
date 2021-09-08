@@ -239,7 +239,7 @@ Resources:
       Tags:
         - Key: Name
           PropagateAtLaunch: true
-          Value: ammos-cubs-deploy/ammos-ait-asg-deploy/AitAutoScalingGroup
+          Value: !Sub "${ProjectName}/AitAutoScalingGroup"
       TargetGroupARNs:
         - !Ref 'AitWebTargetGroup'
         - !Ref 'AitMctTargetGroup'
