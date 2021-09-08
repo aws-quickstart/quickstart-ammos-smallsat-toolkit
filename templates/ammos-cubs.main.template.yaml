@@ -96,7 +96,7 @@ Parameters:
     Type: Number
     Default: 30
   ElasticsearchDomainName:
-    Description: Name of the Amazon ES domain. If both ElasticsearchDomainName and HostedZoneID are populated, this deployment generates an ACM certificate.
+    Description: Name of the Amazon ES domain.
     Type: String
   KeyPairName:
     Description: Name of the key pair that you will use to connect securely to your instance after it launches.
@@ -145,10 +145,9 @@ Parameters:
     Description: CIDR block used for the private subnet located in Availability Zone 3.
     Type: String
   AvailabilityZones:
-    Description: Availability Zones to use for the subnets in the VPC. This deployment uses two
+    Description: Availability Zones to use for the subnets in the VPC. This deployment uses three
       Availability Zones, and the logical order of your
       selections is preserved.
-       # TODO Andrew, What should we say here about the third Availability Zone?
     Type: List<AWS::EC2::AvailabilityZone::Name>
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
@@ -192,12 +191,10 @@ Parameters:
     Type: String
   SSLCertificateArn:
     Description: (Optional) Amazon Resource Name of the SSL certificate to use for the load balancer. Use SSLCertificateArn if you are not using FQDN and HostedZoneID.
-     # TODO Andrew, I added "(Optional)" here and fleshed this out. Correct? 
     Type: String
     Default: ''
   HostedZoneID:
-    Description: (Optional) ID of the Route 53 hosted-zone domain. Used in conjunction with an FQDN. If both ElasticsearchDomainName and HostedZoneID are populated, this deployment generates an ACM certificate.
-      # TODO Andrew, I added "(Optional)" here and fleshed this out. Correct? 
+    Description: (Optional) ID of the Route 53 hosted-zone domain. If you fill in both FQDN and HostedZoneID, this deployment generates an ACM certificate.
     Type: String
     MaxLength: 32
     Default: ''
