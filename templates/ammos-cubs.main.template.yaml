@@ -10,7 +10,6 @@ Metadata:
           default: AIT configuration
         Parameters:
           - AITInstanceType
-          - ElasticsearchDomainName
           - CloudWatchLogsRetentionPeriod
           - KeyPairName
           - FQDN
@@ -53,8 +52,6 @@ Metadata:
         default: Availability Zones
       CloudWatchLogsRetentionPeriod:
         default: CloudWatch Logs retention period
-      ElasticsearchDomainName:
-        default: Amazon ES domain name
       FQDN:
         default: Fully qualified domain name
       HostedZoneID:
@@ -113,9 +110,6 @@ Parameters:
     Description: Number of days to retain log events in CloudWatch Logs log groups. Increasing this number results in higher log-storage costs.
     Type: Number
     Default: 30
-  ElasticsearchDomainName:
-    Description: Name of the Amazon ES domain. If both ElasticsearchDomainName and HostedZoneID are populated, this deployment generates an ACM certificate.
-    Type: String
   KeyPairName:
     Description: Name of the key pair that you will use to connect securely to your instance after it launches.
     Type: AWS::EC2::KeyPair::KeyName
@@ -214,7 +208,7 @@ Parameters:
     Type: String
     Default: ''
   HostedZoneID:
-    Description: (Optional) ID of the Route 53 hosted-zone domain. Used in conjunction with an FQDN. If both ElasticsearchDomainName and HostedZoneID are populated, this deployment generates an ACM certificate.
+    Description: (Optional) ID of the Route 53 hosted-zone domain. Used in conjunction with an FQDN. If HostedZoneID is populated, this deployment generates an ACM certificate.
       # TODO Andrew, I added "(Optional)" here and fleshed this out. Correct? 
     Type: String
     MaxLength: 32
@@ -384,7 +378,7 @@ Resources:
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
-        ElasticsearchDomainName: !Ref ElasticsearchDomainName
+        ProjectName: !Ref ProjectName
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         RolePath: !Ref RolePath
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
