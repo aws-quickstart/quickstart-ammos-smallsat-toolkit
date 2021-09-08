@@ -62,6 +62,8 @@ Resources:
         QSS3BucketName: !Ref "QSS3BucketName"
         QSS3KeyPrefix: !Ref "QSS3KeyPrefix"
         StripPrefixAtDestination: 'true'
+        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
+        RolePath: !Ref RolePath
         SourceObjects: !Join
           - ','
           - - configs/ait/ait-config.zip

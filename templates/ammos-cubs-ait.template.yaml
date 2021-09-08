@@ -110,6 +110,10 @@ Mappings:
       RHELHA84HVM: ami-054965c6cd7c6e462
     us-west-2:
       RHELHA84HVM: ami-0b28dfc7adc325ef4
+    us-gov-west-1:
+      RHELHA84HVM: ami-0ac4e06a69870e5be
+    us-gov-east-1:
+      RHELHA84HVM: ami-0cca63ccd9a87f1b2
 
 Resources:
   AitServerSecurityGroup:

@@ -277,8 +277,7 @@ Conditions:
     - !Equals [!Ref SSLCertificateArn, '']
     - !Not [!Equals [!Ref FQDN, '']]
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
-  DeployVpc: !Not
-    - !Equals [!Ref VpcId, '']
+  DeployVpc: !Equals [!Ref VpcId, '']
 Resources:
   # AmmosConfigStack:
   #   Type: AWS::CloudFormation::Stack
@@ -296,6 +295,7 @@ Resources:
   #       PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
 # ---
   VPCStack:
+    Condition: DeployVpc
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL:
@@ -320,7 +320,7 @@ Resources:
         PublicSubnet2CIDR: !Ref PublicSubnet2CIDR
         PublicSubnet3CIDR: !Ref PublicSubnet3CIDR
   BastionStack:
-    DependsOn: CFNEndpoint
+    # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -337,8 +337,10 @@ Resources:
         QSS3BucketRegion: !Ref QSS3BucketRegion
         RemoteAccessCIDR: !Ref RemoteAccessCIDR
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
+        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
+        RolePath: !Ref RolePath
   AmmosCognitoStack:
-    DependsOn: CFNEndpoint
+    # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -352,7 +354,7 @@ Resources:
         RolePath: !Ref RolePath
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
   AmmosCubsALBStack:
-    DependsOn: CFNEndpoint
+    # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -369,11 +371,11 @@ Resources:
               - !If [DeployVpc, !GetAtt VPCStack.Outputs.PublicSubnet2ID, !Ref PublicSubnet2ID]
         FQDN: !Ref FQDN
         HostedZoneID: !Ref HostedZoneID
-        SSLCertificateArn: !If [GenerateSSL, !GetAtt ConfigureSSLStack.Outputs.ACMCertificate, SSLCertificateArn]
+        SSLCertificateArn: !If [GenerateSSL, !GetAtt ConfigureSSLStack.Outputs.ACMCertificate, !Ref SSLCertificateArn]
         CognitoInspectFunctionArn: !GetAtt AmmosCognitoStack.Outputs.CognitoInspectFunctionArn
         CognitoUserPoolID: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolId
   AmmosCubsLoggingStack:
-    DependsOn: CFNEndpoint
+    # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -392,7 +394,7 @@ Resources:
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
   AmmosCubsEditorStack:
-    DependsOn: CFNEndpoint
+    # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -416,7 +418,7 @@ Resources:
               - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
         ProjectName: !Ref ProjectName
         RolePath: !Ref RolePath
-        VPCID: !GetAtt VPCStack.Outputs.VPCID
+        VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
   AmmosCubsAITStack:
     DependsOn: AmmosCognitoStack
     Type: AWS::CloudFormation::Stack
@@ -427,10 +429,15 @@ Resources:
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         ProjectName: !Ref ProjectName
-        # ConfigBucketName: Fn::ImportValue:
-        #   !Sub "${ProjectName}-ConfigBucketName"
+        ConfigBucketName:
+          Fn::ImportValue:
+            !Sub "${ProjectName}-ConfigBucketName"
         FQDN: !Ref FQDN
-        PrivateSubnetIds: !Join [',', [!GetAtt VPCStack.Outputs.PrivateSubnet1AID,!GetAtt VPCStack.Outputs.PrivateSubnet2AID]]
+        PrivateSubnetIds:
+          Fn::Join:
+            - ','
+            - - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
+              - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
         InstanceType: !Ref AITInstanceType
         KeyPairName: !Ref KeyPairName
@@ -451,7 +458,7 @@ Resources:
           - !Ref SSLCertificateArn
         ALBArn: !GetAtt AmmosCubsALBStack.Outputs.AlbArn
   ConfigureSSLStack:
-    DependsOn: CFNEndpoint
+    # DependsOn: CFNEndpoint
     Condition: GenerateSSL
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -467,9 +474,9 @@ Resources:
         HostedZoneID: !Ref HostedZoneID
   CFNEndpointSG:
     Type: AWS::EC2::SecurityGroup
+    Condition: DeployVpc
     Properties:
-      GroupDescription: String
-      GroupName: String
+      GroupDescription: Manage access to VPC Endpoint for CFN resources
       SecurityGroupIngress:
         - IpProtocol: '-1'
           FromPort: -1
@@ -478,6 +485,7 @@ Resources:
       VpcId: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
   CFNEndpoint:
     Type: AWS::EC2::VPCEndpoint
+    Condition: DeployVpc
     Properties:
       VpcId: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.cloudformation"
