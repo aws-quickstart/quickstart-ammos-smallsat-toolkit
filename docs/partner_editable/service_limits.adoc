@@ -22,7 +22,7 @@
 | Lambda functions | 3
 |===
 
-//TODO (Andrew is working on this with JPL.) In the description for the parameter AITInstanceType, we claim that the deployment guide recommends instance types to use for AIT. I don't that info in the guide, though. Please supply recommendations.
+//TODO (Andrew is working on this with JPL.) In the description for the parameter AITInstanceType, we claim that the deployment guide recommends instance types to use for AIT. I don't see that info in the guide, though. Please supply recommendations.
 
 //TODO Andrew, FYI, I changed Auto Scaling groups from 1 to 2. Let me know if that's not right.
 
