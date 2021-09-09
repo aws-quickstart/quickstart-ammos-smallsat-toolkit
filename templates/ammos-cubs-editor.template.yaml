@@ -234,7 +234,7 @@ Resources:
             echo "pulling config from $CONFIG_BUCKET_NAME"
             # Pull assets, config, and secrets from s3/sm
             /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 sync \
-              s3://$CONFIG_BUCKET_NAME/ait/config \
+              s3://$CONFIG_BUCKET_NAME/configs/ait/config \
               $PROJECT_HOME/project/ait-config
 
             # Pull assets, config, and secrets from s3/sm
