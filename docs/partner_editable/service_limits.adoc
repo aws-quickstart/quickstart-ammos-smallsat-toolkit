@@ -11,7 +11,7 @@
 | Security groups | 5
 | AWS Identity and Access Management (IAM) roles | 5
 | Auto Scaling groups | 2
-| EC2 instances | 2
+| EC2 instances | 3
 | Application Load Balancers | 1
 | Amazon Cognito user pools | 1
 | Amazon ES domains | 1
