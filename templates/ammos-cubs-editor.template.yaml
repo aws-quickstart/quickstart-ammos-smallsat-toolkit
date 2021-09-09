@@ -149,6 +149,9 @@ Resources:
     DependsOn:
       - InstanceRole
     Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}/EditorServer"
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
           Ebs:
