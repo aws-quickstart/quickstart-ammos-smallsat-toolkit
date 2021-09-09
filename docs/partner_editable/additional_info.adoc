@@ -1,8 +1,6 @@
 // Add steps as necessary for accessing the software, post-configuration, and testing. Don’t include full usage instructions for your software, but add links to your product documentation for that information.
 //Should any sections not be applicable, remove them
 
-//TODO Andrew, Answer to your question from SIM... When a doc has testing or post-deployment sections, we typically point to the deployment guide in the "Outputs" sections at the end of the relevant .yaml template or templates ("Outputs: Postdeployment: Value: <Permalink to deployment guide>. Description: See the deployment guide for testing and post-deployment tasks."). That way, when the deployment is complete and people look at the "Outputs" tab on the screen, they see a link to the guide. I don't see an "Outputs" section at the end of the main .yaml file, so I'm wondering ... where do I add this info? Create a new "Outputs" section?
-
 == Test the deployment
 
 // TODO: @MF @KM add input if necessary

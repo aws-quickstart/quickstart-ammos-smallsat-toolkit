@@ -59,10 +59,9 @@ configs
 
 Review the descriptions in the following sections to determine which files you need to modify before you deploy the Quick Start. 
 
-During deployment, the Quick Start retrieves the whole set configuration  files (under the config prefix) from the S3 bucket and places them in the `/home/ec2-user/AIT-Core/config` directory on the AIT EC2 instance.
+During deployment, the Quick Start retrieves the AIT configuration files (the ones in the `configs/ait/config` S3 folder) and places them in `/home/ec2-user/AIT-Core/config` on the AIT EC2 instance.
 
-
- For more information, see https://ait-core.readthedocs.io/en/latest/configuration_intro.html[Introduction to AIT Configuration^].
+For more information, see https://ait-core.readthedocs.io/en/latest/configuration_intro.html[Introduction to AIT Configuration^].
 
 ===== configs/ait/
 This S3 folder contains configuration files for the AIT deployment within this Quick Start.
@@ -76,9 +75,11 @@ For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/mo
 This S3 folder contains configuration files for the AIT application. 
 
 ===== config.yaml
-This is the main configuration file for AIT. On the AIT server instance, this file is located at `/home/ec2-user/AIT-Core/config/config.yaml`.
+This is the main configuration file for AIT. 
 
-This main configuration file references a few other configuration files (file paths are relative) as well as enabling a default set of AIT plugins: AIT GUI, the Data Archive plugin for InfluxDB, and the AIT Open MCT plugin.
+During deployment, the Quick Start retrieves this file along with the other AIT configuration files (the files in the `configs/ait/config` S3 folder) and places them in `/home/ec2-user/AIT-Core/config` on the AIT EC2 instance.
+
+This file references a few other configuration files (file paths are relative) as well as enabling a default set of AIT plugins: AIT GUI, the Data Archive plugin for InfluxDB, and the AIT Open MCT plugin.
 
 For more information, see https://ait-core.readthedocs.io/en/latest/configuration_intro.html#config-yaml[config.yaml^] in the AIT documentation.
 
