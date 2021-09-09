@@ -278,7 +278,7 @@ Resources:
   FirehoseLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /kinesisfirehose/logging-firehose
+      LogGroupName: !Sub /${ProjectName}/kinesisfirehose/logging-firehose
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
 
   ElasticsearchDeliveryLogStream:

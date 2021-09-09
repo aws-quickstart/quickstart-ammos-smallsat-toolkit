@@ -15,7 +15,7 @@
           },
           {
             "file_path": "/var/ammos/css/logs/apache24_agent/audit/audit.log",
-            "log_group_name": "/cloudwatch-agent/ait-editor/apache_audit",
+            "log_group_name": "/<PROJECT_NAME>/cloudwatch-agent/ait-editor/apache_audit",
             "log_stream_name": "{instance_id}/apache_audit.log",
             "timezone": "UTC"
           },
