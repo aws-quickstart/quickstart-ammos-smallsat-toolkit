@@ -9,13 +9,13 @@ Metadata:
       - Label:
           default: AIT configuration
         Parameters:
-          - AITInstanceType
-          - CloudWatchLogsRetentionPeriod
-          - KeyPairName
+          - ProjectName
           - FQDN
           - SSLCertificateArn
           - HostedZoneID
-          - ProjectName
+          - AITInstanceType
+          - KeyPairName
+          - CloudWatchLogsRetentionPeriod
       - Label:
           default: IAM configuration
         Parameters:
