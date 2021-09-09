@@ -39,6 +39,7 @@ Metadata:
           - PrivateSubnet1AID
           - PrivateSubnet2AID
           - PrivateSubnet3AID
+          - AccessSgID
       - Label:
           default: AWS Quick Start configuration
         Parameters:
@@ -100,6 +101,8 @@ Metadata:
         default: ID for Private Subnet 2A if using an already-deployed VPC
       PrivateSubnet3AID:
         default: ID for Private Subnet 3A if using an already-deployed VPC
+      AccessSgID:
+        default: ID of pre-configured security group if using an already-deployed VPC
 Parameters:
   AITInstanceType:
     Description: Instance type to be used for AIT. See deployment
@@ -251,6 +254,10 @@ Parameters:
     Description: (Optional) ID of Public Subnet 3A if VPC already deployed
     Type: String
     Default: ''
+  AccessSgID:
+    Description: (Optional) ID of pre-configured Security Group to control access to ALB
+    Type: String
+    Default: ''
 Rules:
   DomainNamePresentWithHostedID:
     Assertions:
@@ -368,6 +375,7 @@ Resources:
         SSLCertificateArn: !If [GenerateSSL, !GetAtt ConfigureSSLStack.Outputs.ACMCertificate, !Ref SSLCertificateArn]
         CognitoInspectFunctionArn: !GetAtt AmmosCognitoStack.Outputs.CognitoInspectFunctionArn
         CognitoUserPoolID: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolId
+        AccessSgID: !If [DeployVpc, '', !Ref AccessSgID]
   AmmosCubsLoggingStack:
     # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
