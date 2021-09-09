@@ -97,7 +97,7 @@ Resources:
   EditorTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Port: 443
+      Port: 80
       Protocol: HTTPS
       TargetType: instance
       Targets:
@@ -173,6 +173,7 @@ Resources:
           - |
             #!/bin/bash
             exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+            echo "Starting user data"
 
             function exitTrap(){
               exitCode=$?
@@ -199,10 +200,11 @@ Resources:
             SETUP_DIR=$PROJECT_HOME/setup
             AWS_REGION=${AWS::Region}
             AWS_ACCOUNT_ID=${AWS::AccountId}
-            EDITOR_IMAGE_URI=codercom/code-server
-            EDITOR_IMAGE_TAG=3.11.0
-
-            echo "Starting user data"
+            CODER_IMAGE_URI=codercom/code-server
+            CODER_IMAGE_TAG=3.11.0
+            AIT_EDITOR_VERSION=0.0.3
+            AIT_EDITOR_LINK=https://NASA-AMMOS.gallery.vsassets.io/_apis/public/gallery/publisher/NASA-AMMOS/extension/ait-editor/$AIT_EDITOR_VERSION/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage
+            PORT=80
 
             # General tools
             yum install -y -q yum-utils git vim
@@ -215,9 +217,27 @@ Resources:
             unzip -qq awscliv2.zip
             ./aws/install
 
-            # Pull assets, config, and secrets from s3/sm
+            # File Structure
+            mkdir -p $PROJECT_HOME/.ait-editor-config/code-server
+            mkdir -p $PROJECT_HOME/project/ait-config
+            mkdir -p $PROJECT_HOME/project/sequences
+            mkdir -p $PROJECT_HOME/extensions
             mkdir -p $SETUP_DIR
-            cd $SETUP_DIR
+
+            cat > $PROJECT_HOME/project/sequences/example.ait << EOF
+            # comment
+            0 NO_OP
+            1 BAD_CMD
+            1 CORE_SET_OP_MODE 1
+            EOF
+
+            echo "pulling config from $CONFIG_BUCKET_NAME"
+            # Pull assets, config, and secrets from s3/sm
+            /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 sync \
+              s3://$CONFIG_BUCKET_NAME/ait/config \
+              $PROJECT_HOME/project/ait-config
+
+            # Pull assets, config, and secrets from s3/sm
             /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 cp \
               s3://$CONFIG_BUCKET_NAME/configs/editor/cloudwatch-agent-editor.json \
               $SETUP_DIR/cloudwatch-agent-editor.json
@@ -225,6 +245,8 @@ Resources:
             # Inject ProjectName from Cloudformation into cloudwatch agent files
             mv $SETUP_DIR/cloudwatch-agent-editor.json{,.bak}
             sed 's/<PROJECT_NAME>/${ProjectName}/g' $SETUP_DIR/cloudwatch-agent-editor.json.bak > $SETUP_DIR/cloudwatch-agent-editor.json
+            rm $SETUP_DIR/cloudwatch-agent-editor.json.bak
+            mv $SETUP_DIR/cloudwatch-agent-editor.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
             # Docker + Docker-Compose
             echo "Installing Docker components"
@@ -235,37 +257,32 @@ Resources:
             systemctl enable docker
             systemctl start docker
 
-            echo "Creating Editor Users"
-            groupadd editor-users
-            EDITOR_GID=$(tail -1 /etc/group | cut -d : -f3)
-            PORT=80
-            USERNAME=editor-user
-            # Create user in editor-users group
-            useradd -m -g editor-users -G docker $USERNAME
-            EDITOR_UID=$(id -u $USERNAME)
+            # AIT Editor Config
+            wget -nv $AIT_EDITOR_LINK -O $PROJECT_HOME/extensions/ait-editor-$AIT_EDITOR_VERSION.vsix
 
-            # Aerie Editor Config
-            mkdir -p /home/$USERNAME/.aerie-editor-config/code-server
-            mkdir /home/$USERNAME/.aerie-editor-data
-            tee /home/$USERNAME/.aerie-editor-config/code-server/config.yaml << EOF
+            tee $PROJECT_HOME/.ait-editor-config/code-server/config.yaml << EOF
             auth: none
             bind-addr: 127.0.0.1:8080
             cert: false
             disable-telemetry: true
             disable-update-check: true
             extra-extensions-dir: ['/home/coder/extra-extensions']
-            # username: $USERNAME
             EOF
-            chown -R $USERNAME: /home/$USERNAME
+            chown -R $USER: $PROJECT_HOME
 
-            # Aerie Editor startup
-            docker run --name aerie-editor-$USERNAME -d -p $PORT:8080 \
-              -v /home/$USERNAME/.aerie-editor-data:/home/coder/.local/share/code-server \
-              -v /home/$USERNAME/.aerie-editor-config:/home/coder/.config \
-              -v /home/$USERNAME:/home/coder/project \
-              -u $EDITOR_UID:$EDITOR_GID \
-              $EDITOR_IMAGE_URI:$EDITOR_IMAGE_TAG;
-            /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:$SETUP_DIR/cloudwatch-agent-editor.json
+            # AIT Editor startup
+            docker run --name ait-editor-$USER -d -p $PORT:8080 \
+              -v $PROJECT_HOME/.ait-editor-config:/home/coder/.config \
+              -v $PROJECT_HOME/project:/home/coder/project \
+              -v $PROJECT_HOME/extensions:/home/coder/extra-extensions \
+              -u $(id -u):$(id -g) \
+              -e AIT_CONFIG=/home/coder/project/ait-config/config.yaml \
+              $CODER_IMAGE_URI:$CODER_IMAGE_TAG;
+
+            docker exec ait-editor-$USER code-server --install-extension ./extra-extensions/ait-editor-$AIT_EDITOR_VERSION.vsix
+
+            /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+                -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
           - ConfigBucket: !If
             - UserProvidedConfigBucket
             - !Ref ConfigBucketName
