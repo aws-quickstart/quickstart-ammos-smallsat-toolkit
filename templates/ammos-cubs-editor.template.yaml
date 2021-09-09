@@ -219,6 +219,10 @@ Resources:
               s3://$CONFIG_BUCKET_NAME/configs/editor/cloudwatch-agent-editor.json \
               $SETUP_DIR/cloudwatch-agent-editor.json
 
+            # Inject ProjectName from Cloudformation into cloudwatch agent files
+            mv $SETUP_DIR/cloudwatch-agent-editor.json{,.bak}
+            sed 's/<PROJECT_NAME>/${ProjectName}/g' $SETUP_DIR/cloudwatch-agent-editor.json.bak > $SETUP_DIR/cloudwatch-agent-editor.json
+
             # Docker + Docker-Compose
             echo "Installing Docker components"
             yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo

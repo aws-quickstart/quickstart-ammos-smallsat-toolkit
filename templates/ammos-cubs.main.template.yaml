@@ -168,19 +168,19 @@ Parameters:
       letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
       (-).
     Default: aws-quickstart
-    Description: Name of the S3 bucket for your copy of the Quick Start assets. 
-      Keep the default name unless you are customizing the template. 
-      Changing the name updates code references to point to a new Quick 
-      Start location. This name can include numbers, lowercase letters, 
-      uppercase letters, and hyphens, but do not start or end with a hyphen (-). 
+    Description: Name of the S3 bucket for your copy of the Quick Start assets.
+      Keep the default name unless you are customizing the template.
+      Changing the name updates code references to point to a new Quick
+      Start location. This name can include numbers, lowercase letters,
+      uppercase letters, and hyphens, but do not start or end with a hyphen (-).
       See https://aws-quickstart.github.io/option1.html.
     Type: String
   QSS3BucketRegion:
     Default: 'us-east-1'
-    Description: 'AWS Region where the Quick Start S3 bucket (QSS3BucketName) is 
-    hosted. Keep the default Region unless you are customizing the template. 
-    Changing this Region updates code references to point to a new Quick Start location. 
-    When using your own bucket, specify the Region. 
+    Description: 'AWS Region where the Quick Start S3 bucket (QSS3BucketName) is
+    hosted. Keep the default Region unless you are customizing the template.
+    Changing this Region updates code references to point to a new Quick Start location.
+    When using your own bucket, specify the Region.
     See https://aws-quickstart.github.io/option1.html.'
     Type: String
   QSS3KeyPrefix:
@@ -189,12 +189,12 @@ Parameters:
       uppercase letters, hyphens (-), and forward slashes (/). The prefix should
       end with a forward slash (/).
     Default: quickstart-nasa-jpl-cubs/
-    Description: S3 key prefix that is used to simulate a directory for your copy of the 
-      Quick Start assets. Keep the default prefix unless you are customizing 
-      the template. Changing this prefix updates code references to point to 
-      a new Quick Start location. This prefix can include numbers, lowercase 
-      letters, uppercase letters, hyphens (-), and forward slashes (/). End with 
-      a forward slash. See https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html 
+    Description: S3 key prefix that is used to simulate a directory for your copy of the
+      Quick Start assets. Keep the default prefix unless you are customizing
+      the template. Changing this prefix updates code references to point to
+      a new Quick Start location. This prefix can include numbers, lowercase
+      letters, uppercase letters, hyphens (-), and forward slashes (/). End with
+      a forward slash. See https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html
       and https://aws-quickstart.github.io/option1.html.
     Type: String
   RemoteAccessCIDR:
@@ -204,12 +204,12 @@ Parameters:
     Type: String
   SSLCertificateArn:
     Description: (Optional) Amazon Resource Name of the SSL certificate to use for the load balancer. Use SSLCertificateArn if you are not using FQDN and HostedZoneID.
-     # TODO Andrew, I added "(Optional)" here and fleshed this out. Correct? 
+     # TODO Andrew, I added "(Optional)" here and fleshed this out. Correct?
     Type: String
     Default: ''
   HostedZoneID:
     Description: (Optional) ID of the Route 53 hosted-zone domain. Used in conjunction with an FQDN. If HostedZoneID is populated, this deployment generates an ACM certificate.
-      # TODO Andrew, I added "(Optional)" here and fleshed this out. Correct? 
+      # TODO Andrew, I added "(Optional)" here and fleshed this out. Correct?
     Type: String
     MaxLength: 32
     Default: ''
@@ -377,8 +377,8 @@ Resources:
         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
-        CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
         ProjectName: !Ref ProjectName
+        CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         RolePath: !Ref RolePath
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]

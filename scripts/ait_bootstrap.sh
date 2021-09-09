@@ -154,6 +154,11 @@ systemctl start httpd
 
 # Configure and start the CloudWatch Agent
 mv $SETUP_DIR/cloudwatch-agent-ait.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
+# Inject ProjectName from Cloudformation into cloudwatch agent files
+mv /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json{,.bak}
+sed 's/<PROJECT_NAME>/${ProjectName}/g' /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json.bak > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
 /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
     -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
