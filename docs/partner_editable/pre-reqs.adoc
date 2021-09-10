@@ -2,23 +2,21 @@
 
 == Prepare your AWS account
 
-// _Describe any setup required in the AWS account prior to template launch_
 Before you launch the Quick Start, prepare your AWS account by completing the following tasks.
 
-=== Create a service-linked role for Amazon ES
+=== Create a service-linked role for OpenSearch Service
 
-Amazon ES uses a service-linked role to call other necessary AWS services on your behalf during the Amazon ES provisioning process. To create the role, follow the instructions under https://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html#create-service-linked-role[Creating a service-linked role^]. Specify the service name as `es.amazonaws.com`.
+Amazon OpenSearch Service uses a service-linked role to call other necessary AWS services on your behalf during the OpenSearch Service provisioning process. To create the role, follow the instructions under https://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html#create-service-linked-role[Creating a service-linked role^]. Specify the service name as `es.amazonaws.com`.
 
-For more information, see the https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/slr-es.html[Using service-linked roles to provide Amazon Elasticsearch Service access to resources^].
+//TODO Andrew, What do we replace the "es" with in the above URL?
+
+For more information, see the https://docs.aws.amazon.com/opensearch-service/latest/developerguide/slr.html[Using service-linked roles to provide Amazon OpenSearch Service access to resources^].
 
 === Deploy and customize the configuration files
 
 The preconfiguration (prerequisite) stack for this Quick Start contains an S3 bucket that's populated with base configuration files for AIT, AIT Editor, and Open MCT. Deploy this stack and customize the configuration files as follows:
 
-. http://qs_launch_permalink[Deploy the preconfiguration stack^] <LINK pending>.
-. http://qs_template_permalink[View Template^] <LINK pending>.
-+
-// TODO Tech writers to create and swap in the above two permalinks (for ammos-cubs.preconfig.template.yaml) and delete "<LINK pending>".
+. https://fwd.aws/jmp4j?[Deploy the preconfiguration stack^]. (https://fwd.aws/xb7vj?[View the template^].)
 
 . Sign in to the AWS Management Console, and open the https://console.aws.amazon.com/cloudformation/[AWS CloudFormation console^].
 . Select the preconfiguration stack, choose the *Outputs* tab, and note the S3 bucket name (the value of the *ConfigBucket* key).
@@ -116,7 +114,7 @@ This deployment relies on a fully qualified domain name (FQDN) that you provide.
 | ait.<fqdn> | → AIT Auto Scaling group [Apache → ait-gui bottle app]
 | mct.<fqdn> | → AIT Auto Scaling group [Apache → mct static built app]
 | editor.<fqdn> | → AIT Editor EC2 instance [Docker container]
-| logs.<fqdn> | → Amazon ES and Kibana
+| logs.<fqdn> | → OpenSearch Service
 |===
 
 For more information, see https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html[Configuring Amazon Route 53 as your DNS service^].
