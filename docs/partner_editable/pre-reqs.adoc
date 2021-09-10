@@ -4,9 +4,9 @@
 
 Before you launch the Quick Start, prepare your AWS account by completing the following tasks.
 
-=== Create a service-linked role for OpenSearch Service
+=== Create a service-linked role for Amazon OpenSearch Service
 
-Amazon OpenSearch Service uses a service-linked role to call other necessary AWS services on your behalf during the OpenSearch Service provisioning process. To create the role, follow the instructions under https://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html#create-service-linked-role[Creating a service-linked role^]. Specify the service name as `es.amazonaws.com`.
+Amazon OpenSearch Service uses a service-linked role to call other necessary AWS services on your behalf during the Amazon OpenSearch Service provisioning process. To create the role, follow the instructions under https://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html#create-service-linked-role[Creating a service-linked role^]. Specify the service name as `es.amazonaws.com`.
 
 //TODO Andrew, What do we replace the "es" with in the above URL?
 
@@ -114,7 +114,7 @@ This deployment relies on a fully qualified domain name (FQDN) that you provide.
 | ait.<fqdn> | → AIT Auto Scaling group [Apache → ait-gui bottle app]
 | mct.<fqdn> | → AIT Auto Scaling group [Apache → mct static built app]
 | editor.<fqdn> | → AIT Editor EC2 instance [Docker container]
-| logs.<fqdn> | → OpenSearch Service
+| logs.<fqdn> | → Amazon OpenSearch Service
 |===
 
 For more information, see https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html[Configuring Amazon Route 53 as your DNS service^].

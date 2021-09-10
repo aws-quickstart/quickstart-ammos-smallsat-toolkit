@@ -48,7 +48,7 @@ Metadata:
       CloudWatchLogsRetentionPeriod:
         default: CloudWatch Logs retention period
       ElasticsearchDomainName:
-        default: OpenSearch Service domain name
+        default: Amazon OpenSearch Service domain name
       FQDN:
         default: Fully qualified domain name
       HostedZoneID:
