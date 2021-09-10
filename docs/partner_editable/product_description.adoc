@@ -2,10 +2,6 @@
 // Briefly describe the software. Use consistent and clear branding.
 // Include the benefits of using the software on AWS, and provide details on usage scenarios.
 
-Using this Quick Start, your team can rapidly deploy a foundational ground data system (GDS) that is built on high-heritage capabilities maintained by NASA. The AMMOS suite comprises open-source products that are available in the https://github.com/NASA-AMMOS[NASA-AMMOS GitHub repository^], where contributions are welcomed and encouraged.
-
-//TODO What's a plain-English way to say "high-heritage"?
-
 The core of this lightweight software bundle is the https://github.com/NASA-AMMOS/AIT-Core[AMMOS Instrument Toolkit (AIT)^]. AIT is a Python-based software suite that handles GDS, electrical ground support equipment (EGSE), commanding, telemetry uplink and downlink, and sequencing. AIT integrates with https://github.com/NASA-AMMOS/openmct-mcws[Open Mission Control Technologies (Open MCT)^] software, which provides visualization and dashboarding capabilities. AIT also integrates with https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor[AIT Editor^], a Microsoft Visual Studio Code (VS Code or VSC) extension that provides a centralized, browser-based environment for generating and editing spacecraft command-sequence files. 
 
-This software suite comes with a set of basic test data so that you can verify your installation. While the software meets the needs common to most SmallSat and CubeSat missions with minimal adaptation, it comes with instructions for adapting the deployment for your operation's needs both at launch and as your mission evolves.
+This software suite includes a set of basic test data so that you can verify your installation. The software meets the needs common to most SmallSat and CubeSat missions with minimal adaptation. It comes with instructions for adapting the deployment for your operation's needs both at launch and as your mission evolves.
