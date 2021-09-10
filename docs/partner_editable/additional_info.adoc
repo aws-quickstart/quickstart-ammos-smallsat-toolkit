@@ -257,13 +257,13 @@ Side effects may occur if you modify or move settings or configuration files aft
 
 IMPORTANT: Do not disable SELinux unless you are aware of unintended security consequences or must disable SELinux for compatibility or debugging purposes.
 
-=== OpenSearch Service
+=== Amazon OpenSearch Service
 
-//TODO Andrew, I've removed "Kibana" and swapped in "OpenSearch" for "Elasticsearch" or "Amazon ES" throughout the doc. 
+//TODO Andrew, FYI, I've removed "Kibana" and swapped in "OpenSearch" for "Elasticsearch" or "Amazon ES" throughout the doc, including the parameter descriptions (in the .yaml templates), but I didn't touch the parameter names. 
 
 This Quick Start deploys a domain under Amazon OpenSearch Service. This domain, which is deployed within a VPC, contains logging data that's received from application EC2 instances. All primary and data (secondary) nodes reside within private subnets. Encryption for data at rest is enabled by default.
 
-IMPORTANT: The OpenSearch Service domain uses an open-access policy with access controlled by an EC2 security group. For more security, use fine-grained access control or modify the access policy to specify IAM users or roles.
+IMPORTANT: The Amazon OpenSearch Service domain uses an open-access policy with access controlled by an EC2 security group. For more security, use fine-grained access control or modify the access policy to specify IAM users or roles.
 
 For more information, see the following:
 
