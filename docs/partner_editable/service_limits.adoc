@@ -14,7 +14,7 @@
 | EC2 instances | 3
 | Application Load Balancers | 1
 | Amazon Cognito user pools | 1
-| Amazon ES domains | 1
+| OpenSearch Service domains | 1
 | S3 buckets | 2
 | CloudWatch Logs log groups | 5
 | Route 53 records | 5

@@ -110,7 +110,7 @@ For more information, see the following:
 
 === Adapt AIT to your mission
 
-Adapt AIT to your mission's needs and parameters both at launch and as your needs and parameters evolve. You can make changes directly on the AIT EC2 instance over an SSH- or SSM-managed session.
+Adapt AIT for your operation's needs both at launch and as your mission evolves. You can make changes directly on the AIT EC2 instance over an SSH- or SSM-managed session.
 
 The following sections describe some common adaptations.
 
@@ -257,18 +257,18 @@ Side effects may occur if you modify or move settings or configuration files aft
 
 IMPORTANT: Do not disable SELinux unless you are aware of unintended security consequences or must disable SELinux for compatibility or debugging purposes.
 
-=== Amazon ES and Kibana
+=== OpenSearch Service
 
-//TODO (Andrew is working on this with JPL.) What to say about Kibana in this section?
+//TODO Andrew, I've removed "Kibana" and swapped in "OpenSearch" for "Elasticsearch" or "Amazon ES" throughout the doc. 
 
-This Quick Start deploys a domain under Amazon Elasticsearch Service (Amazon ES). This domain, which is deployed within a VPC, contains logging data that's received from application EC2 instances. All primary and data (secondary) nodes reside within private subnets. Encryption for data at rest is enabled by default.
+This Quick Start deploys a domain under Amazon OpenSearch Service. This domain, which is deployed within a VPC, contains logging data that's received from application EC2 instances. All primary and data (secondary) nodes reside within private subnets. Encryption for data at rest is enabled by default.
 
-IMPORTANT: The Amazon ES domain uses an open-access policy with access controlled by an EC2 security group. For more security, use fine-grained access control or modify the access policy to specify IAM users or roles.
+IMPORTANT: The OpenSearch Service domain uses an open-access policy with access controlled by an EC2 security group. For more security, use fine-grained access control or modify the access policy to specify IAM users or roles.
 
 For more information, see the following:
 
-* https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-vpc.html[Launching your Amazon Elasticsearch Service domains within a VPC^])
-* https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/security.html[Security in Amazon Elasticsearch Service^].
+* https://docs.aws.amazon.com/opensearch-service/latest/developerguide/vpc.html[Launching your Amazon OpenSearch Service domains within a VPC^]
+* https://docs.aws.amazon.com/opensearch-service/latest/developerguide/security.html[Security in Amazon OpenSearch Service^]
 
 //TODO: what needs to be added/clarified here?
 //@MF:

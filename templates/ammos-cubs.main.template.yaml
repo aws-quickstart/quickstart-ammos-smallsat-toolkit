@@ -48,7 +48,7 @@ Metadata:
       CloudWatchLogsRetentionPeriod:
         default: CloudWatch Logs retention period
       ElasticsearchDomainName:
-        default: Amazon ES domain name
+        default: OpenSearch Service domain name
       FQDN:
         default: Fully qualified domain name
       HostedZoneID:
@@ -96,7 +96,7 @@ Parameters:
     Type: Number
     Default: 30
   ElasticsearchDomainName:
-    Description: Name of the Amazon ES domain.
+    Description: Name of the Amazon OpenSearch Service domain.
     Type: String
   KeyPairName:
     Description: Name of the key pair that you will use to connect securely to your instance after it launches.

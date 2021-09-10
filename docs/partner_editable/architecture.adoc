@@ -22,6 +22,6 @@ As shown in <<architecture1>>, the Quick Start sets up the following:
 * Amazon Cognito to manage identities and authenticate users.
 * Amazon CloudWatch to receive log data from the EC2 instances in the private subnets using Amazon CloudWatch Logs agents.
 * AWS Lambda to process logs for Amazon Kinesis Data Firehose.
-* Kinesis Data Firehose to deliver log data from CloudWatch Logs to Amazon S3 and Amazon Elasticsearch Service (Amazon ES).
+* Kinesis Data Firehose to deliver log data from CloudWatch Logs to Amazon S3 and Amazon OpenSearch Service.
 * Amazon Route 53 to provide a canonical name (CNAME) record, an alias for the Application Load Balancer.
 * Two S3 buckets, one for long-term storage of log files and the other for configuration files.
