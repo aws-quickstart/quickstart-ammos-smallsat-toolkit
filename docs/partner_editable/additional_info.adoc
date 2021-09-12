@@ -1,6 +1,8 @@
 // Add steps as necessary for accessing the software, post-configuration, and testing. Don’t include full usage instructions for your software, but add links to your product documentation for that information.
 //Should any sections not be applicable, remove them
 
+//TODO Andrew, I get that you prefer not add a pointer to the deployment guide's testing and post-deployment info in the "Outputs" tab. Since people may not have the guide on their radar when they've freshly completed the deployment, though, it seems like a good idea, and it's our standard practice. What do you see as the downside for this guide or in general?
+
 == Test the deployment
 
 // TODO: @MF @KM add input if necessary
