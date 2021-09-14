@@ -6,5 +6,4 @@ This guide provides instructions for deploying the {partner-product-name} Quick 
 
 This Quick Start deploys NASA's https://ammos.nasa.gov/[Advanced Multi-Mission Operations System (AMMOS)^] suite of capabilities for small-satellite (SmallSat and CubeSat) missions and instrument missions. AMMOS offers advanced sequence generation, command uplink and downlink, telemetry processing, and data visualization. Using this Quick Start, your team can rapidly deploy a foundational ground data system (GDS) that is built on high-heritage capabilities maintained by NASA. The AMMOS suite comprises open-source products that are available in the https://github.com/NASA-AMMOS[NASA-AMMOS GitHub repository^], where contributions are welcomed and encouraged. 
 
-//TODO What's a plain-English way to say "high-heritage"?
-//TODO We need to identify who this QS is for. Previously, we said, "The Quick Start deploys a suite of mission-control software for use by researchers at universities and their partner space agencies." What could we replace that with?
+//TODO (Andrew is asking JPL this question) What's a plain-English way to say "high-heritage"?
