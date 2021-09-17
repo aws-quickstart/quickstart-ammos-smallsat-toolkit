@@ -14,22 +14,13 @@ CONFIG_BUCKET_NAME=${ConfigBucketName}
 function boostrap_aws_stuff(){
 # rpms and stuff
 yum install -y -q python3 wget unzip
-wget -nv https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
 wget -nv https://s3.amazonaws.com/amazoncloudwatch-agent/redhat/amd64/latest/amazon-cloudwatch-agent.rpm
-curl  "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip " -o  "awscliv2.zip"
-pip3 install aws-cfn-bootstrap-py3-latest.tar.gz
 
-# directories
-mkdir -p /opt/aws/bin
-ln -s /usr/local/bin/cfn-* /opt/aws/bin
 
 # Cloudwatch and SSM agent
 sudo rpm -U ./amazon-cloudwatch-agent.rpm
 yum install -y -q https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
 
-# AWS CLI
-unzip -qq awscliv2.zip
-./aws/install > /dev/null && echo "Installed AWS CLI"
 }
 
 function bootstrap_ait(){

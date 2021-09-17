@@ -10,11 +10,11 @@
 | NAT gateways | 1
 | Security groups | 5
 | AWS Identity and Access Management (IAM) roles | 5
-| Auto Scaling groups | 1
-| EC2 instances | 2
+| Auto Scaling groups | 2
+| EC2 instances | 3
 | Application Load Balancers | 1
 | Amazon Cognito user pools | 1
-| Amazon ES domains | 1
+| Amazon OpenSearch Service domains | 1
 | S3 buckets | 2
 | CloudWatch Logs log groups | 5
 | Route 53 records | 5
@@ -22,4 +22,4 @@
 | Lambda functions | 3
 |===
 
-//TODO Andrew, In the description for the parameter AITInstanceType, we claim that the deployment guide recommends instance types to use for AIT. I don't that info in the guide, though. Please supply recommendations.
+//TODO (Andrew is working on this with JPL.) In the description for the parameter AITInstanceType, we claim that the deployment guide recommends instance types to use for AIT. I don't see that info in the guide, though. Please supply recommendations.

@@ -2,26 +2,6 @@
 // Briefly describe the software. Use consistent and clear branding.
 // Include the benefits of using the software on AWS, and provide details on usage scenarios.
 
-The {partner-product-short-name} Quick Start deploys a collection of software that you can use, mostly through web-based interactions, to plan and operate small satellites (SmallSats and CubeSats). You can also use this software to control other instruments used in space missions, such as ____.
+The core of this lightweight software bundle is the https://github.com/NASA-AMMOS/AIT-Core[AMMOS Instrument Toolkit (AIT)^]. AIT is a Python-based software suite that handles GDS, electrical ground support equipment (EGSE), commanding, telemetry uplink and downlink, and sequencing. AIT integrates with https://github.com/NASA-AMMOS/openmct-mcws[Open Mission Control Technologies (Open MCT)^] software, which provides visualization and dashboarding capabilities. AIT also integrates with https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor[AIT Editor^], a Microsoft Visual Studio Code (VS Code or VSC) extension that provides a centralized, browser-based environment for generating and editing spacecraft command-sequence files. 
 
-//TODO Andrew, Please fill in the blank.
-
-The {partner-product-short-name} comprises three web applications:
-
-* https://ait-core.readthedocs.io/en/master/[AMMOS Instrument Toolkit (AIT)^]
-* https://software.nasa.gov/software/ARC-15256-1D[Open Mission Control Technologies (Open MCT)^]
-* https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor[AIT Editor^]
-
-// Following pulled from AIT-Core readthedocs
-// https://ait-core.readthedocs.io/en/latest/index.html#welcome-to-the-ammos-instrument-toolkit-ait-documentation
-AIT is a Python-based software suite that handles a ground data system (GDS) and electronic ground-support equipment (EGSE). It also handles commanding, telemetry uplink and downlink, sequencing for the JPL International Space Station (ISS), and CubeSat missions. It's an expansion of tools that NASA's Jet Propulsion Laboratory (JPL) developed for its spacecraft missions.
-
-
-
-// Following pulled from Open MCT's README on GitHub
-// https://github.com/nasa/openmct/blob/master/README.md
-Open MCT is a generalizable, open-source data-visualization framework that NASA's Ames Research Center developed to analyze telemetry data. It provides dashboards for desktop and mobile devices. NASA uses Open MCT to analyze data from spacecraft missions and to plan and operate experimental rover systems. You can use Open MCT as the basis for building applications for planning, operating, and analyzing any system that produces telemetry data.
-
-//TODO: @MF Replace or augment with official content from AIT Editor team when available
-// ^ request is out for AIT Editor team, what's here is fine for now
-AIT Editor is an extension to Microsoft Visual Studio Code (VS Code or VSC) that's published on the VSC Marketplace. This extension reads in the same configuration files used by AIT to perform syntax checking and validation of the files. You use AIT Editor to generate and edit spacecraft command-sequence files.
+This software suite includes a set of basic test data so that you can verify your installation. The software meets the needs common to most SmallSat and CubeSat missions with minimal adaptation. It comes with instructions for adapting the deployment for your operation's needs both at launch and as your mission evolves.
