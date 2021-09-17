@@ -1,6 +1,1 @@
-This Quick Start supports the following Regions:
-
-* us-east-1, US East (N. Virginia) (EXAMPLE)
-* us-east-2, US East (Ohio) (EXAMPLE)
-
-//Full list: https://docs.aws.amazon.com/general/latest/gr/rande.html
+This QuickStart will work in all Regions that support the required underlying services. Additionally, the deployment is compatible with the aws-us-gov partition.
