@@ -1,8 +1,8 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: (qs-1s6abjf80)
 Parameters:
-  ElasticsearchDomainName:
-    Description: Name of the Elasticsearch domain
+  ProjectName:
+    Description: Name of your project
     Type: String
   CloudWatchLogsRetentionPeriod:
     Description: The number of days to retain log events in CloudWatch log groups
@@ -85,7 +85,7 @@ Resources:
   ElasticsearchDomain:
     Type: AWS::Elasticsearch::Domain
     Properties:
-      DomainName: !Ref ElasticsearchDomainName
+      DomainName: !Sub ${ProjectName}-logs
       ElasticsearchVersion: "7.10"
       ElasticsearchClusterConfig:
         DedicatedMasterCount: 3
@@ -166,26 +166,26 @@ Resources:
               - es:UpdateElasticsearchDomainConfig
               - es:UpdatePackage
               - es:UpgradeElasticsearchDomain
-            Resource: !Sub arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/${ElasticsearchDomainName}/*
+            Resource: !Sub arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/${ProjectName}-logs/*
   AitEditorAgentLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /cloudwatch-agent/ait-editor/agent
+      LogGroupName: !Sub /${ProjectName}/cloudwatch-agent/ait-editor/agent
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
   AitEditorSyslogLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /cloudwatch-agent/ait-editor/syslog
+      LogGroupName: !Sub /${ProjectName}/cloudwatch-agent/ait-editor/syslog
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
   AitServerAgentLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /cloudwatch-agent/ait-server/agent
+      LogGroupName: !Sub /${ProjectName}/cloudwatch-agent/ait-server/agent
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
   AitServerSyslogLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /cloudwatch-agent/ait-server/syslog
+      LogGroupName: !Sub /${ProjectName}/cloudwatch-agent/ait-server/syslog
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
   LoggingBucket:
     Type: AWS::S3::Bucket
@@ -278,7 +278,7 @@ Resources:
   FirehoseLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /kinesisfirehose/logging-firehose
+      LogGroupName: !Sub /${ProjectName}/kinesisfirehose/logging-firehose
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
 
   ElasticsearchDeliveryLogStream:

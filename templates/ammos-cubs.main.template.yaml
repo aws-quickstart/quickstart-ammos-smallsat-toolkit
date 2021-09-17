@@ -9,14 +9,13 @@ Metadata:
       - Label:
           default: AIT configuration
         Parameters:
-          - AITInstanceType
-          - ElasticsearchDomainName
-          - CloudWatchLogsRetentionPeriod
-          - KeyPairName
+          - ProjectName
           - FQDN
           - SSLCertificateArn
           - HostedZoneID
-          - ProjectName
+          - AITInstanceType
+          - KeyPairName
+          - CloudWatchLogsRetentionPeriod
       - Label:
           default: IAM configuration
         Parameters:
@@ -34,6 +33,13 @@ Metadata:
           - PublicSubnet2CIDR
           - PublicSubnet3CIDR
           - RemoteAccessCIDR
+          - VpcId
+          - PublicSubnet1ID
+          - PublicSubnet2ID
+          - PrivateSubnet1AID
+          - PrivateSubnet2AID
+          - PrivateSubnet3AID
+          - AccessSgID
       - Label:
           default: AWS Quick Start configuration
         Parameters:
@@ -47,8 +53,6 @@ Metadata:
         default: Availability Zones
       CloudWatchLogsRetentionPeriod:
         default: CloudWatch Logs retention period
-      ElasticsearchDomainName:
-        default: Amazon OpenSearch Service domain name
       FQDN:
         default: Fully qualified domain name
       HostedZoneID:
@@ -85,6 +89,20 @@ Metadata:
         default: Quick Start S3 key prefix
       QSS3BucketRegion:
         default: Quick Start S3 bucket Region
+      VpcId:
+        default: ID for VPC if using an already-deployed VPC
+      PublicSubnet1ID:
+        default: ID for Public Subnet 1 if using an already-deployed VPC
+      PublicSubnet2ID:
+        default: ID for Public Subnet 2 if using an already-deployed VPC
+      PrivateSubnet1AID:
+        default: ID for Private Subnet 1A if using an already-deployed VPC
+      PrivateSubnet2AID:
+        default: ID for Private Subnet 2A if using an already-deployed VPC
+      PrivateSubnet3AID:
+        default: ID for Private Subnet 3A if using an already-deployed VPC
+      AccessSgID:
+        default: ID of pre-configured security group if using an already-deployed VPC
 Parameters:
   AITInstanceType:
     Description: Instance type to be used for AIT. See deployment
@@ -95,9 +113,6 @@ Parameters:
     Description: Number of days to retain log events in CloudWatch Logs log groups. Increasing this number results in higher log-storage costs.
     Type: Number
     Default: 30
-  ElasticsearchDomainName:
-    Description: Name of the Amazon OpenSearch Service domain.
-    Type: String
   KeyPairName:
     Description: Name of the key pair that you will use to connect securely to your instance after it launches.
     Type: AWS::EC2::KeyPair::KeyName
@@ -155,19 +170,19 @@ Parameters:
       letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
       (-).
     Default: aws-quickstart
-    Description: Name of the S3 bucket for your copy of the Quick Start assets. 
-      Keep the default name unless you are customizing the template. 
-      Changing the name updates code references to point to a new Quick 
-      Start location. This name can include numbers, lowercase letters, 
-      uppercase letters, and hyphens, but do not start or end with a hyphen (-). 
+    Description: Name of the S3 bucket for your copy of the Quick Start assets.
+      Keep the default name unless you are customizing the template.
+      Changing the name updates code references to point to a new Quick
+      Start location. This name can include numbers, lowercase letters,
+      uppercase letters, and hyphens, but do not start or end with a hyphen (-).
       See https://aws-quickstart.github.io/option1.html.
     Type: String
   QSS3BucketRegion:
     Default: 'us-east-1'
-    Description: 'AWS Region where the Quick Start S3 bucket (QSS3BucketName) is 
-    hosted. Keep the default Region unless you are customizing the template. 
-    Changing this Region updates code references to point to a new Quick Start location. 
-    When using your own bucket, specify the Region. 
+    Description: 'AWS Region where the Quick Start S3 bucket (QSS3BucketName) is
+    hosted. Keep the default Region unless you are customizing the template.
+    Changing this Region updates code references to point to a new Quick Start location.
+    When using your own bucket, specify the Region.
     See https://aws-quickstart.github.io/option1.html.'
     Type: String
   QSS3KeyPrefix:
@@ -176,12 +191,12 @@ Parameters:
       uppercase letters, hyphens (-), and forward slashes (/). The prefix should
       end with a forward slash (/).
     Default: quickstart-nasa-jpl-cubs/
-    Description: S3 key prefix that is used to simulate a directory for your copy of the 
-      Quick Start assets. Keep the default prefix unless you are customizing 
-      the template. Changing this prefix updates code references to point to 
-      a new Quick Start location. This prefix can include numbers, lowercase 
-      letters, uppercase letters, hyphens (-), and forward slashes (/). End with 
-      a forward slash. See https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html 
+    Description: S3 key prefix that is used to simulate a directory for your copy of the
+      Quick Start assets. Keep the default prefix unless you are customizing
+      the template. Changing this prefix updates code references to point to
+      a new Quick Start location. This prefix can include numbers, lowercase
+      letters, uppercase letters, hyphens (-), and forward slashes (/). End with
+      a forward slash. See https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html
       and https://aws-quickstart.github.io/option1.html.
     Type: String
   RemoteAccessCIDR:
@@ -212,6 +227,34 @@ Parameters:
   ProjectName:
     Description: Name of your project.
     Type: String
+  VpcId:
+    Description: (Optional) ID of VPC if already deployed
+    Type: String
+    Default: ''
+  PublicSubnet1ID:
+    Description: (Optional) ID of Public Subnet 1 if VPC already deployed
+    Type: String
+    Default: ''
+  PublicSubnet2ID:
+    Description: (Optional) ID of Public Subnet 2 if VPC already deployed
+    Type: String
+    Default: ''
+  PrivateSubnet1AID:
+    Description: (Optional) ID of Public Subnet 1A if VPC already deployed
+    Type: String
+    Default: ''
+  PrivateSubnet2AID:
+    Description: (Optional) ID of Public Subnet 2A if VPC already deployed
+    Type: String
+    Default: ''
+  PrivateSubnet3AID:
+    Description: (Optional) ID of Public Subnet 3A if VPC already deployed
+    Type: String
+    Default: ''
+  AccessSgID:
+    Description: (Optional) ID of pre-configured Security Group to control access to ALB
+    Type: String
+    Default: ''
 Rules:
   DomainNamePresentWithHostedID:
     Assertions:
@@ -232,6 +275,7 @@ Conditions:
     - !Equals [!Ref SSLCertificateArn, '']
     - !Not [!Equals [!Ref FQDN, '']]
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
+  DeployVpc: !Equals [!Ref VpcId, '']
 Resources:
   # AmmosConfigStack:
   #   Type: AWS::CloudFormation::Stack
@@ -249,6 +293,7 @@ Resources:
   #       PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
 # ---
   VPCStack:
+    Condition: DeployVpc
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL:
@@ -273,7 +318,7 @@ Resources:
         PublicSubnet2CIDR: !Ref PublicSubnet2CIDR
         PublicSubnet3CIDR: !Ref PublicSubnet3CIDR
   BastionStack:
-    DependsOn: CFNEndpoint
+    # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -283,15 +328,17 @@ Resources:
       Parameters:
         BastionAMIOS: 'Amazon-Linux2-HVM'
         KeyPairName: !Ref 'KeyPairName'
-        PublicSubnet1ID: !GetAtt VPCStack.Outputs.PublicSubnet1ID
-        PublicSubnet2ID: !GetAtt VPCStack.Outputs.PublicSubnet2ID
+        PublicSubnet1ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PublicSubnet1ID, !Ref PublicSubnet1ID]
+        PublicSubnet2ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PublicSubnet2ID, !Ref PublicSubnet2ID]
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Sub "${QSS3KeyPrefix}submodules/quickstart-linux-bastion/"
         QSS3BucketRegion: !Ref QSS3BucketRegion
         RemoteAccessCIDR: !Ref RemoteAccessCIDR
-        VPCID: !GetAtt VPCStack.Outputs.VPCID
+        VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
+        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
+        RolePath: !Ref RolePath
   AmmosCognitoStack:
-    DependsOn: CFNEndpoint
+    # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -305,7 +352,7 @@ Resources:
         RolePath: !Ref RolePath
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
   AmmosCubsALBStack:
-    DependsOn: CFNEndpoint
+    # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -314,15 +361,20 @@ Resources:
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         ProjectName: !Ref ProjectName
-        VPCID: !GetAtt VPCStack.Outputs.VPCID
-        PublicSubnetIds: !Join [',',[!GetAtt VPCStack.Outputs.PublicSubnet1ID,!GetAtt VPCStack.Outputs.PublicSubnet2ID]]
+        VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
+        PublicSubnetIds:
+          Fn::Join:
+            - ','
+            - - !If [DeployVpc, !GetAtt VPCStack.Outputs.PublicSubnet1ID, !Ref PublicSubnet1ID]
+              - !If [DeployVpc, !GetAtt VPCStack.Outputs.PublicSubnet2ID, !Ref PublicSubnet2ID]
         FQDN: !Ref FQDN
         HostedZoneID: !Ref HostedZoneID
-        SSLCertificateArn: !If [GenerateSSL, !GetAtt ConfigureSSLStack.Outputs.ACMCertificate, SSLCertificateArn]
+        SSLCertificateArn: !If [GenerateSSL, !GetAtt ConfigureSSLStack.Outputs.ACMCertificate, !Ref SSLCertificateArn]
         CognitoInspectFunctionArn: !GetAtt AmmosCognitoStack.Outputs.CognitoInspectFunctionArn
         CognitoUserPoolID: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolId
+        AccessSgID: !If [DeployVpc, '', !Ref AccessSgID]
   AmmosCubsLoggingStack:
-    DependsOn: CFNEndpoint
+    # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -330,18 +382,18 @@ Resources:
         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
+        ProjectName: !Ref ProjectName
         CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
-        ElasticsearchDomainName: !Ref ElasticsearchDomainName
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         RolePath: !Ref RolePath
-        VPCID: !GetAtt VPCStack.Outputs.VPCID
-        PrivateSubnet1ID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
-        PrivateSubnet2ID: !GetAtt VPCStack.Outputs.PrivateSubnet2AID
-        PrivateSubnet3ID: !GetAtt VPCStack.Outputs.PrivateSubnet3AID
+        VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
+        PrivateSubnet1ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
+        PrivateSubnet2ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
+        PrivateSubnet3ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet3AID, !Ref PrivateSubnet3AID]
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
   AmmosCubsEditorStack:
-    DependsOn: CFNEndpoint
+    # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -358,10 +410,14 @@ Resources:
         FQDN: !Ref FQDN
         KeyPairName: !Ref KeyPairName
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
-        PrivateSubnetIds: !Join [',',[!GetAtt VPCStack.Outputs.PrivateSubnet1AID,!GetAtt VPCStack.Outputs.PrivateSubnet2AID]]
+        PrivateSubnetIds:
+          Fn::Join:
+            - ','
+            - - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
+              - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
         ProjectName: !Ref ProjectName
         RolePath: !Ref RolePath
-        VPCID: !GetAtt VPCStack.Outputs.VPCID
+        VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
   AmmosCubsAITStack:
     DependsOn: AmmosCognitoStack
     Type: AWS::CloudFormation::Stack
@@ -372,11 +428,16 @@ Resources:
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         ProjectName: !Ref ProjectName
-        # ConfigBucketName: Fn::ImportValue:
-        #   !Sub "${ProjectName}-ConfigBucketName"
+        ConfigBucketName:
+          Fn::ImportValue:
+            !Sub "${ProjectName}-ConfigBucketName"
         FQDN: !Ref FQDN
-        PrivateSubnetIds: !Join [',', [!GetAtt VPCStack.Outputs.PrivateSubnet1AID,!GetAtt VPCStack.Outputs.PrivateSubnet2AID]]
-        VPCID: !GetAtt VPCStack.Outputs.VPCID
+        PrivateSubnetIds:
+          Fn::Join:
+            - ','
+            - - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
+              - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
+        VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
         InstanceType: !Ref AITInstanceType
         KeyPairName: !Ref KeyPairName
         QSS3BucketName: !Ref QSS3BucketName
@@ -396,7 +457,7 @@ Resources:
           - !Ref SSLCertificateArn
         ALBArn: !GetAtt AmmosCubsALBStack.Outputs.AlbArn
   ConfigureSSLStack:
-    DependsOn: CFNEndpoint
+    # DependsOn: CFNEndpoint
     Condition: GenerateSSL
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -412,25 +473,26 @@ Resources:
         HostedZoneID: !Ref HostedZoneID
   CFNEndpointSG:
     Type: AWS::EC2::SecurityGroup
+    Condition: DeployVpc
     Properties:
-      GroupDescription: String
-      GroupName: String
+      GroupDescription: Manage access to VPC Endpoint for CFN resources
       SecurityGroupIngress:
         - IpProtocol: '-1'
           FromPort: -1
           ToPort: -1
-          CidrIp: !GetAtt VPCStack.Outputs.VPCCIDR
-      VpcId: !GetAtt VPCStack.Outputs.VPCID
+          CidrIp: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCCIDR, !Ref VPCCIDR]
+      VpcId: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
   CFNEndpoint:
     Type: AWS::EC2::VPCEndpoint
+    Condition: DeployVpc
     Properties:
-      VpcId: !GetAtt VPCStack.Outputs.VPCID
+      VpcId: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.cloudformation"
       VpcEndpointType: "Interface"
       PrivateDnsEnabled: true
       SubnetIds:
-        - !GetAtt VPCStack.Outputs.PrivateSubnet1AID
-        - !GetAtt VPCStack.Outputs.PrivateSubnet2AID
-        - !GetAtt VPCStack.Outputs.PrivateSubnet3AID
+        - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
+        - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
+        - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet3AID, !Ref PrivateSubnet3AID]
       SecurityGroupIds:
         - !Ref CFNEndpointSG

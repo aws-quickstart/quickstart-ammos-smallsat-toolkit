@@ -62,11 +62,11 @@ Resources:
         QSS3BucketName: !Ref "QSS3BucketName"
         QSS3KeyPrefix: !Ref "QSS3KeyPrefix"
         StripPrefixAtDestination: 'true'
+        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
+        RolePath: !Ref RolePath
         SourceObjects: !Join
           - ','
           - - configs/ait/ait-config.zip
-            - configs/ait/ait-example-config.yaml
-            - configs/ait/ait_server_ssl_cert.pem
             - configs/ait/cloudwatch-agent-ait.json
             - configs/ait/config/bsc.yaml
             - configs/ait/config/ccsds_header.yaml
@@ -82,15 +82,9 @@ Resources:
             - configs/ait/config/table.yaml
             - configs/ait/config/tlm.pkl
             - configs/ait/config/tlm.yaml
-            - configs/ait/config.zip
             - configs/ait/httpd_proxy.conf
-            - configs/ait/httpd_proxy_old.conf
-            - configs/ait/httpd_ssl.conf
-            - configs/ait/test-config.yaml
             - configs/editor/cloudwatch-agent-editor.json
-            - configs/modules/openmct-0.14.tgz
             - configs/modules/openmct-static.tgz
-            - configs/modules/openmct.tgz
 Outputs:
   ConfigBucket:
     Export:

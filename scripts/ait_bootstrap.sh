@@ -75,6 +75,7 @@ mkdir -p $SETUP_DIR
 /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 sync s3://$CONFIG_BUCKET_NAME/ait/ $SETUP_DIR/
 /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 cp s3://"$CONFIG_BUCKET_NAME"/modules/openmct-static.tgz - | tar -xz -C /var/www/html
 
+
 # Install open-source AIT components
 git clone https://github.com/NASA-AMMOS/AIT-Core.git $PROJECT_HOME/AIT-Core
 cd $PROJECT_HOME/AIT-Core/
@@ -94,6 +95,11 @@ cp $SETUP_DIR/httpd_proxy.conf /etc/httpd/conf.d/proxy.conf
 mv /etc/httpd/conf.d/proxy.conf{,.bak}
 sed 's/<CFN_FQDN>/${FQDN}/g' /etc/httpd/conf.d/proxy.conf.bak > /etc/httpd/conf.d/proxy.conf
 rm /etc/httpd/conf.d/proxy.conf.bak
+
+# Inject FQDN from Cloudformation into OpenMCT file
+mv /var/www/html/openmct/index.html{,.bak}
+sed 's/<CFN_FQDN>/${FQDN}/g' /var/www/html/openmct/index.html.bak > /var/www/html/openmct/index.html
+rm /var/www/html/openmct/index.html.bak
 
 # Install InfluxDB and data plugin
 curl https://repos.influxdata.com/rhel/6/amd64/stable/influxdb-1.2.4.x86_64.rpm -o $SETUP_DIR/influxdb-1.2.4.x86_64.rpm
@@ -139,6 +145,11 @@ systemctl start httpd
 
 # Configure and start the CloudWatch Agent
 mv $SETUP_DIR/cloudwatch-agent-ait.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
+# Inject ProjectName from Cloudformation into cloudwatch agent files
+mv /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json{,.bak}
+sed 's/<PROJECT_NAME>/${ProjectName}/g' /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json.bak > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
 /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
     -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
