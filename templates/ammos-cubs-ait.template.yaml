@@ -93,9 +93,7 @@ Conditions:
     - !Equals
       - ''
       - !Ref 'KeyPairName'
-  UsingDefaultBucket: !Equals
-    - !Ref QSS3BucketName
-    - aws-quickstart
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
   IsGovCloud: !Not [!Equals ['aws', !Ref AWS::Partition]]
   RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
   PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
@@ -152,28 +150,39 @@ Resources:
       AWS::CloudFormation::Init:
         configSets:
           default:
+            - install_zip
+            - install_aws_cli
             - download_bootstrap_script
+            - invoke_bootstrap_script
+        install_zip:
+          commands:
+            install:
+              command: yum install -y zip
+        install_aws_cli:
+          commands:
+            010_install_aws_cli:
+              command: !Sub |
+                mkdir -p /tmp/awscli
+                curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscli/awscliv2.zip"
+                cd /tmp/awscli
+                unzip awscliv2.zip
+                ./aws/install
         download_bootstrap_script:
-          files:
-            /tmp/ait_bootstrap.sh:
-              source: !Sub
-                - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/ait_bootstrap.sh
+          commands:
+            010_copy_bootstrap:
+              command: !Sub
+                - | 
+                    aws s3 cp s3://${S3Bucket}/${QSS3KeyPrefix}scripts/ait_bootstrap.sh /tmp/
+                    chmod +x /tmp/ait_bootstrap.sh
                 - S3Bucket: !If
                     - UsingDefaultBucket
-                    - !Sub 'aws-quickstart-${AWS::Region}'
-                    - !Ref 'QSS3BucketName'
-                  S3Region: !If
-                    - UsingDefaultBucket
-                    - !Ref 'AWS::Region'
-                    - !Ref 'QSS3BucketRegion'
-              mode: '000550'
-              owner: 'root'
-              group: 'root'
-              authentication: S3AccessCreds
+                    - !Sub "${QSS3BucketName}-${AWS::Region}"
+                    - !Ref QSS3BucketName
+        invoke_bootstrap_script:
           commands:
-            010_run_bootstrap:
-              command: !Sub |
-                /tmp/ait_bootstrap.sh
+           020_run_bootstrap:
+              command:
+                - /tmp/ait_bootstrap.sh
     Properties:
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
@@ -195,19 +204,14 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
-          if [ $UID -eq 0 ]; then
-            sudo chmod 777 "$0"
-            exec su ec2-user "$0"
-          fi
           export PATH=$PATH:/usr/local/bin
-          sudo yum install git -y || apt-get install -y git || zypper -n install git
-          sudo git clone https://github.com/aws-quickstart/quickstart-linux-utilities.git /quickstart-linux-utilities
+          yum install git -y || apt-get install -y git || zypper -n install git
+          git clone https://github.com/aws-quickstart/quickstart-linux-utilities.git /quickstart-linux-utilities
           cd /quickstart-linux-utilities
           source quickstart-cfn-tools.source
-          qs_update-os
-          qs_aws-cfn-bootstrap
-          sudo cfn-init -v --stack ${AWS::StackName} --resource AitAutoScalingGroupLaunchConfig --region ${AWS::Region}
-          sudo cfn-signal -e $? --stack ${AWS::StackName} --resource AitAutoScalingGroup --region ${AWS::Region}
+          $(qs_get-python-path) -m easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+          /usr/local/bin/cfn-init -v --stack ${AWS::StackName} --resource AitAutoScalingGroupLaunchConfig --region ${AWS::Region}
+          /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource AitAutoScalingGroup --region ${AWS::Region}
   AitWebTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -378,6 +382,7 @@ Resources:
                       Fn::Sub: "${ProjectName}-ConfigBucketName"
           - Action:
               - 's3:GetObject'
+              - s3:ListBucket
             Resource: !Sub
               - arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}*
               - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
