@@ -1,6 +1,7 @@
 // Replace the content in <>
 // For example: “familiarity with basic concepts in networking, database operations, and data encryption” or “familiarity with <software>.”
-// Include links if helpful. 
+// Include links if helpful.
 // You don't need to list AWS services or point to general info about AWS; the boilerplate already covers this.
 
-This Quick Start also assumes familiarity with <knowledge expectations specific to this Quick Start>.
+This Quick Start also assumes familiarity with spacecraft ground data systems. The applications deployed in this Quick Start require extensive knowledge of mission parameters, common standards, operating procedures, and terminology related to spacecraft operations.
+

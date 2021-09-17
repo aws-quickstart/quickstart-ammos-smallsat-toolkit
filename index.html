@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.15">
-<title>Example Product Name on the AWS Cloud</title>
+<title>AMMOS SmallSat Toolkit on the AWS Cloud</title>
 <style>
 
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -825,7 +825,7 @@ p.footer-text a{color:#d7d8d8}
 <div id="toctitle"></div>
 <ul class="sectlevel1">
 <li><a href="#_overview">Overview</a></li>
-<li><a href="#_example_product_name_on_aws">Example Product Name on AWS</a></li>
+<li><a href="#_ammos_smallsat_toolkit_on_aws">AMMOS SmallSat Toolkit on AWS</a></li>
 <li><a href="#_aws_costs">AWS costs</a></li>
 <li><a href="#_software_licenses">Software licenses</a></li>
 <li><a href="#_architecture">Architecture</a></li>
@@ -836,21 +836,66 @@ p.footer-text a{color:#d7d8d8}
 <li><a href="#_technical_requirements">Technical requirements</a></li>
 </ul>
 </li>
+<li><a href="#_prepare_your_aws_account">Prepare your AWS account</a>
+<ul class="sectlevel2">
+<li><a href="#_create_a_service_linked_role_for_amazon_opensearch_service">Create a service-linked role for Amazon OpenSearch Service</a></li>
+<li><a href="#_deploy_and_customize_the_configuration_files">Deploy and customize the configuration files</a></li>
+<li><a href="#_optional_configure_route_53_as_your_dns_service">(Optional) Configure Route 53 as your DNS service</a></li>
+<li><a href="#_import_or_generate_an_ssl_certificate">Import or generate an SSL certificate</a></li>
+</ul>
+</li>
 <li><a href="#_deployment_steps">Deployment steps</a>
 <ul class="sectlevel2">
 <li><a href="#_confirm_your_aws_account_configuration">Confirm your AWS account configuration</a></li>
 <li><a href="#_launch_the_quick_start">Launch the Quick Start</a></li>
 </ul>
 </li>
-<li><a href="#_test_the_deployment">Test the deployment</a></li>
-<li><a href="#_post_deployment_steps">Post-deployment steps</a></li>
-<li><a href="#_best_practices_for_using_example_product_name_on_aws">Best practices for using Example Product Name on AWS</a></li>
-<li><a href="#_security">Security</a></li>
-<li><a href="#_other_useful_information">Other useful information</a></li>
+<li><a href="#_test_the_deployment">Test the deployment</a>
+<ul class="sectlevel2">
+<li><a href="#_verify_the_deployment_of_the_application_ec2_instances">Verify the deployment of the application EC2 instances</a></li>
+<li><a href="#_verify_the_deployment_of_the_applications">Verify the deployment of the applications</a></li>
+<li><a href="#_verify_that_telemetry_is_flowing">Verify that telemetry is flowing</a></li>
+<li><a href="#_verify_that_cloudwatch_is_receiving_logs">Verify that CloudWatch is receiving logs</a></li>
+</ul>
+</li>
+<li><a href="#_post_deployment_tasks">Post-deployment tasks</a>
+<ul class="sectlevel2">
+<li><a href="#_optional_deploy_dns_records">(Optional) Deploy DNS records</a></li>
+<li><a href="#_create_amazon_cognito_user_identities">Create Amazon Cognito user identities</a></li>
+<li><a href="#_install_the_ait_editor_extension">Install the AIT Editor extension</a></li>
+<li><a href="#_adapt_ait_to_your_mission">Adapt AIT to your mission</a></li>
+<li><a href="#_set_up_the_cloudwatch_agent">Set up the CloudWatch agent</a></li>
+</ul>
+</li>
+<li><a href="#_security">Security</a>
+<ul class="sectlevel2">
+<li><a href="#_iam">IAM</a></li>
+<li><a href="#_security_groups">Security groups</a></li>
+<li><a href="#_private_subnets">Private subnets</a></li>
+<li><a href="#_selinux">SELinux</a></li>
+<li><a href="#_amazon_opensearch_service">Amazon OpenSearch Service</a></li>
+<li><a href="#_authentication">Authentication</a></li>
+<li><a href="#_code_server_access">Code-server access</a></li>
+<li><a href="#_ssltls_protocol">SSL/TLS protocol</a></li>
+<li><a href="#_aws_systems_manager">AWS Systems Manager</a></li>
+</ul>
+</li>
+<li><a href="#_resources">Resources</a></li>
+<li><a href="#_software_version_requirements">Software version requirements</a>
+<ul class="sectlevel2">
+<li><a href="#_operating_system_and_dependency_versions">Operating system and dependency versions</a></li>
+<li><a href="#_supported_application_software_versions">Supported application software versions</a></li>
+<li><a href="#_influxdb_versions">InfluxDB versions</a></li>
+</ul>
+</li>
 <li><a href="#_faq">FAQ</a></li>
-<li><a href="#_troubleshooting">Troubleshooting</a></li>
 <li><a href="#_customer_responsibility">Customer responsibility</a></li>
-<li><a href="#_parameter_reference">Parameter reference</a></li>
+<li><a href="#_parameter_reference">Parameter reference</a>
+<ul class="sectlevel2">
+<li><a href="#_parameters_for_preconfiguring_your_aws_account">Parameters for preconfiguring your AWS account</a></li>
+<li><a href="#_parameters_for_deploying_into_a_new_vpc">Parameters for deploying into a new VPC</a></li>
+</ul>
+</li>
 <li><a href="#_send_us_feedback">Send us feedback</a></li>
 <li><a href="#_quick_start_reference_deployments">Quick Start reference deployments</a></li>
 <li><a href="#_github_repository">GitHub repository</a></li>
@@ -861,16 +906,17 @@ p.footer-text a{color:#d7d8d8}
 <div id="content">
 <div id="preamble">
 <div class="sectionbody">
-<h2 id="_example_product_name_on_the_aws_cloud" class="discrete text-center">Example Product Name on the AWS Cloud</h2>
+<h2 id="_ammos_smallsat_toolkit_on_the_aws_cloud" class="discrete text-center">AMMOS SmallSat Toolkit on the AWS Cloud</h2>
 <h2 id="_quick_start_reference_deployment" class="discrete text-left text-center">Quick Start Reference Deployment</h2>
 <div class="imageblock text-center">
 <div class="content">
-<img src="https://aws-quickstart.s3.amazonaws.com/quickstart-documentation-base/docs/boilerplate/.images/aws-quickstart-graphic.png" alt="QS" width="80" height="80">
+<img src="https://aws-quickstart.s3.amazonaws.com/quickstart-ammos-smallsat-toolkit/docs/boilerplate/.images/aws-quickstart-graphic.png" alt="QS" width="80" height="80">
 </div>
 </div>
 <div class="paragraph text-center">
-<p><strong>Month of launch or significant update (spelled out) Year</strong><br>
-<em>Toni Jones, AWS Integration &amp; Automation team</em></p>
+<p><strong>September 2021</strong><br>
+<em>Michael Fedell and Steven Liu, Jet Propulsion Laboratory</em><br>
+<em>Andrew Glenn, AWS Integration &amp; Automation team</em></p>
 </div>
 <div class="admonitionblock tip text-left">
 <table>
@@ -879,14 +925,14 @@ p.footer-text a{color:#d7d8d8}
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-Visit our <a href="https://github.com/aws-quickstart/quickstart-documentation-base" target="_blank" rel="noopener">GitHub repository</a> for source files and to post feedback,
+Visit our <a href="https://github.com/aws-quickstart/quickstart-ammos-smallsat-toolkit" target="_blank" rel="noopener">GitHub repository</a> for source files and to post feedback,
 report bugs, or submit feature ideas for this Quick Start.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph text-left">
-<p>This Quick Start was created by Example Company Name, Ltd. in collaboration with Amazon Web Services (AWS). <a href="http://aws.amazon.com/quickstart/" target="_blank" rel="noopener">Quick Starts</a> are automated reference deployments that use AWS CloudFormation templates to deploy key technologies on AWS, following AWS best practices.</p>
+<p>This Quick Start was created by Jet Propulsion Laboratory in collaboration with Amazon Web Services (AWS). <a href="http://aws.amazon.com/quickstart/" target="_blank" rel="noopener">Quick Starts</a> are automated reference deployments that use AWS CloudFormation templates to deploy key technologies on AWS, following AWS best practices.</p>
 </div>
 </div>
 </div>
@@ -894,10 +940,10 @@ report bugs, or submit feature ideas for this Quick Start.
 <h2 id="_overview">Overview</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This guide provides instructions for deploying the Example Product Name Quick Start reference architecture on the AWS Cloud.</p>
+<p>This guide provides instructions for deploying the AMMOS SmallSat Toolkit Quick Start on the AWS Cloud.</p>
 </div>
 <div class="paragraph">
-<p>This Quick Start is for users who &lt;target audience and usage scenario&gt;</p>
+<p>This Quick Start deploys NASA&#8217;s <a href="https://ammos.nasa.gov/" target="_blank" rel="noopener">Advanced Multi-Mission Operations System (AMMOS)</a> suite of capabilities for small-satellite (SmallSat and CubeSat) missions and instrument missions. AMMOS offers advanced sequence generation, command uplink and downlink, telemetry processing, and data visualization. Using this Quick Start, your team can rapidly deploy a foundational ground data system (GDS) that is built on high-heritage capabilities maintained by NASA. The AMMOS suite comprises open-source products that are available in the <a href="https://github.com/NASA-AMMOS" target="_blank" rel="noopener">NASA-AMMOS GitHub repository</a>, where contributions are welcomed and encouraged.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -914,10 +960,13 @@ Amazon may share user-deployment information with the AWS Partner that collabora
 </div>
 </div>
 <div class="sect1">
-<h2 id="_example_product_name_on_aws">Example Product Name on AWS</h2>
+<h2 id="_ammos_smallsat_toolkit_on_aws">AMMOS SmallSat Toolkit on AWS</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>&lt;Describe how the software works on AWS.&gt;</p>
+<p>The core of this lightweight software bundle is the <a href="https://github.com/NASA-AMMOS/AIT-Core" target="_blank" rel="noopener">AMMOS Instrument Toolkit (AIT)</a>. AIT is a Python-based software suite that handles GDS, electrical ground support equipment (EGSE), commanding, telemetry uplink and downlink, and sequencing. AIT integrates with <a href="https://github.com/NASA-AMMOS/openmct-mcws" target="_blank" rel="noopener">Open Mission Control Technologies (Open MCT)</a> software, which provides visualization and dashboarding capabilities. AIT also integrates with <a href="https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor" target="_blank" rel="noopener">AIT Editor</a>, a Microsoft Visual Studio Code (VS Code or VSC) extension that provides a centralized, browser-based environment for generating and editing spacecraft command-sequence files.</p>
+</div>
+<div class="paragraph">
+<p>This software suite includes a set of basic test data so that you can verify your installation. The software meets the needs common to most SmallSat and CubeSat missions with minimal adaptation. It comes with instructions for adapting the deployment for your operation&#8217;s needs both at launch and as your mission evolves.</p>
 </div>
 </div>
 </div>
@@ -952,19 +1001,7 @@ After you deploy the Quick Start, create <a href="https://docs.aws.amazon.com/aw
 <h2 id="_software_licenses">Software licenses</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><em>&lt;Example 1&gt;No licenses are required to deploy this Quick Start. All AWS service resources consumed during the launch of the Quick Start incur AWS service usage costs.</em></p>
-</div>
-<div class="paragraph">
-<p><em>&lt;Example 2&gt;Some configurations of the Example Product Name Quick Start involve the use of third-party software. You are responsible for obtaining a license directly from the software vendor.</em></p>
-</div>
-<div class="paragraph">
-<p><em>&lt;Example 3&gt;This Quick Start requires a license for Example Product Name. To use the Quick Start in your production environment, sign up for a license at &lt;link&gt;. When you launch the Quick Start, place the license key in an S3 bucket and specify its location.</em></p>
-</div>
-<div class="paragraph">
-<p><em>If you don’t have a license, the Quick Start deploys with a trial license. The trial license gives you &lt;n&gt; days of free usage in a non-production environment. After this time, you can upgrade to a production license by following the instructions at &lt;link&gt;.</em></p>
-</div>
-<div class="paragraph">
-<p><em>&lt;AMI information&gt;The Quick Start requires a subscription to the Amazon Machine Image (AMI) for Example Product Name, which is available from <a href="https://aws.amazon.com/marketplace/" target="_blank" rel="noopener">AWS Marketplace</a>. Additional pricing, terms, and conditions may apply. For instructions, see <a href="#step-2.-subscribe-to-the-software-ami">step 2</a> in the deployment section.</em></p>
+<p>No licenses are required to deploy this Quick Start.</p>
 </div>
 </div>
 </div>
@@ -973,14 +1010,14 @@ After you deploy the Quick Start, create <a href="https://docs.aws.amazon.com/aw
 <div class="sectionbody">
 <div class="paragraph">
 <p>Deploying this Quick Start for a new virtual private cloud (VPC) with
-default parameters builds the following Example Product Name environment in the
+default parameters builds the following AMMOS SmallSat Toolkit environment in the
 AWS Cloud.</p>
 </div>
 <div id="architecture1" class="imageblock">
 <div class="content">
-<img src="images/architecture_diagram.png" alt="Architecture">
+<img src="images/nasa-ammos-smallsat-toolkit-architecture-diagram.png" alt="Architecture">
 </div>
-<div class="title">Figure 1. Quick Start architecture for Example Product Name on AWS</div>
+<div class="title">Figure 1. Quick Start architecture for AMMOS SmallSat Toolkit on AWS</div>
 </div>
 <div class="paragraph">
 <p>As shown in <a href="#architecture1">Figure 1</a>, the Quick Start sets up the following:</p>
@@ -988,23 +1025,23 @@ AWS Cloud.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>A highly available architecture that spans two Availability Zones.*</p>
+<p>A highly available architecture that spans three Availability Zones.</p>
 </li>
 <li>
-<p>A VPC configured with public and private subnets, according to AWS
-best practices, to provide you with your own virtual network on AWS.*</p>
+<p>A VPC configured with public and private subnets, according to AWS best practices, to provide you with your own virtual network on AWS.</p>
 </li>
 <li>
 <p>In the public subnets:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Managed network address translation (NAT) gateways to allow outbound
-internet access for resources in the private subnets.*</p>
+<p>A Linux bastion host in an Auto Scaling group to allow inbound Secure Shell (SSH) access to Amazon Elastic Compute Cloud (Amazon EC2) instances in public and private subnets.</p>
 </li>
 <li>
-<p>A Linux bastion host in an Auto Scaling group to allow inbound Secure
-Shell (SSH) access to EC2 instances in public and private subnets.*</p>
+<p>An Application Load Balancer to route traffic from the web to the EC2 instances in the private subnets.</p>
+</li>
+<li>
+<p>A managed network address translation (NAT) gateway to provide outbound internet access for resources in the private subnets.</p>
 </li>
 </ul>
 </div>
@@ -1014,21 +1051,33 @@ Shell (SSH) access to EC2 instances in public and private subnets.*</p>
 <div class="ulist">
 <ul>
 <li>
-<p>&lt;item&gt;.</p>
+<p>An EC2 instance that serves the AIT and Open MCT applications using Apache HTTP Server. This instance runs in an Auto Scaling group.</p>
 </li>
 <li>
-<p>&lt;item&gt;.</p>
+<p>An EC2 instance that serves the AIT Editor application. This instance runs in a Docker container to mitigate the impact of system commands that are executed from the VS Code–integrated terminal that&#8217;s exposed in the browser.</p>
 </li>
 </ul>
 </div>
 </li>
 <li>
-<p>&lt;describe any additional components&gt;.</p>
+<p>Amazon Cognito to manage identities and authenticate users.</p>
+</li>
+<li>
+<p>Amazon CloudWatch to receive log data from the EC2 instances in the private subnets using Amazon CloudWatch Logs agents.</p>
+</li>
+<li>
+<p>AWS Lambda to process logs for Amazon Kinesis Data Firehose.</p>
+</li>
+<li>
+<p>Kinesis Data Firehose to deliver log data from CloudWatch Logs to Amazon S3 and Amazon OpenSearch Service (successor to Amazon Elasticsearch Service).</p>
+</li>
+<li>
+<p>Amazon Route 53 to provide a canonical name (CNAME) record, an alias for the Application Load Balancer.</p>
+</li>
+<li>
+<p>Two S3 buckets, one for long-term storage of log files and the other for configuration files.</p>
 </li>
 </ul>
-</div>
-<div class="paragraph">
-<p><span class="small">* The template that deploys the Quick Start into an existing VPC skips the components marked by asterisks and prompts you for your existing VPC configuration.</span></p>
 </div>
 </div>
 </div>
@@ -1044,7 +1093,7 @@ and <a href="https://aws.amazon.com/training/" target="_blank" rel="noopener">AW
 deploy, and operate your infrastructure and applications on the AWS Cloud.</p>
 </div>
 <div class="paragraph">
-<p>This Quick Start also assumes familiarity with &lt;knowledge expectations specific to this Quick Start&gt;.</p>
+<p>This Quick Start also assumes familiarity with spacecraft ground data systems. The applications deployed in this Quick Start require extensive knowledge of mission parameters, common standards, operating procedures, and terminology related to spacecraft operations.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1080,35 +1129,71 @@ deploy, and operate your infrastructure and applications on the AWS Cloud.</p>
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">VPCs</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">&lt;n&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Elastic IP addresses</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">&lt;n&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Subnets</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Route tables</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Internet gateways</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NAT gateways</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Security groups</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">&lt;n&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">AWS Identity and Access Management (IAM) roles</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">&lt;n&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Auto Scaling groups</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">&lt;n&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">EC2 instances</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Application Load Balancers</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">&lt;n&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Network Load Balancers</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">&lt;n&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Amazon Cognito user pools</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">&lt;type&gt; instances</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">&lt;n&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Amazon OpenSearch Service domains</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">S3 buckets</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CloudWatch Logs log groups</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Route 53 records</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Kinesis Data Firehose delivery streams</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Lambda functions</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
 </tr>
 </tbody>
 </table>
@@ -1135,6 +1220,15 @@ Certain Regions are available on an opt-in basis. For more information, see <a h
 </div>
 </div>
 <div class="sect3">
+<h4 id="_amazon_ec2_key_pairs">Amazon EC2 key pairs</h4>
+<div class="paragraph">
+<p>Ensure that at least one Amazon EC2 key pair exists in your AWS account in the Region where you plan to deploy the Quick Start. Note the key-pair name because you will use it during deployment. To create a key pair, see <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html" target="_blank" rel="noopener">Amazon EC2 key pairs and Linux instances</a>.</p>
+</div>
+<div class="paragraph">
+<p>For testing or proof-of-concept purposes, we recommend creating a new key pair instead of using one that’s already being used by a production instance.</p>
+</div>
+</div>
+<div class="sect3">
 <h4 id="_iam_permissions">IAM permissions</h4>
 <div class="paragraph">
 <p>Before launching the Quick Start, you must sign in to the AWS Management Console with IAM permissions for the resources that the templates deploy. The <em>AdministratorAccess</em> managed policy within IAM provides sufficient permissions, although your organization may choose to use a custom policy with more restrictions. For more information, see <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_job-functions.html" target="_blank" rel="noopener">AWS managed policies for job functions</a>.</p>
@@ -1143,39 +1237,263 @@ Certain Regions are available on an opt-in basis. For more information, see <a h
 <div class="sect3">
 <h4 id="_deployment_options">Deployment options</h4>
 <div class="paragraph">
-<p>This Quick Start provides two deployment options:</p>
+<p>This Quick Start provides one deployment option: <strong>deploy AMMOS SmallSat Toolkit into a new VPC</strong>. This option builds a new AWS environment consisting of the VPC, subnets, NAT gateways, security groups, bastion hosts, and other infrastructure components. It then deploys AMMOS SmallSat Toolkit into this new VPC.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_prepare_your_aws_account">Prepare your AWS account</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Before you launch the Quick Start, prepare your AWS account by completing the following tasks.</p>
+</div>
+<div class="sect2">
+<h3 id="_create_a_service_linked_role_for_amazon_opensearch_service">Create a service-linked role for Amazon OpenSearch Service</h3>
+<div class="paragraph">
+<p>Amazon OpenSearch Service uses a service-linked role to call other necessary AWS services on your behalf during the Amazon OpenSearch Service provisioning process. To create the role, follow the instructions under <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html#create-service-linked-role" target="_blank" rel="noopener">Creating a service-linked role</a>. Specify the service name as <code>es.amazonaws.com</code>.</p>
+</div>
+<div class="paragraph">
+<p>For more information, see the <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/slr.html" target="_blank" rel="noopener">Using service-linked roles to provide Amazon OpenSearch Service access to resources</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_deploy_and_customize_the_configuration_files">Deploy and customize the configuration files</h3>
+<div class="paragraph">
+<p>The preconfiguration (prerequisite) stack for this Quick Start contains an S3 bucket that&#8217;s populated with base configuration files for AIT, AIT Editor, and Open MCT. Deploy this stack and customize the configuration files as follows:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a href="https://fwd.aws/jmp4j?" target="_blank" rel="noopener">Deploy the preconfiguration stack</a>. (<a href="https://fwd.aws/xb7vj?" target="_blank" rel="noopener">View the template</a>.)</p>
+</li>
+<li>
+<p>Sign in to the AWS Management Console, and open the <a href="https://console.aws.amazon.com/cloudformation/" target="_blank" rel="noopener">AWS CloudFormation console</a>.</p>
+</li>
+<li>
+<p>Select the preconfiguration stack, choose the <strong>Outputs</strong> tab, and note the S3 bucket name (the value of the <strong>ConfigBucket</strong> key).</p>
+</li>
+<li>
+<p>Copy, customize, and overwrite files of the same name in the S3 configuration bucket.</p>
+<div class="paragraph">
+<p>For details on customizing these files, see the following section: <a href="#_about_the_configuration_files">About the configuration files</a>.</p>
+</div>
+</li>
+</ol>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Use the correct syntax and format in your configuration files so that the applications deploy.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_about_the_configuration_files">About the configuration files</h4>
+<div class="paragraph">
+<p>The configuration files in the S3 bucket are organized by application with the following structure:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>configs
+├── ait
+│   ├── cloudwatch-agent-ait.json
+│   ├── config
+│   │   ├── bsc.yaml
+│   │   ├── ccsds_header.yaml
+│   │   ├── cmd.pkl
+│   │   ├── cmd.yaml
+│   │   ├── config.yaml
+│   │   ├── core_set_op_mode.yaml
+│   │   ├── evr.pkl
+│   │   ├── evr.yaml
+│   │   ├── leapseconds.dat
+│   │   ├── limits.pkl
+│   │   ├── limits.yaml
+│   │   ├── table.yaml
+│   │   ├── tlm.pkl
+│   │   └── tlm.yaml
+│   └── httpd_proxy.conf
+├── editor
+│   └── cloudwatch-agent-editor.json
+└── modules
+    └── openmct-static.tgz</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Review the descriptions in the following sections to determine which files you need to modify before you deploy the Quick Start.</p>
+</div>
+<div class="paragraph">
+<p>During deployment, the Quick Start retrieves the AIT configuration files (the ones in the <code>configs/ait/config</code> S3 folder) and places them in <code>/home/ec2-user/AIT-Core/config</code> on the AIT EC2 instance.</p>
+</div>
+<div class="paragraph">
+<p>For more information, see <a href="https://ait-core.readthedocs.io/en/latest/configuration_intro.html" target="_blank" rel="noopener">Introduction to AIT Configuration</a>.</p>
+</div>
+<div class="sect4">
+<h5 id="_configsait">configs/ait/</h5>
+<div class="paragraph">
+<p>This S3 folder contains configuration files for the AIT deployment within this Quick Start.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_cloudwatch_agent_ait_json">cloudwatch-agent-ait.json</h5>
+<div class="paragraph">
+<p>This file configures the CloudWatch agent that runs on the AIT EC2 instance. Modify this file if you need to add sources for logs to send to CloudWatch Logs.</p>
+</div>
+<div class="paragraph">
+<p>For more information, see <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html" target="_blank" rel="noopener">Manually create or edit the CloudWatch agent configuration file</a>.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_configsaitconfig">configs/ait/config/</h5>
+<div class="paragraph">
+<p>This S3 folder contains configuration files for the AIT application.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_config_yaml">config.yaml</h5>
+<div class="paragraph">
+<p>This is the main configuration file for AIT.</p>
+</div>
+<div class="paragraph">
+<p>During deployment, the Quick Start retrieves this file along with the other AIT configuration files (the files in the <code>configs/ait/config</code> S3 folder) and places them in <code>/home/ec2-user/AIT-Core/config</code> on the AIT EC2 instance.</p>
+</div>
+<div class="paragraph">
+<p>This file references a few other configuration files (file paths are relative) as well as enabling a default set of AIT plugins: AIT GUI, the Data Archive plugin for InfluxDB, and the AIT Open MCT plugin.</p>
+</div>
+<div class="paragraph">
+<p>For more information, see <a href="https://ait-core.readthedocs.io/en/latest/configuration_intro.html#config-yaml" target="_blank" rel="noopener">config.yaml</a> in the AIT documentation.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_httpd_proxy_conf">httpd_proxy.conf</h5>
+<div class="paragraph">
+<p>This configuration file defines how Apache HTTP Server proxies requests to either AIT or Open MCT. Both applications are set up as virtual hosts in Apache. Requests to AIT get proxied to the AIT backend Python process while requests to Open MCT are handled directly by the Apache web server that serves Open MCT&#8217;s static files.</p>
+</div>
+<div class="paragraph">
+<p>Modify this file if you need a nonstandard configuration for routing traffic between applications.</p>
+</div>
+<div class="paragraph">
+<p>For more information, see <a href="https://httpd.apache.org/docs" target="_blank" rel="noopener">Apache HTTP Server Project</a>.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_configseditor">configs/editor/</h5>
+<div class="paragraph">
+<p>This S3 folder contains configuration files for the AIT Editor deployment within this Quick Start.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_cloudwatch_agent_editor_json">cloudwatch-agent-editor.json</h5>
+<div class="paragraph">
+<p>This file configures the CloudWatch agent that runs on the AIT Editor EC2 instance. Modify this file if you need to configure additional sources for logs to send to CloudWatch Logs.</p>
+</div>
+<div class="paragraph">
+<p>For more information, see <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html" target="_blank" rel="noopener">Manually create or edit the CloudWatch agent configuration file</a>.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_configsmodules">configs/modules/</h5>
+<div class="paragraph">
+<p>This S3 folder contains a tarball of the static files that are served by Apache HTTP Server for Open MCT.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_openmct_static_tgz">openmct-static.tgz</h5>
+<div class="paragraph">
+<p>This file is a tarball of the static files for Open MCT. The JavaScript files in the tarball have been minified and bundled.</p>
+</div>
+<div class="paragraph">
+<p>Modify these files if you need to edit the Open MCT framework or configure or install plugins for Open MCT. Make your changes, create a new tarball, and then upload the new file to overwrite the existing file in S3.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_optional_configure_route_53_as_your_dns_service">(Optional) Configure Route 53 as your DNS service</h3>
+<div class="paragraph">
+<p>This deployment relies on a fully qualified domain name (FQDN) that you provide. This FQDN is used to discover the Application Load Balancer and subdomains to identify each application. If you configure Route 53 as your Domain Name System (DNS) service, the Quick Start deploys the following records in your Route 53 hosted zone for each application (where &lt;fqdn&gt; represents your FQDN URL):</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&lt;fqdn&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">→ Application Load Balancer</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ait.&lt;fqdn&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">→ AIT Auto Scaling group [Apache → ait-gui bottle app]</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">mct.&lt;fqdn&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">→ AIT Auto Scaling group [Apache → mct static built app]</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">editor.&lt;fqdn&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">→ AIT Editor EC2 instance [Docker container]</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">logs.&lt;fqdn&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">→ Amazon OpenSearch Service</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>For more information, see <a href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html" target="_blank" rel="noopener">Configuring Amazon Route 53 as your DNS service</a>.</p>
+</div>
+<div class="paragraph">
+<p>If you choose not to use Route 53, you are responsible for deploying the appropriate name records in your DNS. For details, see <a href="#_optional_deploy_dns_records">(Optional) Deploy DNS records</a> later in this guide.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_import_or_generate_an_ssl_certificate">Import or generate an SSL certificate</h3>
+<div class="paragraph">
+<p>You must have a valid Secure Sockets Layer (SSL) certificate for your FQDN because HTTPS is enabled on the Application Load Balancer. The certificate needs to be available in AWS Certificate Manager (ACM) for attachment to the Application Load Balancer.</p>
+</div>
+<div class="paragraph">
+<p>You can import this certificate into ACM manually. Alternatively, you can generate it during deployment by populating both the <code>FQDN</code> and <code>HostedZoneID</code> parameters. The deployment method, which uses DNS validation, creates all the necessary DNS records related to the ACM certificate.</p>
+</div>
+<div class="paragraph">
+<p>Ensure that your certificate includes the following Subject Alternative Names (SANs). You can use <code>*.&lt;fqdn&gt;</code> (where &lt;fqdn&gt; represents your FQDN URL).</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Deploy Example Product Name into a new VPC</strong>. This option builds a new AWS environment consisting of the VPC, subnets, NAT gateways, security groups, bastion hosts, and other infrastructure components. It then deploys Example Product Name into this new VPC.</p>
+<p><code>ait.&lt;fqdn&gt;</code></p>
 </li>
 <li>
-<p><strong>Deploy Example Product Name into an existing VPC</strong>. This option provisions Example Product Name in your existing AWS infrastructure.</p>
+<p><code>mct.&lt;fqdn&gt;</code></p>
+</li>
+<li>
+<p><code>editor.&lt;fqdn&gt;</code></p>
+</li>
+<li>
+<p><code>logs.&lt;fqdn&gt;</code></p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>The Quick Start provides separate templates for these options. It also lets you configure Classless Inter-Domain Routing (CIDR) blocks, instance types, and Example Product Name settings, as discussed later in this guide.</p>
+<p>For more information, see the following:</p>
 </div>
-</div>
-<div class="sect3">
-<h4 id="_prepare_your_aws_account">Prepare your AWS account</h4>
-<div class="paragraph">
-<p><em>Describe any setup required in the AWS account prior to template launch</em></p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_prepare_your_example_company_name_ltd_account">Prepare your Example Company Name, Ltd. account</h4>
-<div class="paragraph">
-<p><em>Describe any setup required in the partner portal/account prior to template launch</em></p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_prepare_for_the_deployment">Prepare for the deployment</h4>
-<div class="paragraph">
-<p><em>Describe any preparation required to complete the product build, such as obtaining licenses or placing files in S3</em></p>
-</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://docs.aws.amazon.com/acm/latest/userguide/gs.html" target="_blank" rel="noopener">Issuing and managing certificates</a></p>
+</li>
+<li>
+<p><a href="https://docs.aws.amazon.com/acm/latest/userguide/import-certificate.html" target="_blank" rel="noopener">Importing certificates into AWS Certificate Manager</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -1198,44 +1516,16 @@ Certain Regions are available on an opt-in basis. For more information, see <a h
 </div>
 <div class="sect2">
 <h3 id="_launch_the_quick_start">Launch the Quick Start</h3>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-If you’re deploying Example Product Name into an existing VPC, make sure that your VPC has two private subnets in different Availability Zones for the workload instances and that the subnets aren’t shared. This Quick Start doesn’t support <a href="https://docs.aws.amazon.com/vpc/latest/userguide/vpc-sharing.html" target="_blank" rel="noopener">shared subnets</a>. These subnets require <a href="https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html" target="_blank" rel="noopener">NAT gateways</a> in their route tables to allow the instances to download packages and software without exposing them to the internet. Also make sure that the domain name option in the DHCP options is configured as explained in <a href="http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_DHCP_Options.html" target="_blank" rel="noopener">DHCP options sets</a>. You provide your VPC settings when you launch the Quick Start.
-</td>
-</tr>
-</table>
-</div>
 <div class="paragraph">
-<p>Each deployment takes about 15 minutes / 60 minutes / 1.5 hours to complete.</p>
+<p>Each deployment takes about 60 minutes to complete.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Sign in to your AWS account, and choose one of the following options to launch the AWS CloudFormation template. For help with choosing an option, see <a href="#_deployment_options">Deployment options</a> earlier in this guide.</p>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 75%;">
-<col style="width: 25%;">
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><a href="http://qs_launch_permalink" target="_blank" rel="noopener">Deploy Example Product Name into a new VPC on AWS</a></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><a href="http://qs_template_permalink" target="_blank" rel="noopener">View template</a></p></td>
-</tr>
-<tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><a href="http://qs_launch_permalink" target="_blank" rel="noopener">Deploy Example Product Name into an existing VPC on AWS</a></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><a href="http://qs_template_permalink" target="_blank" rel="noopener">View template</a></p></td>
-</tr>
-</tbody>
-</table>
+<p>Sign in to your AWS account, and <a href="https://fwd.aws/p5Pxb?" target="_blank" rel="noopener">deploy AMMOS SmallSat Toolkit into a new VPC</a>. For details, see <a href="#_deployment_options">Deployment options</a> earlier in this guide. (<a href="https://fwd.aws/KbM3z?" target="_blank" rel="noopener">View template</a>.)</p>
 </li>
 <li>
-<p>Check the AWS Region that’s displayed in the upper-right corner of the navigation bar, and change it if necessary. This Region is where you build the network infrastructure. The template is launched in the us-east-1 Region by default. For other choices, see <a href="#_supported_regions">Supported Regions</a> earlier in this guide.</p>
+<p>Check the AWS Region that&#8217;s displayed in the upper-right corner of the navigation bar, and change it if necessary.  This Region is where you build the infrastructure. The template is launched in the us-east-1 Region by default. Supported Regions include the AWS GovCloud (US) Regions. For more information, see <a href="#_supported_aws_regions">Supported AWS Regions</a> earlier in this guide.</p>
 </li>
 <li>
 <p>On the <strong>Create stack</strong> page, keep the default setting for the template URL, and then choose <strong>Next</strong>.</p>
@@ -1253,7 +1543,7 @@ If you’re deploying Example Product Name into an existing VPC, make sure that 
 <p>Choose <strong>Create stack</strong> to deploy the stack.</p>
 </li>
 <li>
-<p>Monitor the status of the stack. When the status is <strong>CREATE_COMPLETE</strong>, the Example Product Name deployment is ready.</p>
+<p>Monitor the status of the stack. When the status is <strong>CREATE_COMPLETE</strong>, the AMMOS SmallSat Toolkit deployment is ready.</p>
 </li>
 <li>
 <p>To view the created resources, see the values displayed in the <strong>Outputs</strong> tab for the stack.</p>
@@ -1266,36 +1556,654 @@ If you’re deploying Example Product Name into an existing VPC, make sure that 
 <div class="sect1">
 <h2 id="_test_the_deployment">Test the deployment</h2>
 <div class="sectionbody">
-
+<div class="paragraph">
+<p>Verify that all the components have been deployed by doing the following tests in the documented order.</p>
+</div>
+<div class="sect2">
+<h3 id="_verify_the_deployment_of_the_application_ec2_instances">Verify the deployment of the application EC2 instances</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Sign in to the AWS Management Console, and open the <a href="https://console.aws.amazon.com/ec2/" target="_blank" rel="noopener">Amazon EC2 console</a>.</p>
+</li>
+<li>
+<p>Choose <strong>Instances</strong> from the left navigation bar. Verify that the <strong>AitAutoScalingGroup</strong> and <strong>EditorServer</strong> EC2 instances appear.</p>
+</li>
+<li>
+<p>For each instance, ensure that there are no failed checks in the the <strong>Status checks</strong> column.</p>
+</li>
+<li>
+<p>Use AWS Systems Manager (formerly knows as SSM) to verify that you can connect to each instance.</p>
+</li>
+<li>
+<p>On the AIT Editor instance, run <code>docker ps</code>. Verify that the Docker container is running.</p>
+</li>
+<li>
+<p>On the AIT instance, verify that the Apache HTTPD Server and AIT-Core systemd services are active by running the following commands:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>service httpd status</code></p>
+</li>
+<li>
+<p><code>service ait-server status</code></p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+In the AIT documentation, the core AIT functionality is sometimes called a "server," specifically <a href="https://ait-core.readthedocs.io/en/master/server_architecture.html#plugins" target="_blank" rel="noopener">AIT Server</a>. This is where the file <code>ait-server</code> gets its name.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_the_deployment_of_the_applications">Verify the deployment of the applications</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open a web browser, and enter your FQDN URL.</p>
+<div class="paragraph">
+<p>A landing page opens showing links to the AIT, OpenMCT, and AIT Editor applications.</p>
+</div>
+</li>
+<li>
+<p>Choose each link. Verify that each application opens.</p>
+<div class="paragraph">
+<p>You may be prompted for login credentials the first time you open the applications. Login credentials are managed by Amazon Cognito. For more information, see <a href="#_create_amazon_cognito_user_identities">Create Amazon Cognito user identities</a> later in this guide.</p>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_that_telemetry_is_flowing">Verify that telemetry is flowing</h3>
+<div class="paragraph">
+<p>The AIT software includes two sample telemetry scripts: <code>ait-example</code> and <code>ait-tlm-simulate</code>. Verify the telemetry by running both of these command line interface (CLI) programs on the AIT EC2 instance as follows.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Connect to the AIT EC2 instance. For details, see <a href="#_verify_access_to_the_application_ec2_instances">Verify access to the application EC2 instances</a> earlier in this guide.</p>
+</li>
+<li>
+<p>Activate the Python virtual environment where AIT and the sample telemetry scripts are installed.</p>
+<div class="paragraph">
+<p>The scripts are installed in a virtual environment named <code>ait</code> on the AIT instance. As part of the activation, the virtual environment modifies your <code>PATH</code> variable to include a few AIT scripts that are now executable.</p>
+</div>
+</li>
+<li>
+<p>Use the commands <code>ait-example</code> and <code>ait-tlm-simulate</code> to run each script.</p>
+<div class="paragraph">
+<p>The two scripts generate sample telemetry. <code>ait-example</code>, which has a hard-coded packet structure, sends telemetry for 100 seconds. <code>ait-tlm-simulate</code>, which can simulate different packet types, emits telemetry once per second indefinitely.</p>
+</div>
+</li>
+<li>
+<p>Open the AIT application. In most cases, it&#8217;s <code>ait.&lt;fqdn&gt;</code> (where &lt;fqdn&gt; represents your FQDN URL).</p>
+</li>
+<li>
+<p>Choose the <strong>Telemetry</strong> tab.</p>
+<div class="paragraph">
+<p>If you&#8217;re using the default AIT configuration files, you see two graphs: one for voltages and one for currents.</p>
+</div>
+</li>
+<li>
+<p>While the scripts are running, verify that you see new data points on the graphs and a line plot forming. This indicates that telemetry is flowing through the AIT software.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_that_cloudwatch_is_receiving_logs">Verify that CloudWatch is receiving logs</h3>
+<div class="paragraph">
+<p>Quick Start deployment installs CloudWatch agents on both application EC2 instances. The agents send <code>agent</code> and <code>syslog</code> logs to CloudWatch. Verify that CloudWatch is receiving logs as follows:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open the <a href="https://console.aws.amazon.com/cloudwatch/" target="_blank" rel="noopener">CloudWatch console</a>.</p>
+</li>
+<li>
+<p>In the left navigation bar, under <strong>Logs</strong>, choose <strong>Log groups</strong>. Locate the following log groups:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>/cloudwatch-agent/ait-editor/agent</code></p>
+</li>
+<li>
+<p><code>/cloudwatch-agent/ait-editor/syslog</code></p>
+</li>
+<li>
+<p><code>/cloudwatch-agent/ait-server/agent</code></p>
+</li>
+<li>
+<p><code>/cloudwatch-agent/ait-server/syslog</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Verify that each of these log groups contains a few log streams and that each stream contains log data. If you deployed the Quick Start recently, you may see only a small amount of log data.</p>
+</li>
+</ol>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_post_deployment_steps">Post-deployment steps</h2>
-<div class="sectionbody">
-
-</div>
-</div>
-<div class="sect1">
-<h2 id="_best_practices_for_using_example_product_name_on_aws">Best practices for using Example Product Name on AWS</h2>
+<h2 id="_post_deployment_tasks">Post-deployment tasks</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><em>Add any best practices for using the software.</em></p>
+<p>Complete any of the following post-deployment tasks that are relevant your mission. You can do these tasks in any order.</p>
+</div>
+<div class="sect2">
+<h3 id="_optional_deploy_dns_records">(Optional) Deploy DNS records</h3>
+<div class="paragraph">
+<p>If you aren&#8217;t using Route 53 for domain management, as described under <a href="#_prepare_your_aws_account"><em>Prepare your AWS account</em></a> earlier in this guide, you are responsible for deploying the appropriate name records to your DNS.</p>
+</div>
+<div class="paragraph">
+<p>Deploy the following records:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>CNAME         fqdn            →    Application Load Balancer
+Alias    |    ait.fqdn        →    fqdn
+Alias    |    mct.fqdn        →    fqdn
+Alias    |    editor.fqdn     →    fqdn
+Alias    |    logs.fqdn       →    fqdn</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To view the Application Load Balancer DNS name, see the value displayed in the <strong>Outputs</strong> tab for the stack.</p>
+</div>
+<div class="paragraph">
+<p>The Application Load Balancer handles redirection based on the host header in request. It&#8217;s sufficient to deploy a single CNAME record pointing to the Application Load Balancer and to deploy all subdomains as aliases that redirect to the Application Load Balancer CNAME record.</p>
+</div>
+<div class="paragraph">
+<p>For guidance on this process, see your DNS provider&#8217;s documentation.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_create_amazon_cognito_user_identities">Create Amazon Cognito user identities</h3>
+<div class="paragraph">
+<p>The Application Load Balancer defines an authentication action to protect the AIT, Open MCT, and AIT Editor applications. To access the applications, you authenticate using an identity that&#8217;s managed by Amazon Cognito. Create user identities in the Amazon Cognito user pool or set up federation with an existing identity provider.</p>
+</div>
+<div class="paragraph">
+<p>For more information, see the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html" target="_blank" rel="noopener">Creating User Accounts as Administrator</a></p>
+</li>
+<li>
+<p><a href="https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-federation.html" target="_blank" rel="noopener">Adding User Pool Sign-in Through a Third Party</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_install_the_ait_editor_extension">Install the AIT Editor extension</h3>
+<div class="paragraph">
+<p>While you could install the <a href="https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor" target="_blank" rel="noopener">AIT Editor extension</a> locally on any VS Code client, this Quick Start deploys a centralized browser-based integrated development environment (IDE) based on the open-source application <a href="https://github.com/cdr/code-server" target="_blank" rel="noopener">code-server</a>. With code-server, you can run VS Code on any machine.</p>
+</div>
+<div class="paragraph">
+<p>After the Quick Start deploys the AIT Editor EC2 instance, it installs and configures code-server and the mission configuration used by AIT. Since code-server can&#8217;t use Microsoft&#8217;s extension marketplace due to Microsoft&#8217;s terms of service for VS Code, you need to install the AIT Editor extension manually from the .vsix file published on GitHub and in the marketplace.</p>
+</div>
+<div class="paragraph">
+<p>For more information, see the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://coder.com/docs/code-server/v3.11.1/FAQ#why-cant-code-server-use-microsofts-extension-marketplace" target="_blank" rel="noopener">Why can&#8217;t code-server use Microsoft&#8217;s extension marketplace?</a></p>
+</li>
+<li>
+<p><a href="https://coder.com/docs/code-server/v3.11.1/FAQ#how-do-i-install-an-extension-manually" target="_blank" rel="noopener">How do I install an extension manually?</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_adapt_ait_to_your_mission">Adapt AIT to your mission</h3>
+<div class="paragraph">
+<p>Adapt AIT for your operation&#8217;s needs both at launch and as your mission evolves. You can make changes directly on the AIT EC2 instance over an SSH- or SSM-managed session.</p>
+</div>
+<div class="paragraph">
+<p>The following sections describe some common adaptations.</p>
+</div>
+<div class="sect3">
+<h4 id="_activate_the_virtual_python_environment">Activate the virtual Python environment</h4>
+<div class="paragraph">
+<p>The Quick Start deployment installs AIT-Core, several plugins, and various dependencies to a virtual Python environment on the AIT EC2 instance using the <code>virtualenvwrapper</code> Python tool.</p>
+</div>
+<div class="paragraph">
+<p>Activate the environment by running the command <code>workon ait</code>.</p>
+</div>
+<div class="paragraph">
+<p>For more information on installing and configuring AIT Core, see <a href="https://ait-core.readthedocs.io/en/master/installation.html" target="_blank" rel="noopener">Installation and Environment Configuration</a>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_customize_ait_with_extensions_and_plugins">Customize AIT with extensions and plugins</h4>
+<div class="paragraph">
+<p>AIT is an extensible framework that your mission team can adapt to your use cases. Use <a href="https://ait-core.readthedocs.io/en/master/extensions.html" target="_blank" rel="noopener">extensions</a> and <a href="https://ait-core.readthedocs.io/en/master/server_architecture.html#plugins" target="_blank" rel="noopener">plugins</a> as appropriate. You can install existing plugins or develop your own.</p>
+</div>
+<div class="paragraph">
+<p>For more information, see the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://ait-core.readthedocs.io/en/master/extensions.html" target="_blank" rel="noopener">Core Library Extensions</a></p>
+</li>
+<li>
+<p><a href="https://ait-core.readthedocs.io/en/master/databases.html?highlight=data%20archive#data-archive-plugin" target="_blank" rel="noopener">Data Archive Plugin</a></p>
+</li>
+<li>
+<p><a href="https://ait-dsn.readthedocs.io/en/latest/index.html" target="_blank" rel="noopener">Welcome to AIT DSN’s (Deep Space Network&#8217;s) documentation!</a></p>
+</li>
+<li>
+<p><a href="https://ait-core.readthedocs.io/en/master/plugin_openmct.html" target="_blank" rel="noopener">AIT OpenMCT Plugin</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_manage_the_configuration_files">Manage the configuration files</h4>
+<div class="paragraph">
+<p>The Quick Start deployment retrieves configuration files from an S3 bucket and places them in <code>/home/ec2-user/AIT-Core/config</code>. You can modify configuration files directly on the AIT EC2 instance or replace them by uploading new files to the S3 bucket.</p>
+</div>
+<div class="paragraph">
+<p>After you modify AIT configuration files, you must restart the <code>ait-server</code> systemd service (as described under <a href="#_Adapt_the_systemd_services">Adapt the systemd services</a> later in this guide).</p>
+</div>
+<div class="paragraph">
+<p>To retrieve new files from the S3 bucket, run the following command with your bucket name in place of the bracketed text:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>`aws s3 sync s3://&lt;bucket_name&gt;/ait/config /home/ec2-user/AIT-Core/config`</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more information, see <a href="https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html" target="_blank" rel="noopener">sync</a>) in the AWS CLI command reference.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_optional_upgrade_the_deployed_applications">(Optional) Upgrade the deployed applications</h4>
+<div class="paragraph">
+<p>If you upgrade AIT-Core or any of the other deployed applications, you are responsible for any impact that upgrading may have. This Quick Start supports only those versions listed under LINK: link to <code>Software version requirements</code>.</p>
+</div>
+<div class="paragraph">
+<p>To upgrade any of the applications, refer to that application&#8217;s documentation. Back up the <code>config</code> folder and any modified files. Then update and reinstall the cloned application repositories to the virtual environment, as documented later in this guide.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_modify_the_open_mct_static_built_files">Modify the Open MCT static built files</h4>
+<div class="paragraph">
+<p>The Open MCT framework is written in JavaScript. You can bundle it into a set of static assets that can be served from a web server. In this Quick Start, the latest version of Open MCT has been packaged and uploaded to an S3 bucket as a .zip file. The Quick Start deployment downloads the .zip file from the S3 bucket and extracts it so that it can be served by Apache HTTP Server. On the EC2 instance, the static files are extracted and located in <code>var/www/html/openmct</code>.</p>
+</div>
+<div class="paragraph">
+<p>Save any configuration changes and additional plugins for Open MCT to <code>var/www/html/openmct</code>.</p>
+</div>
+<div class="paragraph">
+<p>For more information, see <a href="https://github.com/nasa/openmct/blob/master/API.md#building-applications-with-open-mct" target="_blank" rel="noopener">Building Applications With Open MCT</a>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_adapt_the_systemd_services">Adapt the systemd services</h4>
+<div class="paragraph">
+<p>The <code>systemd</code> file on the AIT EC2 instance manages the following services:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Apache HTTPD Server (httpd.service)</p>
+</li>
+<li>
+<p>InfluxDB (influxdb.service)</p>
+</li>
+<li>
+<p>AIT-Core (ait-server.service)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can stop and restart the AIT EC2 instance as needed. When you restart, these systemd services come back online.</p>
+</div>
+<div class="paragraph">
+<p>For details on adapting these services, see the following sections.</p>
+</div>
+<div class="sect4">
+<h5 id="_apache_httpd_server_httpd_service">Apache HTTPD Server (httpd.service)</h5>
+<div class="paragraph">
+<p>Apache HTTP Server is installed and managed as a systemd service. It routes incoming traffic to both AIT and Open MCT. The service file can be found at`/usr/lib/systemd/system/httpd.service`. Apache configuration files are located at <code>/etc/httpd</code>. The base configuration can be found at <code>/etc/httpd/conf/httpd.conf</code>, and supplemental configuration files can be found at <code>/etc/httpd/conf.d</code>.</p>
+</div>
+<div class="paragraph">
+<p>To verify whether the service is running after deployment, use the command <code>sudo systemctl status httpd</code>.</p>
+</div>
+<div class="paragraph">
+<p>To adapt this service, modify the configuration files found in the locations noted here, and then restart the service with the command <code>sudo systemctl restart httpd</code>.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_influxdb_influxdb_service">InfluxDB (influxdb.service)</h5>
+<div class="paragraph">
+<p>InfluxDB is installed and managed as a systemd service. InfluxDB acts as a data-storage layer for the AIT application. The Quick Start uses a default configuration of InfluxDB with a few changes. The service file can be found at <code>/usr/lib/systemd/system/influxdb.service</code>.</p>
+</div>
+<div class="paragraph">
+<p>To verify whether the service is running after deployment, use the command <code>sudo systemctl status influxdb</code>.</p>
+</div>
+<div class="paragraph">
+<p>To adapt this service, modify the InfluxDB service file identified here, and then restart the service with the command <code>sudo systemctl restart influxdb</code>.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_ait_core_ait_server_service">AIT-Core (ait-server.service)</h5>
+<div class="paragraph">
+<p>AIT-Core is installed and managed as a systemd service. It runs the AIT EC2 instance, listening for, processing, and exposing telemetry. Configured plugins, such as AIT-GUI, are run according to the main AIT configuration file. The service file is located at <code>/etc/systemd/system/ait-server.service</code>.</p>
+</div>
+<div class="paragraph">
+<p>To verify whether the service is running after deployment, use the command <code>sudo systemctl status ait-server</code>.</p>
+</div>
+<div class="paragraph">
+<p>To adapt this service, modify the main configuration file identified here or any associated files referenced from the main configuration file, and then restart the service with the command <code>sudo systemctl restart ait-server</code>.</p>
+</div>
+<div class="paragraph">
+<p>Whenever you change an AIT configuration file, you must restart this service using the command <code>sudo systemctl restart ait-server</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_set_up_the_cloudwatch_agent">Set up the CloudWatch agent</h3>
+<div class="paragraph">
+<p>This Quick Start installs an Amazon CloudWatch agent (cloudwatch-agent-ait.json) on all deployed EC2 instances. This agent is initialized by a default configuration file that tells the agent which files to monitor and where to direct the logs in CloudWatch.</p>
+</div>
+<div class="paragraph">
+<p>For information on viewing the default CloudWatch agent configuration files, see LINK: link to S3 config. Modify this file as detailed in the following section.</p>
+</div>
+<div class="paragraph">
+<p>For more information, see <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent.html" target="_blank" rel="noopener">Collecting metrics and logs from Amazon EC2 instances and on-premises servers with the CloudWatch agent</a>.</p>
+</div>
+<div class="sect3">
+<h4 id="_optional_modify_the_cloudwatch_agent_configuration_file">(Optional) Modify the CloudWatch agent configuration file</h4>
+<div class="paragraph">
+<p>The CloudWatch agent monitors the specified log files and sends them to CloudWatch Logs. The CloudWatch agent configuration file is stored in <code>/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json</code>. To monitor additional files or change the configuration settings, modify the agent configuration file.</p>
+</div>
+<div class="paragraph">
+<p>After editing the file, restart the agent and apply your changes using the following command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+    -a fetch-config -s -m ec2 \
+    -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more information, see <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html" target="_blank" rel="noopener">Manually create or edit the CloudWatch agent configuration file</a>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_optional_change_the_log_retention_period">(Optional) Change the log-retention period</h4>
+<div class="paragraph">
+<p>The CloudWatch Logs log groups that receive application logs are configured with the default log-retention period of 30 days. You can choose a different retention period during deployment using the <code>CloudWatchLogsRetentionPeriod</code> parameter. Increasing the log-retention period results in higher log-storage costs.</p>
+</div>
+<div class="paragraph">
+<p>For more information, see <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#SettingLogRetention" target="_blank" rel="noopener">Change log data retention in CloudWatch Logs</a>.</p>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_security">Security</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_iam">IAM</h3>
 <div class="paragraph">
-<p><em>Add any security-related information.</em></p>
+<p>To facilitate compliance with your organization&#8217;s restrictions on IAM role creation, the following parameters are available on all stacks that create IAM roles. If the parameter is not supplied, these attributes are not set.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>PermissionsBoundaryArn</code>: Amazon Resource Name (ARN) of a managed policy in your account to be used as the permissions boundary for the created role. For more information, see <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html" target="_blank" rel="noopener">Permissions boundaries for IAM entities</a>.</p>
+</li>
+<li>
+<p><code>RolePath</code>: String used as the path attribute for the created role. For more information, see <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-friendly-names" target="_blank" rel="noopener">Friendly names and paths</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_security_groups">Security groups</h3>
+<div class="paragraph">
+<p>As part of the Quick Start deployment, you specify security groups that define inbound and outbound network traffic rules. You create inbound rules for the security groups and define appropriate CIDR/IP ranges that are allowed for inbound access to various deployed resources.</p>
+</div>
+<div class="paragraph">
+<p>For more information, see <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security-groups.html" target="_blank" rel="noopener">Amazon EC2 security groups for Linux instances</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_private_subnets">Private subnets</h3>
+<div class="paragraph">
+<p>The Quick Start deploys application EC2 instances to a private subnet in a VPC. An Application Load Balancer, which is deployed to a public subnet in the same VPC, routes requests to these instances, minimizing the publicly exposed footprint of deployed resources.</p>
+</div>
+<div class="paragraph">
+<p>To access the EC2 instances in the private subnets, see <a href="#SSM">documentation section on SSM (Systems Manager)</a> elsewhere in this guide.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_selinux">SELinux</h3>
+<div class="paragraph">
+<p>Security-Enhanced Linux (SELinux) is enabled and enforced on the application EC2 instances. Apache HTTP Server and the various application processes have been configured for SELinux compatibility and can be run without disabling SELinux.</p>
+</div>
+<div class="paragraph">
+<p>Side effects may occur if you modify or move settings or configuration files after the initial deployment of the application. If you have any issues with SELinux file and process contexts, refer to a fresh deployment of the Quick Start or redeploy the Quick Start.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Do not disable SELinux unless you are aware of unintended security consequences or must disable SELinux for compatibility or debugging purposes.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_amazon_opensearch_service">Amazon OpenSearch Service</h3>
+<div class="paragraph">
+<p>This Quick Start deploys a domain under Amazon OpenSearch Service. This domain, which is deployed within a VPC, contains logging data that&#8217;s received from application EC2 instances. All primary and data (secondary) nodes reside within private subnets. Encryption for data at rest is enabled by default.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+The Amazon OpenSearch Service domain uses an open-access policy with access controlled by an EC2 security group. For more security, use fine-grained access control or modify the access policy to specify IAM users or roles.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For more information, see the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/vpc.html" target="_blank" rel="noopener">Launching your Amazon OpenSearch Service domains within a VPC</a></p>
+</li>
+<li>
+<p><a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/security.html" target="_blank" rel="noopener">Security in Amazon OpenSearch Service</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_authentication">Authentication</h3>
+<div class="paragraph">
+<p>The Application Load Balancer, which is deployed to a public subnet, brokers access to the application resources deployed in private subnets. Each application is accessible through a listener rule, which directs traffic according to the host header and performs an authentication action prior to forwarding the traffic to the appropriate target group.</p>
+</div>
+<div class="paragraph">
+<p>This authentication action is configured with the deployed Amazon Cognito user pool as an OpenID Connect (OIDC) provider. Access is granted on a full-access basis. s who can authenticate as known identities are allowed through the Application Load Balancer to the underlying resource.</p>
+</div>
+<div class="paragraph">
+<p>For more information, see the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-authenticate-users.html" target="_blank" rel="noopener">Authenticate users using an Application Load Balancer</a></p>
+</li>
+<li>
+<p><a href="https://aws.amazon.com/blogs/aws/built-in-authentication-in-alb/" target="_blank" rel="noopener">Simplify Login with Application Load Balancer Built-in Authentication</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_code_server_access">Code-server access</h3>
+<div class="paragraph">
+<p>The AIT Editor EC2 instance runs <code>cdr/code-server</code>. When you use Visual Studio Code&#8217;s integrated terminal, you can execute system-level commands from a browser.</p>
+</div>
+<div class="paragraph">
+<p>The AIT Editor instance runs in a Docker container with volumes mounted to the following locations:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>/home/editor-user/.aerie-editor-data:/home/coder/.local/share/code-server</p>
+</li>
+<li>
+<p>/home/editor-user/.aerie-editor-config:/home/coder/.config</p>
+</li>
+<li>
+<p>/home/editor-user:/home/coder/project</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For more information, see <a href="https://coder.com/docs/code-server/v3.11.1/FAQ#how-do-i-change-the-password" target="_blank" rel="noopener">How do I change the password?</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ssltls_protocol">SSL/TLS protocol</h3>
+<div class="paragraph">
+<p>Clients that access applications through the Application Load Balancer have their traffic encrypted using the SSL/TLS protocol. The Application Load Balancer uses HTTPS listeners. Any normal HTTP traffic going to the Application Load Balancer is redirected to the HTTPS listener.</p>
+</div>
+<div class="paragraph">
+<p>To configure the Application Load Balancer for SSL/TLS, you must provide an X.509 certificate during Quick Start deployment.</p>
+</div>
+<div class="paragraph">
+<p>SSL termination occurs at the Application Load Balancer. Communication to the EC2 instance targets behind the Application Load Balancer is unencrypted, albeit through private VPC subnets.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_aws_systems_manager">AWS Systems Manager</h3>
+<div class="paragraph">
+<p>For improved security and monitoring, use AWS Systems Manager to connect to the application EC2 instances. The deployment installs AWS Systems Manager Agent (SSM Agent) on all instances. Additionally, each instance profile is assigned the AWS managed service role <code>AmazonSSMManagedInstanceCore</code>.</p>
+</div>
+<div class="paragraph">
+<p>You can provide the <code>SshKeyName</code> parameter to the relevant templates to enable standard SSH connections. The EC2 instances are deployed in a private subnet and therefore not discoverable directly from the internet. To connect using SSH, you must provision a bastion host (jump server).</p>
+</div>
+<div class="paragraph">
+<p>For more information, see <a href="https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html" target="_blank" rel="noopener">Start a session</a>.</p>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_other_useful_information">Other useful information</h2>
+<h2 id="_resources">Resources</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><em>Add any other details that will help the customer use the software on AWS.</em></p>
+<p>AIT:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://ait-core.readthedocs.io/en/latest/" target="_blank" rel="noopener">Welcome to the AMMOS Instrument Toolkit (AIT) documentation!</a></p>
+</li>
+<li>
+<p><a href="https://ait-gui.readthedocs.io/en/latest/index.html" target="_blank" rel="noopener">Welcome to the AMMOS Instrument Toolkit GUI documentation!</a></p>
+</li>
+<li>
+<p><a href="https://ait-dsn.readthedocs.io/en/latest/index.html" target="_blank" rel="noopener">Welcome to AIT DSN&#8217;s documentation!</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>OpenMCT:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://nasa.github.io/openmct/" target="_blank" rel="noopener">Open MCT</a></p>
+</li>
+<li>
+<p><a href="https://nasa.github.io/openmct/docs/guide/index.html#open-mct-developer-guide" target="_blank" rel="noopener">Open MCT Developer Guide</a></p>
+</li>
+<li>
+<p><a href="https://github.com/nasa/openmct-tutorial" target="_blank" rel="noopener">Open MCT Integration Tutorials</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Community:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://groups.google.com/g/ait-dev" target="_blank" rel="noopener">AMMOS Instrument Toolkit Development and Users</a> ( mailing group)</p>
+</li>
+<li>
+<p><a href="https://github.com/nasa/openmct/discussions" target="_blank" rel="noopener">NASA Open MCT</a> (Github discussions)</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_software_version_requirements">Software version requirements</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_operating_system_and_dependency_versions">Operating system and dependency versions</h3>
+<div class="paragraph">
+<p>The Quick Start deploys AIT, Open MCT, and AIT Editor on EC2 instances running Red Hat Enterprise Linux 8 (RHEL8). These applications do not require RHEL8, but RHEL8 is the officially supported operating system for all AMMOS applications.</p>
+</div>
+<div class="paragraph">
+<p>The Quick Start builds and installs Python 3.7.x on the application EC2 instances. This is the version that AIT software supports. Python 3.7 is not part of the official Red Hat Enterprise Linux 8 software repositories or Red Hat Software collections.</p>
+</div>
+<div class="paragraph">
+<p>For more information on installing and configuring AIT Core, see <a href="https://ait-core.readthedocs.io/en/latest/installation.html" target="_blank" rel="noopener">Installation and Environment Configuration</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_supported_application_software_versions">Supported application software versions</h3>
+<div class="paragraph">
+<p>This Quick Start deploys and supports <a href="https://github.com/NASA-AMMOS/AIT-Core/releases/tag/2.3.5" target="_blank" rel="noopener">AIT Core v2.3.5</a> and <a href="https://github.com/nasa/openmct/releases/tag/1.6.2" target="_blank" rel="noopener">OpenMCT v1.6.2</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_influxdb_versions">InfluxDB versions</h3>
+<div class="paragraph">
+<p>This Quick Start deploys InfluxDB version 1.2.4 on the AIT EC2 instance. The influxdb Python library that AIT uses to interface with InfluxDB is compatible only with InfluxDB versions 1.x.</p>
+</div>
 </div>
 </div>
 </div>
@@ -1306,7 +2214,7 @@ If you’re deploying Example Product Name into an existing VPC, make sure that 
 <p><strong>Q.</strong> I encountered a <strong>CREATE_FAILED</strong> error when I launched the Quick Start.</p>
 </div>
 <div class="paragraph">
-<p><strong>A.</strong> If AWS CloudFormation fails to create the stack, relaunch the template with <strong>Rollback on failure</strong> set to <strong>Disabled</strong>. This setting is under <strong>Advanced</strong> in the AWS CloudFormation console on the <strong>Configure stack options</strong> page. With this setting, the stack’s state is retained, and the instance keeps running so that you can troubleshoot the issue. (For Windows, look at the log files in <code>%ProgramFiles%\Amazon\EC2ConfigService</code> and <code>C:\cfn\log</code>.)</p>
+<p><strong>A.</strong> If AWS CloudFormation fails to create the stack, relaunch the template with <strong>Rollback on failure</strong> set to <strong>Disabled</strong>. This setting is under <strong>Advanced</strong> in the AWS CloudFormation console on the <strong>Configure stack options</strong> page. With this setting, the stack&#8217;s state is retained, and the instance keeps running so that you can troubleshoot the issue. (For Windows, look at the log files in <code>%ProgramFiles%\Amazon\EC2ConfigService</code> and <code>C:\cfn\log</code>.)</p>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -1321,21 +2229,13 @@ When you set <strong>Rollback on failure</strong> to <strong>Disabled</strong>, 
 </table>
 </div>
 <div class="paragraph">
-<p>For more information, see <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/troubleshooting.html" target="_blank" rel="noopener">Troubleshooting AWS CloudFormation</a>.</p>
+<p>For more information, see <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/troubleshooting.html" target="_blank" rel="noopener">Troubleshooting CloudFormation</a>.</p>
 </div>
 <div class="paragraph">
 <p><strong>Q.</strong> I encountered a size-limitation error when I deployed the AWS CloudFormation templates.</p>
 </div>
 <div class="paragraph">
 <p><strong>A.</strong> Launch the Quick Start templates from the links in this guide or from another S3 bucket. If you deploy the templates from a local copy on your computer or from a location other than an S3 bucket, you might encounter template-size limitations. For more information, see <a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cloudformation-limits.html" target="_blank" rel="noopener">AWS CloudFormation quotas</a>.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_troubleshooting">Troubleshooting</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>&lt;Steps for troubleshooting the deployment.&gt;</p>
 </div>
 </div>
 </div>
@@ -1362,13 +2262,289 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 </tr>
 </table>
 </div>
+<div class="sect2">
+<h3 id="_parameters_for_preconfiguring_your_aws_account">Parameters for preconfiguring your AWS account</h3>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. Environment configuration</caption>
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 11%;">
+<col style="width: 73%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter label (name)</th>
+<th class="tableblock halign-left valign-top">Default value</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Project name
+(<code>ProjectName</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name of your project.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Permissions boundary ARN
+(<code>PermissionsBoundaryArn</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Amazon Resource Name of a managed policy in your account to be used as the permissions boundary. This ARN will be attached to all IAM roles created to satisfy your organization&#8217;s security requirements. If you keep this blank, this attribute is not set. For more information, see <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html" class="bare">https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Role path
+(<code>RolePath</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Path that will be attached to all IAM roles created to satisfy your organization&#8217;s security requirements. If you keep this blank, this attribute is not set. For more information, see <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-friendly-names" class="bare">https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-friendly-names</a>.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 2. AWS Quick Start configuration</caption>
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 11%;">
+<col style="width: 73%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter label (name)</th>
+<th class="tableblock halign-left valign-top">Default value</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quick Start S3 bucket name
+(<code>QSS3BucketName</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>aws-quickstart</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name of the S3 bucket for your copy of the Quick Start assets. Keep the default name unless you are customizing the template. Changing the name updates code references to point to a new Quick Start location. This name can include numbers, lowercase letters, uppercase letters, and hyphens, but do not start or end with a hyphen (-). See <a href="https://aws-quickstart.github.io/option1.html" class="bare">https://aws-quickstart.github.io/option1.html</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quick Start S3 key prefix
+(<code>QSS3KeyPrefix</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>quickstart-nasa-jpl-cubs/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">S3 key prefix that is used to simulate a directory for your copy of the Quick Start assets. Keep the default prefix unless you are customizing the template. Changing this prefix updates code references to point to a new Quick Start location. This prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slashes (/). End with a forward slash. See <a href="https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html" class="bare">https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html</a> and <a href="https://aws-quickstart.github.io/option1.html" class="bare">https://aws-quickstart.github.io/option1.html</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quick Start S3 bucket Region
+(<code>QSS3BucketRegion</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>us-east-1</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. Keep the default Region unless you are customizing the template. Changing this Region updates code references to point to a new Quick Start location. When using your own bucket, specify the Region. See <a href="https://aws-quickstart.github.io/option1.html" class="bare">https://aws-quickstart.github.io/option1.html</a>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_parameters_for_deploying_into_a_new_vpc">Parameters for deploying into a new VPC</h3>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 3. AIT configuration</caption>
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 11%;">
+<col style="width: 73%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter label (name)</th>
+<th class="tableblock halign-left valign-top">Default value</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AIT instance type
+(<code>AITInstanceType</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>m5.large</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Instance type to be used for AIT. See deployment guide for recommendations.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Amazon OpenSearch Service domain name
+(<code>ElasticsearchDomainName</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name of the Amazon OpenSearch Service domain.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CloudWatch Logs retention period
+(<code>CloudWatchLogsRetentionPeriod</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>30</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Number of days to retain log events in CloudWatch Logs log groups. Increasing this number results in higher log-storage costs.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Key-pair name
+(<code>KeyPairName</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name of the key pair that you will use to connect securely to your instance after it launches.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fully qualified domain name
+(<code>FQDN</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">URL to use for the project-resources root.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SSL certificate ARN
+(<code>SSLCertificateArn</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Amazon Resource Name of the SSL certificate to use for the load balancer. Use SSLCertificateArn if you are not using FQDN and HostedZoneID.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Hosted-zone ID
+(<code>HostedZoneID</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) ID of the Route 53 hosted-zone domain. If you fill in both FQDN and HostedZoneID, this deployment generates an ACM certificate.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Project name
+(<code>ProjectName</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name of your project.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 4. IAM configuration</caption>
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 11%;">
+<col style="width: 73%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter label (name)</th>
+<th class="tableblock halign-left valign-top">Default value</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Role path
+(<code>RolePath</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Path that will be attached to all IAM roles created to satisfy your organization&#8217;s security requirements. If you keep this blank, this attribute is not set. For more information, see <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-friendly-names" class="bare">https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-friendly-names</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Permissions boundary ARN
+(<code>PermissionsBoundaryArn</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Amazon Resource Name of a managed policy in your account to be used as the permissions boundary. This ARN will be attached to all IAM roles created to satisfy your organization&#8217;s security requirements. If you keep this blank, this attribute is not set. For more information, see <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html" class="bare">https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html</a>.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 5. Network configuration</caption>
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 11%;">
+<col style="width: 73%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter label (name)</th>
+<th class="tableblock halign-left valign-top">Default value</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Availability Zones
+(<code>AvailabilityZones</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Availability Zones to use for the subnets in the VPC. This deployment uses three Availability Zones, and the logical order of your selections is preserved.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">VPC CIDR
+(<code>VPCCIDR</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.0.0/16</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block for the VPC.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Private subnet 1 CIDR
+(<code>PrivateSubnet1CIDR</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.128.0/24</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block used for the private subnet located in Availability Zone 1.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Private subnet 2 CIDR
+(<code>PrivateSubnet2CIDR</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.192.0/24</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block used for the private subnet located in Availability Zone 2.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Private subnet 3 CIDR
+(<code>PrivateSubnet3CIDR</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.200.0/24</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block used for the private subnet located in Availability Zone 3.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Public subnet 1 CIDR
+(<code>PublicSubnet1CIDR</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.32.0/24</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block used for the public subnet located in Availability Zone 1.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Public subnet 2 CIDR
+(<code>PublicSubnet2CIDR</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.64.0/24</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block used for the public subnet located in Availability Zone 2.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Public subnet 3 CIDR
+(<code>PublicSubnet3CIDR</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.70.0/24</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block used for the public subnet located in Availability Zone 3.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Remote access CIDR
+(<code>RemoteAccessCIDR</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR IP range that is permitted to access the instances. Set this value to a trusted IP range.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 6. AWS Quick Start configuration</caption>
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 11%;">
+<col style="width: 73%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter label (name)</th>
+<th class="tableblock halign-left valign-top">Default value</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quick Start S3 bucket name
+(<code>QSS3BucketName</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>aws-quickstart</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name of the S3 bucket for your copy of the Quick Start assets. Keep the default name unless you are customizing the template. Changing the name updates code references to point to a new Quick Start location. This name can include numbers, lowercase letters, uppercase letters, and hyphens, but do not start or end with a hyphen (-). See <a href="https://aws-quickstart.github.io/option1.html" class="bare">https://aws-quickstart.github.io/option1.html</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quick Start S3 key prefix
+(<code>QSS3KeyPrefix</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>quickstart-nasa-jpl-cubs/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">S3 key prefix that is used to simulate a directory for your copy of the Quick Start assets. Keep the default prefix unless you are customizing the template. Changing this prefix updates code references to point to a new Quick Start location. This prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slashes (/). End with a forward slash. See <a href="https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html" class="bare">https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html</a> and <a href="https://aws-quickstart.github.io/option1.html" class="bare">https://aws-quickstart.github.io/option1.html</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quick Start S3 bucket Region
+(<code>QSS3BucketRegion</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>us-east-1</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. Keep the default Region unless you are customizing the template. Changing this Region updates code references to point to a new Quick Start location. When using your own bucket, specify the Region. See <a href="https://aws-quickstart.github.io/option1.html" class="bare">https://aws-quickstart.github.io/option1.html</a>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_send_us_feedback">Send us feedback</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To post feedback, submit feature ideas, or report bugs, use the <strong>Issues</strong> section of the <a href="https://github.com/aws-quickstart/quickstart-documentation-base" target="_blank" rel="noopener">GitHub repository</a> for this Quick Start. To submit code, see the <a href="https://aws-quickstart.github.io/" target="_blank" rel="noopener">Quick Start Contributor’s Guide</a>.</p>
+<p>To post feedback, submit feature ideas, or report bugs, use the <strong>Issues</strong> section of the <a href="https://github.com/aws-quickstart/quickstart-ammos-smallsat-toolkit" target="_blank" rel="noopener">GitHub repository</a> for this Quick Start. To submit code, see the <a href="https://aws-quickstart.github.io/" target="_blank" rel="noopener">Quick Start Contributor’s Guide</a>.</p>
 </div>
 </div>
 </div>
@@ -1384,7 +2560,7 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 <h2 id="_github_repository">GitHub repository</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Visit our <a href="https://github.com/aws-quickstart/quickstart-documentation-base" target="_blank" rel="noopener">GitHub repository</a> to download
+<p>Visit our <a href="https://github.com/aws-quickstart/quickstart-ammos-smallsat-toolkit" target="_blank" rel="noopener">GitHub repository</a> to download
 the templates and scripts for this Quick Start, to post your comments,
 and to share your customizations with others.</p>
 </div>
@@ -1406,17 +2582,17 @@ and to share your customizations with others.</p>
 <p class="footer-text">
 <!-- We can use document attributes: -->
 <!-- Generated with Asciidoctor v2.0.15. -->
-<a href="https://aws.amazon.com/privacy/">Privacy</a> | <a href="https://aws.amazon.com/terms/">Site terms</a> | &copy; 2021, Amazon Web Services, Inc. or its affiliates and Example Company Name, Ltd.. All rights reserved.
+<a href="https://aws.amazon.com/privacy/">Privacy</a> | <a href="https://aws.amazon.com/terms/">Site terms</a> | &copy; 2021, Amazon Web Services, Inc. or its affiliates and Jet Propulsion Laboratory. All rights reserved.
 </p>
 </body>
 </html>
 <!--
 repo commit:
-84b4a3f5dd707de21064f442a946e1b1342bc3b4
+18b0ac85b08d4ad1b2a821731727e96e1ca78d9e
 
 submodule config:
  eea042d0b9c005d2549a71349e5f28b02c81af75 docs/boilerplate (heads/main)
- 875c29c26671aba15434d0bca39052ecf01865e5 submodules/lambda-copyzips (heads/main)
+ 311c180a3d632339345add61c9c12c1e7e9f2835 submodules/lambda-copyzips (heads/main)
  233fbd97e3563911a7dc91f8c6ba8e24e10d32c8 submodules/quickstart-aws-acm-certificate (heads/main)
  ffc7af4e59a09dbf52199a3ecf70f3805abeff48 submodules/quickstart-aws-vpc (v1.0-58-gffc7af4)
  9aa7aedb1b35a28a1b0f7d8773319f75cce4b787 submodules/quickstart-linux-bastion (heads/main)

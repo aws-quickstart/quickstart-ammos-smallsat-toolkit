@@ -1,1 +1,6 @@
-// placeholder
+
+=== Parameters for preconfiguring your AWS account
+include::ammos-cubs.preconfig.template.adoc[]
+
+=== Parameters for deploying into a new VPC
+include::ammos-cubs.main.template.adoc[]

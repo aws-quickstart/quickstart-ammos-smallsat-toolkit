@@ -2,6 +2,8 @@
 // Identify your target audience and explain how/why they would use this Quick Start.
 //Avoid borrowing text from third-party websites (copying text from AWS service documentation is fine). Also, avoid marketing-speak, focusing instead on the technical aspect.
 
-This guide provides instructions for deploying the {partner-product-short-name} Quick Start reference architecture on the AWS Cloud.
+This guide provides instructions for deploying the {partner-product-name} Quick Start on the AWS Cloud. 
 
-This Quick Start is for users who <target audience and usage scenario>
+This Quick Start deploys NASA's https://ammos.nasa.gov/[Advanced Multi-Mission Operations System (AMMOS)^] suite of capabilities for small-satellite (SmallSat and CubeSat) missions and instrument missions. AMMOS offers advanced sequence generation, command uplink and downlink, telemetry processing, and data visualization. Using this Quick Start, your team can rapidly deploy a foundational ground data system (GDS) that is built on high-heritage capabilities maintained by NASA. The AMMOS suite comprises open-source products that are available in the https://github.com/NASA-AMMOS[NASA-AMMOS GitHub repository^], where contributions are welcomed and encouraged. 
+
+//TODO (Andrew is asking JPL this question) What's a plain-English way to say "high-heritage"?
