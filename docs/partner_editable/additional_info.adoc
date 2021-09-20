@@ -3,8 +3,6 @@
 
 == Test the deployment
 
-// TODO: @MF @KM add input if necessary
-
 Verify that all the components have been deployed by doing the following tests in the documented order.
 
 === Verify the deployment of the application EC2 instances
@@ -63,9 +61,6 @@ Quick Start deployment installs CloudWatch agents on both application EC2 instan
 
 . Verify that each of these log groups contains a few log streams and that each stream contains log data. If you deployed the Quick Start recently, you may see only a small amount of log data.
 
-//TODO: is this input complete? is more needed?
-//_Awaiting input from testing lead_
-
 == Post-deployment tasks
 Complete any of the following post-deployment tasks that are relevant your mission. You can do these tasks in any order.
 
@@ -101,9 +96,9 @@ For more information, see the following:
 
 While you could install the https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor[AIT Editor extension^] locally on any VS Code client, this Quick Start deploys a centralized browser-based integrated development environment (IDE) based on the open-source application https://github.com/cdr/code-server[code-server^]. With code-server, you can run VS Code on any machine.
 
-After the Quick Start deploys the AIT Editor EC2 instance, it installs and configures code-server and the mission configuration used by AIT. Since code-server can't use Microsoft's extension marketplace due to Microsoft's terms of service for VS Code, you need to install the AIT Editor extension manually from the .vsix file published on GitHub and in the marketplace. 
+After the Quick Start deploys the AIT Editor EC2 instance, it installs and configures code-server and the mission configuration used by AIT. Since code-server can't use Microsoft's extension marketplace due to Microsoft's terms of service for VS Code, you need to install the AIT Editor extension manually from the .vsix file published on GitHub and in the marketplace.
 
-For more information, see the following: 
+For more information, see the following:
 
 * https://coder.com/docs/code-server/v3.11.1/FAQ#why-cant-code-server-use-microsofts-extension-marketplace[Why can't code-server use Microsoft's extension marketplace?^]
 * https://coder.com/docs/code-server/v3.11.1/FAQ#how-do-i-install-an-extension-manually[How do I install an extension manually?^]
@@ -124,9 +119,6 @@ For more information on installing and configuring AIT Core, see https://ait-cor
 
 
 ==== Customize AIT with extensions and plugins
-//TODO: awaiting @KM
-// ^ Request is pending, for now the following is sufficient
-
 AIT is an extensible framework that your mission team can adapt to your use cases. Use https://ait-core.readthedocs.io/en/master/extensions.html[extensions^] and https://ait-core.readthedocs.io/en/master/server_architecture.html#plugins[plugins^] as appropriate. You can install existing plugins or develop your own.
 
 For more information, see the following:
@@ -267,9 +259,6 @@ For more information, see the following:
 
 * https://docs.aws.amazon.com/opensearch-service/latest/developerguide/vpc.html[Launching your Amazon OpenSearch Service domains within a VPC^]
 * https://docs.aws.amazon.com/opensearch-service/latest/developerguide/security.html[Security in Amazon OpenSearch Service^]
-
-//TODO: what needs to be added/clarified here?
-//@MF:
 
 === Authentication
 
