@@ -24,4 +24,4 @@
 
 // TODO: for AWS team - what header should be used here? Is "Service Limits" correct?
 Recommended EC2 instance types:
-During deployment, you can choose the EC2 instance type to fit your workload. The default instance type recommended is `m5.large`, which contains enough compute/memory resources for most normal workloads as suggested by the AIT development team. However, instance size will be highly dependent on expected telemetry throughput, level of message processing required, and latency requirements defined by the mission. We recommend at least 2-4 cores and 4-8 GiB of memory for the AIT Server.
+During deployment, you can choose the AIT instance type to fit your workload. The default instance type, `m5.large`, contains enough compute and memory resources for most workloads, as suggested by the AIT development team. The best choice for your mission depends on expected telemetry throughput, level of message processing required, and latency requirements defined by the mission. We recommend 2–4 cores and 4–8 GiB of memory for the AIT instance.
