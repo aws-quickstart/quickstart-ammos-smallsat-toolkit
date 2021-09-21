@@ -19,6 +19,7 @@ Parameters:
   AccessSgID:
     Description: (Optional) ID of pre-configured Security Group to control access to ALB
     Type: String
+    Default: ''
   HostedZoneID:
     Description: ID of Route53 Hosted Zone in which to create records for discovery
     Type: String
@@ -56,7 +57,7 @@ Resources:
       Name: !Sub "${ProjectName}-alb"
       Scheme: internet-facing
       SecurityGroups:
-        - !If [AccessSg, !Ref AccessSgID, AWS::NoValue]
+        - !If [AccessSg, !Ref AccessSgID, !Ref AWS::NoValue]
         - !GetAtt AlbSecurityGroup.GroupId
       Subnets: !Ref PublicSubnetIds
       Type: application

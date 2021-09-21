@@ -319,7 +319,7 @@ Resources:
         PublicSubnet3CIDR: !Ref PublicSubnet3CIDR
   BastionStack:
     # DependsOn: CFNEndpoint
-    Type: AWS::CloudFormation::Stack
+    Type: AWS::CloudFormation::Stack 
     Properties:
       TemplateURL: !Sub
         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template'

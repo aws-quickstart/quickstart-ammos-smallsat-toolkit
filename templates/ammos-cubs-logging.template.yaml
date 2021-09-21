@@ -4,6 +4,7 @@ Parameters:
   ProjectName:
     Description: Name of your project
     Type: String
+    Default: ''
   CloudWatchLogsRetentionPeriod:
     Description: The number of days to retain log events in CloudWatch log groups
     Type: Number
