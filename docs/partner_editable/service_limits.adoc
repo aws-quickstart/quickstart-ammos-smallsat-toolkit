@@ -22,4 +22,6 @@
 | Lambda functions | 3
 |===
 
-//TODO (Andrew is working on this with JPL.) In the description for the parameter AITInstanceType, we claim that the deployment guide recommends instance types to use for AIT. I don't see that info in the guide, though. Please supply recommendations.
+// TODO: for AWS team - what header should be used here? Is "Service Limits" correct?
+Recommended EC2 instance types:
+During deployment, you can choose the AIT instance type to fit your workload. The default instance type, `m5.large`, contains enough compute and memory resources for most workloads, as suggested by the AIT development team. The best choice for your mission depends on expected telemetry throughput, level of message processing required, and latency requirements defined by the mission. We recommend 2–4 cores and 4–8 GiB of memory for the AIT instance.
