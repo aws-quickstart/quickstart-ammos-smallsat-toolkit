@@ -9,19 +9,19 @@
         "collect_list": [
           {
             "file_path": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log",
-            "log_group_name": "/cloudwatch-agent/ait-server/agent",
+            "log_group_name": "/<PROJECT_NAME>/cloudwatch-agent/ait-server/agent",
             "log_stream_name": "{instance_id}/amazon-cloudwatch-agent.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/ammos/css/logs/apache24_agent/audit/audit.log",
-            "log_group_name": "/cloudwatch-agent/ait-server/apache_audit",
+            "log_group_name": "/<PROJECT_NAME>/cloudwatch-agent/ait-server/apache_audit",
             "log_stream_name": "{instance_id}/apache_audit.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/messages*",
-            "log_group_name": "/cloudwatch-agent/ait-server/syslog",
+            "log_group_name": "/<PROJECT_NAME>/cloudwatch-agent/ait-server/syslog",
             "log_stream_name": "{instance_id}/messages.log",
             "timezone": "UTC"
           }

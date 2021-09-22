@@ -1,5 +1,5 @@
 project:
-  name: quickstart-nasa-jpl-cubs
+  name: quickstart-ammos-smallsat-toolkit
   owner: quickstart-eng@amazon.com
   lambda_source_path: functions/source
   lambda_zip_path: functions/packages  
@@ -17,7 +17,7 @@ project:
   - us-west-1
   - us-west-2
 tests:
-  quickstart-nasa-jpl-cubs:
+  quickstart-ammos-smallsat-toolkit:
     regions:
       - us-east-2
     parameters:

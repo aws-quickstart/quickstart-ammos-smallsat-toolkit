@@ -862,7 +862,7 @@ p.footer-text a{color:#d7d8d8}
 <ul class="sectlevel2">
 <li><a href="#_optional_deploy_dns_records">(Optional) Deploy DNS records</a></li>
 <li><a href="#_create_amazon_cognito_user_identities">Create Amazon Cognito user identities</a></li>
-<li><a href="#_install_the_ait_editor_extension">Install the AIT Editor extension</a></li>
+<li><a href="#_install_the_ait_sequence_editor_extension">Install the AIT Sequence Editor extension</a></li>
 <li><a href="#_adapt_ait_to_your_mission">Adapt AIT to your mission</a></li>
 <li><a href="#_set_up_the_cloudwatch_agent">Set up the CloudWatch agent</a></li>
 </ul>
@@ -893,7 +893,7 @@ p.footer-text a{color:#d7d8d8}
 <li><a href="#_parameter_reference">Parameter reference</a>
 <ul class="sectlevel2">
 <li><a href="#_parameters_for_preconfiguring_your_aws_account">Parameters for preconfiguring your AWS account</a></li>
-<li><a href="#_parameters_for_deploying_into_a_new_vpc">Parameters for deploying into a new VPC</a></li>
+<li><a href="#_parameters_for_deploying_ammos_smallsat_toolkit">Parameters for deploying AMMOS SmallSat Toolkit</a></li>
 </ul>
 </li>
 <li><a href="#_send_us_feedback">Send us feedback</a></li>
@@ -915,7 +915,7 @@ p.footer-text a{color:#d7d8d8}
 </div>
 <div class="paragraph text-center">
 <p><strong>September 2021</strong><br>
-<em>Michael Fedell and Steven Liu, Jet Propulsion Laboratory</em><br>
+<em>Michael Fedell and Steven Liu, NASA Multimission Ground Systems and Services</em><br>
 <em>Andrew Glenn, AWS Integration &amp; Automation team</em></p>
 </div>
 <div class="admonitionblock tip text-left">
@@ -932,7 +932,7 @@ report bugs, or submit feature ideas for this Quick Start.
 </table>
 </div>
 <div class="paragraph text-left">
-<p>This Quick Start was created by Jet Propulsion Laboratory in collaboration with Amazon Web Services (AWS). <a href="http://aws.amazon.com/quickstart/" target="_blank" rel="noopener">Quick Starts</a> are automated reference deployments that use AWS CloudFormation templates to deploy key technologies on AWS, following AWS best practices.</p>
+<p>This Quick Start was created by NASA Multimission Ground Systems and Services in collaboration with Amazon Web Services (AWS). <a href="http://aws.amazon.com/quickstart/" target="_blank" rel="noopener">Quick Starts</a> are automated reference deployments that use AWS CloudFormation templates to deploy key technologies on AWS, following AWS best practices.</p>
 </div>
 </div>
 </div>
@@ -943,7 +943,7 @@ report bugs, or submit feature ideas for this Quick Start.
 <p>This guide provides instructions for deploying the AMMOS SmallSat Toolkit Quick Start on the AWS Cloud.</p>
 </div>
 <div class="paragraph">
-<p>This Quick Start deploys NASA&#8217;s <a href="https://ammos.nasa.gov/" target="_blank" rel="noopener">Advanced Multi-Mission Operations System (AMMOS)</a> suite of capabilities for small-satellite (SmallSat and CubeSat) missions and instrument missions. AMMOS offers advanced sequence generation, command uplink and downlink, telemetry processing, and data visualization. Using this Quick Start, your team can rapidly deploy a foundational ground data system (GDS) that is built on high-heritage capabilities maintained by NASA. The AMMOS suite comprises open-source products that are available in the <a href="https://github.com/NASA-AMMOS" target="_blank" rel="noopener">NASA-AMMOS GitHub repository</a>, where contributions are welcomed and encouraged.</p>
+<p>This Quick Start deploys NASA&#8217;s <a href="https://ammos.nasa.gov/" target="_blank" rel="noopener">Advanced Multi-Mission Operations System (AMMOS)</a> suite of capabilities for small satellite, CubeSat, and instrument missions. The AMMOS SmallSat Toolkit offers advanced sequence generation, command uplink and downlink, telemetry processing, and data visualization. Using this Quick Start, your team can rapidly deploy a foundational ground data system (GDS) that is built on mission-proven capabilities and maintained by NASA. The AMMOS suite comprises open-source products that are available in the <a href="https://github.com/NASA-AMMOS" target="_blank" rel="noopener">NASA-AMMOS GitHub repository</a>, where contributions are welcomed and encouraged.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -963,10 +963,29 @@ Amazon may share user-deployment information with the AWS Partner that collabora
 <h2 id="_ammos_smallsat_toolkit_on_aws">AMMOS SmallSat Toolkit on AWS</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The core of this lightweight software bundle is the <a href="https://github.com/NASA-AMMOS/AIT-Core" target="_blank" rel="noopener">AMMOS Instrument Toolkit (AIT)</a>. AIT is a Python-based software suite that handles GDS, electrical ground support equipment (EGSE), commanding, telemetry uplink and downlink, and sequencing. AIT integrates with <a href="https://github.com/NASA-AMMOS/openmct-mcws" target="_blank" rel="noopener">Open Mission Control Technologies (Open MCT)</a> software, which provides visualization and dashboarding capabilities. AIT also integrates with <a href="https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor" target="_blank" rel="noopener">AIT Editor</a>, a Microsoft Visual Studio Code (VS Code or VSC) extension that provides a centralized, browser-based environment for generating and editing spacecraft command-sequence files.</p>
+<p>The toolkit includes the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/NASA-AMMOS/AIT-Core" target="_blank" rel="noopener">AMMOS Instrument Toolkit (AIT)</a>, a Python-based software suite that handles GDS, electrical ground support equipment (EGSE), commanding, telemetry uplink and downlink, and sequencing.</p>
+</li>
+<li>
+<p><a href="https://github.com/NASA-AMMOS/openmct-mcws" target="_blank" rel="noopener">Open Mission Control Technologies (Open MCT)</a> software, providing visualization and dashboarding capabilities.</p>
+</li>
+<li>
+<p><a href="https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor" target="_blank" rel="noopener">AIT Sequence Editor</a>, a Microsoft Visual Studio Code (VS Code) extension that provides a centralized, browser-based environment for generating and editing spacecraft command sequence files.</p>
+</li>
+<li>
+<p>A set of basic test data so you can test the software capabilities upon installation.</p>
+</li>
+<li>
+<p>Instructions for adapting the deployment for your operation&#8217;s needs both at launch and as your mission evolves.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>This software suite includes a set of basic test data so that you can verify your installation. The software meets the needs common to most SmallSat and CubeSat missions with minimal adaptation. It comes with instructions for adapting the deployment for your operation&#8217;s needs both at launch and as your mission evolves.</p>
+<p>This Quick Start is designed to meet the core demands of your mission with minimal adaptation.</p>
 </div>
 </div>
 </div>
@@ -1025,23 +1044,23 @@ AWS Cloud.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>A highly available architecture that spans three Availability Zones.</p>
+<p>A highly available architecture that spans three Availability Zones.*</p>
 </li>
 <li>
-<p>A VPC configured with public and private subnets, according to AWS best practices, to provide you with your own virtual network on AWS.</p>
+<p>A VPC configured with public and private subnets, according to AWS best practices, to provide you with your own virtual network on AWS.*</p>
 </li>
 <li>
 <p>In the public subnets:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>A Linux bastion host in an Auto Scaling group to allow inbound Secure Shell (SSH) access to Amazon Elastic Compute Cloud (Amazon EC2) instances in public and private subnets.</p>
+<p>A Linux bastion host in an Auto Scaling group to allow inbound Secure Shell (SSH) access to Amazon Elastic Compute Cloud (Amazon EC2) instances in public and private subnets.*</p>
 </li>
 <li>
 <p>An Application Load Balancer to route traffic from the web to the EC2 instances in the private subnets.</p>
 </li>
 <li>
-<p>A managed network address translation (NAT) gateway to provide outbound internet access for resources in the private subnets.</p>
+<p>A managed network address translation (NAT) gateway to provide outbound internet access for resources in the private subnets.*</p>
 </li>
 </ul>
 </div>
@@ -1054,7 +1073,7 @@ AWS Cloud.</p>
 <p>An EC2 instance that serves the AIT and Open MCT applications using Apache HTTP Server. This instance runs in an Auto Scaling group.</p>
 </li>
 <li>
-<p>An EC2 instance that serves the AIT Editor application. This instance runs in a Docker container to mitigate the impact of system commands that are executed from the VS Code–integrated terminal that&#8217;s exposed in the browser.</p>
+<p>An EC2 instance that serves the AIT Sequence Editor application. This instance runs in a Docker container. The container mitigates the impact of system commands that are run from the VS Code–integrated terminal that&#8217;s exposed in the browser.</p>
 </li>
 </ul>
 </div>
@@ -1078,6 +1097,9 @@ AWS Cloud.</p>
 <p>Two S3 buckets, one for long-term storage of log files and the other for configuration files.</p>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p><span class="small">* The template that deploys the Quick Start into an existing VPC skips the components marked by asterisks and prompts you for your existing VPC configuration.</span></p>
 </div>
 </div>
 </div>
@@ -1160,7 +1182,7 @@ deploy, and operate your infrastructure and applications on the AWS Cloud.</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">EC2 instances</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">EC2 instances*</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
 </tr>
 <tr>
@@ -1197,6 +1219,9 @@ deploy, and operate your infrastructure and applications on the AWS Cloud.</p>
 </tr>
 </tbody>
 </table>
+<div class="paragraph">
+<p><span class="small">* During deployment, you can choose the AIT instance type to fit your workload. The default instance type, <code>m5.large</code>, contains enough compute and memory resources for most workloads, as suggested by the AIT development team. The best choice for your mission depends on expected telemetry throughput, level of message processing required, and latency requirements defined by the mission. We recommend 2–4 cores and 4–8 GiB of memory for the AIT instance.</span></p>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_supported_aws_regions">Supported AWS Regions</h4>
@@ -1237,7 +1262,20 @@ Certain Regions are available on an opt-in basis. For more information, see <a h
 <div class="sect3">
 <h4 id="_deployment_options">Deployment options</h4>
 <div class="paragraph">
-<p>This Quick Start provides one deployment option: <strong>deploy AMMOS SmallSat Toolkit into a new VPC</strong>. This option builds a new AWS environment consisting of the VPC, subnets, NAT gateways, security groups, bastion hosts, and other infrastructure components. It then deploys AMMOS SmallSat Toolkit into this new VPC.</p>
+<p>This Quick Start provides two deployment options:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Deploy AMMOS SmallSat Toolkit into a new VPC</strong>. This option builds a new AWS environment consisting of the VPC, subnets, NAT gateways, security groups, bastion hosts, and other infrastructure components. It then deploys AMMOS SmallSat Toolkit into this new VPC.</p>
+</li>
+<li>
+<p><strong>Deploy AMMOS SmallSat Toolkit into an existing VPC.</strong> This option provisions AMMOS SmallSat Toolkit in your existing AWS infrastructure.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This Quick Start provides one template that covers both of these options. It also lets you configure Classless Inter-Domain Routing (CIDR) blocks, instance types, and AMMOS SmallSat Toolkit settings, as discussed later in this guide.</p>
 </div>
 </div>
 </div>
@@ -1261,7 +1299,7 @@ Certain Regions are available on an opt-in basis. For more information, see <a h
 <div class="sect2">
 <h3 id="_deploy_and_customize_the_configuration_files">Deploy and customize the configuration files</h3>
 <div class="paragraph">
-<p>The preconfiguration (prerequisite) stack for this Quick Start contains an S3 bucket that&#8217;s populated with base configuration files for AIT, AIT Editor, and Open MCT. Deploy this stack and customize the configuration files as follows:</p>
+<p>The preconfiguration (prerequisite) stack for this Quick Start contains an S3 bucket that&#8217;s populated with base configuration files for AIT, AIT Sequence Editor, and Open MCT. Deploy this stack and customize the configuration files as follows:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -1374,7 +1412,7 @@ Use the correct syntax and format in your configuration files so that the applic
 <div class="sect4">
 <h5 id="_httpd_proxy_conf">httpd_proxy.conf</h5>
 <div class="paragraph">
-<p>This configuration file defines how Apache HTTP Server proxies requests to either AIT or Open MCT. Both applications are set up as virtual hosts in Apache. Requests to AIT get proxied to the AIT backend Python process while requests to Open MCT are handled directly by the Apache web server that serves Open MCT&#8217;s static files.</p>
+<p>This configuration file defines how Apache HTTP Server proxies requests to either AIT or Open MCT. Both applications are set up as virtual hosts in Apache. Requests to AIT get proxied to the AIT backend Python process. Requests to Open MCT are handled directly by the Apache web server that serves Open MCT&#8217;s static files.</p>
 </div>
 <div class="paragraph">
 <p>Modify this file if you need a nonstandard configuration for routing traffic between applications.</p>
@@ -1386,13 +1424,13 @@ Use the correct syntax and format in your configuration files so that the applic
 <div class="sect4">
 <h5 id="_configseditor">configs/editor/</h5>
 <div class="paragraph">
-<p>This S3 folder contains configuration files for the AIT Editor deployment within this Quick Start.</p>
+<p>This S3 folder contains configuration files for the AIT Sequence Editor deployment within this Quick Start.</p>
 </div>
 </div>
 <div class="sect4">
 <h5 id="_cloudwatch_agent_editor_json">cloudwatch-agent-editor.json</h5>
 <div class="paragraph">
-<p>This file configures the CloudWatch agent that runs on the AIT Editor EC2 instance. Modify this file if you need to configure additional sources for logs to send to CloudWatch Logs.</p>
+<p>This file configures the CloudWatch agent that runs on the AIT Sequence Editor EC2 instance. Modify this file if you need to configure additional sources for logs to send to CloudWatch Logs.</p>
 </div>
 <div class="paragraph">
 <p>For more information, see <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html" target="_blank" rel="noopener">Manually create or edit the CloudWatch agent configuration file</a>.</p>
@@ -1440,7 +1478,7 @@ Use the correct syntax and format in your configuration files so that the applic
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">editor.&lt;fqdn&gt;</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">→ AIT Editor EC2 instance [Docker container]</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">→ AIT Sequence Editor EC2 instance [Docker container]</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">logs.&lt;fqdn&gt;</p></td>
@@ -1516,13 +1554,25 @@ Use the correct syntax and format in your configuration files so that the applic
 </div>
 <div class="sect2">
 <h3 id="_launch_the_quick_start">Launch the Quick Start</h3>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+If you’re deploying AMMOS SmallSat Toolkit into an existing VPC, make sure that your VPC has two private subnets in different Availability Zones for the workload instances and that the subnets aren’t shared. This Quick Start doesn’t support shared subnets. These subnets require NAT gateways in their route tables to allow the instances to download packages and software without exposing them to the internet. The NAT gateway itself should be deployed to one of the two public subnets in your VPC. You provide your VPC settings when you launch the Quick Start.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>Each deployment takes about 60 minutes to complete.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Sign in to your AWS account, and <a href="https://fwd.aws/p5Pxb?" target="_blank" rel="noopener">deploy AMMOS SmallSat Toolkit into a new VPC</a>. For details, see <a href="#_deployment_options">Deployment options</a> earlier in this guide. (<a href="https://fwd.aws/KbM3z?" target="_blank" rel="noopener">View template</a>.)</p>
+<p>Sign in to your AWS account, and <a href="https://fwd.aws/p5Pxb?" target="_blank" rel="noopener">launch the AWS CloudFormation template</a> to deploy AMMOS SmallSat Toolkit into a new or existing VPC. (<a href="https://fwd.aws/KbM3z?" target="_blank" rel="noopener">View template</a>.) For details, see <a href="#_deployment_options">Deployment options</a> earlier in this guide.</p>
 </li>
 <li>
 <p>Check the AWS Region that&#8217;s displayed in the upper-right corner of the navigation bar, and change it if necessary.  This Region is where you build the infrastructure. The template is launched in the us-east-1 Region by default. Supported Regions include the AWS GovCloud (US) Regions. For more information, see <a href="#_supported_aws_regions">Supported AWS Regions</a> earlier in this guide.</p>
@@ -1570,13 +1620,13 @@ Use the correct syntax and format in your configuration files so that the applic
 <p>Choose <strong>Instances</strong> from the left navigation bar. Verify that the <strong>AitAutoScalingGroup</strong> and <strong>EditorServer</strong> EC2 instances appear.</p>
 </li>
 <li>
-<p>For each instance, ensure that there are no failed checks in the the <strong>Status checks</strong> column.</p>
+<p>For each instance, ensure that there are no failed checks in the <strong>Status checks</strong> column.</p>
 </li>
 <li>
-<p>Use AWS Systems Manager (formerly knows as SSM) to verify that you can connect to each instance.</p>
+<p>Use AWS Systems Manager (formerly known as SSM) to verify that you can connect to each instance.</p>
 </li>
 <li>
-<p>On the AIT Editor instance, run <code>docker ps</code>. Verify that the Docker container is running.</p>
+<p>On the AIT Sequence Editor instance, run <code>docker ps</code>. Verify that the Docker container is running.</p>
 </li>
 <li>
 <p>On the AIT instance, verify that the Apache HTTPD Server and AIT-Core systemd services are active by running the following commands:</p>
@@ -1613,7 +1663,7 @@ In the AIT documentation, the core AIT functionality is sometimes called a "serv
 <li>
 <p>Open a web browser, and enter your FQDN URL.</p>
 <div class="paragraph">
-<p>A landing page opens showing links to the AIT, OpenMCT, and AIT Editor applications.</p>
+<p>A landing page opens showing links to the AIT, OpenMCT, and AIT Sequence Editor applications.</p>
 </div>
 </li>
 <li>
@@ -1638,13 +1688,13 @@ In the AIT documentation, the core AIT functionality is sometimes called a "serv
 <li>
 <p>Activate the Python virtual environment where AIT and the sample telemetry scripts are installed.</p>
 <div class="paragraph">
-<p>The scripts are installed in a virtual environment named <code>ait</code> on the AIT instance. As part of the activation, the virtual environment modifies your <code>PATH</code> variable to include a few AIT scripts that are now executable.</p>
+<p>The scripts are installed in a virtual environment named <code>ait</code> on the AIT instance. As part of the activation, the virtual environment modifies your <code>PATH</code> variable to include a few AIT scripts that you can run.</p>
 </div>
 </li>
 <li>
 <p>Use the commands <code>ait-example</code> and <code>ait-tlm-simulate</code> to run each script.</p>
 <div class="paragraph">
-<p>The two scripts generate sample telemetry. <code>ait-example</code>, which has a hard-coded packet structure, sends telemetry for 100 seconds. <code>ait-tlm-simulate</code>, which can simulate different packet types, emits telemetry once per second indefinitely.</p>
+<p>The two scripts generate sample telemetry. <code>ait-example</code>, which has a hardcoded packet structure, sends telemetry for 100 seconds. <code>ait-tlm-simulate</code>, which can simulate different packet types, emits telemetry once per second indefinitely.</p>
 </div>
 </li>
 <li>
@@ -1735,7 +1785,7 @@ Alias    |    logs.fqdn       →    fqdn</pre>
 <div class="sect2">
 <h3 id="_create_amazon_cognito_user_identities">Create Amazon Cognito user identities</h3>
 <div class="paragraph">
-<p>The Application Load Balancer defines an authentication action to protect the AIT, Open MCT, and AIT Editor applications. To access the applications, you authenticate using an identity that&#8217;s managed by Amazon Cognito. Create user identities in the Amazon Cognito user pool or set up federation with an existing identity provider.</p>
+<p>The Application Load Balancer defines an authentication action to protect the AIT, Open MCT, and AIT Sequence Editor applications. To access the applications, you authenticate using an identity that&#8217;s managed by Amazon Cognito. Create user identities in the Amazon Cognito user pool or set up federation with an existing identity provider.</p>
 </div>
 <div class="paragraph">
 <p>For more information, see the following:</p>
@@ -1752,12 +1802,12 @@ Alias    |    logs.fqdn       →    fqdn</pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_install_the_ait_editor_extension">Install the AIT Editor extension</h3>
+<h3 id="_install_the_ait_sequence_editor_extension">Install the AIT Sequence Editor extension</h3>
 <div class="paragraph">
-<p>While you could install the <a href="https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor" target="_blank" rel="noopener">AIT Editor extension</a> locally on any VS Code client, this Quick Start deploys a centralized browser-based integrated development environment (IDE) based on the open-source application <a href="https://github.com/cdr/code-server" target="_blank" rel="noopener">code-server</a>. With code-server, you can run VS Code on any machine.</p>
+<p>While you could install the <a href="https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor" target="_blank" rel="noopener">AIT Sequence Editor extension</a> locally on any VS Code client, this Quick Start deploys a centralized browser-based integrated development environment (IDE) based on the open-source application <a href="https://github.com/cdr/code-server" target="_blank" rel="noopener">code-server</a>. With code-server, you can run VS Code on any machine.</p>
 </div>
 <div class="paragraph">
-<p>After the Quick Start deploys the AIT Editor EC2 instance, it installs and configures code-server and the mission configuration used by AIT. Since code-server can&#8217;t use Microsoft&#8217;s extension marketplace due to Microsoft&#8217;s terms of service for VS Code, you need to install the AIT Editor extension manually from the .vsix file published on GitHub and in the marketplace.</p>
+<p>After the Quick Start deploys the AIT Sequence Editor EC2 instance, it installs and configures code-server and the mission configuration used by AIT. Since code-server can&#8217;t use Microsoft&#8217;s extension marketplace due to Microsoft&#8217;s terms of service for VS Code, you need to install the AIT Sequence Editor extension manually from the .vsix file published on GitHub and in the marketplace.</p>
 </div>
 <div class="paragraph">
 <p>For more information, see the following:</p>
@@ -1841,10 +1891,10 @@ Alias    |    logs.fqdn       →    fqdn</pre>
 <div class="sect3">
 <h4 id="_optional_upgrade_the_deployed_applications">(Optional) Upgrade the deployed applications</h4>
 <div class="paragraph">
-<p>If you upgrade AIT-Core or any of the other deployed applications, you are responsible for any impact that upgrading may have. This Quick Start supports only those versions listed under LINK: link to <code>Software version requirements</code>.</p>
+<p>If you upgrade AIT-Core or any of the other deployed applications, you are responsible for any impact that upgrading may have. This Quick Start supports only those versions listed under <a href="#_software_version_requirements"><em>Software version requirements</em></a>.</p>
 </div>
 <div class="paragraph">
-<p>To upgrade any of the applications, refer to that application&#8217;s documentation. Back up the <code>config</code> folder and any modified files. Then update and reinstall the cloned application repositories to the virtual environment, as documented later in this guide.</p>
+<p>To upgrade any of the applications, refer to that application&#8217;s documentation. Back up the <code>config</code> folder and any modified files. Then update and reinstall the cloned application repositories to the virtual environment.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1927,10 +1977,10 @@ Alias    |    logs.fqdn       →    fqdn</pre>
 <div class="sect2">
 <h3 id="_set_up_the_cloudwatch_agent">Set up the CloudWatch agent</h3>
 <div class="paragraph">
-<p>This Quick Start installs an Amazon CloudWatch agent (cloudwatch-agent-ait.json) on all deployed EC2 instances. This agent is initialized by a default configuration file that tells the agent which files to monitor and where to direct the logs in CloudWatch.</p>
+<p>This Quick Start installs an Amazon CloudWatch agent (cloudwatch-agent-ait.json) on all deployed EC2 instances. This agent is initialized by a default configuration file that tells the agent which files to monitor and where to direct the logs in CloudWatch. See <a href="#_about_the_configuration_files">About the configuration files</a> earlier in this guide.</p>
 </div>
 <div class="paragraph">
-<p>For information on viewing the default CloudWatch agent configuration files, see LINK: link to S3 config. Modify this file as detailed in the following section.</p>
+<p>Modify this file as detailed in the following section.</p>
 </div>
 <div class="paragraph">
 <p>For more information, see <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent.html" target="_blank" rel="noopener">Collecting metrics and logs from Amazon EC2 instances and on-premises servers with the CloudWatch agent</a>.</p>
@@ -2080,10 +2130,10 @@ The Amazon OpenSearch Service domain uses an open-access policy with access cont
 <div class="sect2">
 <h3 id="_code_server_access">Code-server access</h3>
 <div class="paragraph">
-<p>The AIT Editor EC2 instance runs <code>cdr/code-server</code>. When you use Visual Studio Code&#8217;s integrated terminal, you can execute system-level commands from a browser.</p>
+<p>The AIT Sequence Editor EC2 instance runs <code>cdr/code-server</code>. When you use Visual Studio Code&#8217;s integrated terminal, you can run system-level commands from a browser.</p>
 </div>
 <div class="paragraph">
-<p>The AIT Editor instance runs in a Docker container with volumes mounted to the following locations:</p>
+<p>The AIT Sequence Editor instance runs in a Docker container with volumes mounted to the following locations:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -2169,10 +2219,10 @@ The Amazon OpenSearch Service domain uses an open-access policy with access cont
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://groups.google.com/g/ait-dev" target="_blank" rel="noopener">AMMOS Instrument Toolkit Development and Users</a> ( mailing group)</p>
+<p><a href="https://groups.google.com/g/ait-dev" target="_blank" rel="noopener">AMMOS Instrument Toolkit Development and Users</a> (mailing group)</p>
 </li>
 <li>
-<p><a href="https://github.com/nasa/openmct/discussions" target="_blank" rel="noopener">NASA Open MCT</a> (Github discussions)</p>
+<p><a href="https://github.com/nasa/openmct/discussions" target="_blank" rel="noopener">NASA Open MCT</a> (GitHub discussions)</p>
 </li>
 </ul>
 </div>
@@ -2184,7 +2234,7 @@ The Amazon OpenSearch Service domain uses an open-access policy with access cont
 <div class="sect2">
 <h3 id="_operating_system_and_dependency_versions">Operating system and dependency versions</h3>
 <div class="paragraph">
-<p>The Quick Start deploys AIT, Open MCT, and AIT Editor on EC2 instances running Red Hat Enterprise Linux 8 (RHEL8). These applications do not require RHEL8, but RHEL8 is the officially supported operating system for all AMMOS applications.</p>
+<p>The Quick Start deploys AIT, Open MCT, and AIT Sequence Editor on EC2 instances running Red Hat Enterprise Linux 8 (RHEL8). These applications do not require RHEL8, but RHEL8 is the officially supported operating system for all AMMOS applications.</p>
 </div>
 <div class="paragraph">
 <p>The Quick Start builds and installs Python 3.7.x on the application EC2 instances. This is the version that AIT software supports. Python 3.7 is not part of the official Red Hat Enterprise Linux 8 software repositories or Red Hat Software collections.</p>
@@ -2323,7 +2373,7 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Quick Start S3 key prefix
 (<code>QSS3KeyPrefix</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>quickstart-nasa-jpl-cubs/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>quickstart-ammos-smallsat-toolkit/</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">S3 key prefix that is used to simulate a directory for your copy of the Quick Start assets. Keep the default prefix unless you are customizing the template. Changing this prefix updates code references to point to a new Quick Start location. This prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slashes (/). End with a forward slash. See <a href="https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html" class="bare">https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html</a> and <a href="https://aws-quickstart.github.io/option1.html" class="bare">https://aws-quickstart.github.io/option1.html</a>.</p></td>
 </tr>
 <tr>
@@ -2336,7 +2386,7 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 </table>
 </div>
 <div class="sect2">
-<h3 id="_parameters_for_deploying_into_a_new_vpc">Parameters for deploying into a new VPC</h3>
+<h3 id="_parameters_for_deploying_ammos_smallsat_toolkit">Parameters for deploying AMMOS SmallSat Toolkit</h3>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 3. AIT configuration</caption>
 <colgroup>
@@ -2353,28 +2403,10 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">AIT instance type
-(<code>AITInstanceType</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>m5.large</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Instance type to be used for AIT. See deployment guide for recommendations.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Amazon OpenSearch Service domain name
-(<code>ElasticsearchDomainName</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Project name
+(<code>ProjectName</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Name of the Amazon OpenSearch Service domain.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CloudWatch Logs retention period
-(<code>CloudWatchLogsRetentionPeriod</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>30</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Number of days to retain log events in CloudWatch Logs log groups. Increasing this number results in higher log-storage costs.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Key-pair name
-(<code>KeyPairName</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Name of the key pair that you will use to connect securely to your instance after it launches.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name of your project.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Fully qualified domain name
@@ -2395,10 +2427,22 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 <td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) ID of the Route 53 hosted-zone domain. If you fill in both FQDN and HostedZoneID, this deployment generates an ACM certificate.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Project name
-(<code>ProjectName</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AIT instance type
+(<code>AITInstanceType</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>m5.large</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Instance type to be used for AIT. See deployment guide for recommendations.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Key-pair name
+(<code>KeyPairName</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Name of your project.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name of the key pair that you will use to connect securely to your instance after it launches.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CloudWatch Logs retention period
+(<code>CloudWatchLogsRetentionPeriod</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>30</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Number of days to retain log events in CloudWatch Logs log groups. Increasing this number results in higher log-storage costs.</p></td>
 </tr>
 </tbody>
 </table>
@@ -2500,6 +2544,48 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">CIDR IP range that is permitted to access the instances. Set this value to a trusted IP range.</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ID for VPC in an existing VPC
+(<code>VpcId</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) If you&#8217;re deploying into an existing VPC, fill in the VPC ID.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ID for public subnet 1 in an existing VPC
+(<code>PublicSubnet1ID</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) If you&#8217;re deploying into an existing VPC, fill in the ID of the public subnet in Availability Zone 1.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ID for public subnet 2 in an existing VPC
+(<code>PublicSubnet2ID</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) If you&#8217;re deploying into an existing VPC, fill in the ID of the public subnet in Availability Zone 2.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ID for private subnet 1A in an existing VPC
+(<code>PrivateSubnet1AID</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) If you&#8217;re deploying into an existing VPC, fill in the ID of the private subnet in Availability Zone 1.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ID for private subnet 2A in an existing VPC
+(<code>PrivateSubnet2AID</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) If you&#8217;re deploying into an existing VPC, fill in the ID of the private subnet in Availability Zone 2.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ID for private subnet 3A in an existing VPC
+(<code>PrivateSubnet3AID</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) If you&#8217;re deploying into an existing VPC, fill in the ID of the private subnet in Availability Zone 3.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ID of preconfigured security group in an existing VPC
+(<code>AccessSgID</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) If you&#8217;re deploying into an existing VPC, fill in the ID of the preconfigured security group to control access to the Application Load Balancer.</p></td>
+</tr>
 </tbody>
 </table>
 <table class="tableblock frame-all grid-all stretch">
@@ -2526,7 +2612,7 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Quick Start S3 key prefix
 (<code>QSS3KeyPrefix</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>quickstart-nasa-jpl-cubs/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>quickstart-ammos-smallsat-toolkit/</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">S3 key prefix that is used to simulate a directory for your copy of the Quick Start assets. Keep the default prefix unless you are customizing the template. Changing this prefix updates code references to point to a new Quick Start location. This prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slashes (/). End with a forward slash. See <a href="https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html" class="bare">https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html</a> and <a href="https://aws-quickstart.github.io/option1.html" class="bare">https://aws-quickstart.github.io/option1.html</a>.</p></td>
 </tr>
 <tr>
@@ -2582,18 +2668,18 @@ and to share your customizations with others.</p>
 <p class="footer-text">
 <!-- We can use document attributes: -->
 <!-- Generated with Asciidoctor v2.0.15. -->
-<a href="https://aws.amazon.com/privacy/">Privacy</a> | <a href="https://aws.amazon.com/terms/">Site terms</a> | &copy; 2021, Amazon Web Services, Inc. or its affiliates and Jet Propulsion Laboratory. All rights reserved.
+<a href="https://aws.amazon.com/privacy/">Privacy</a> | <a href="https://aws.amazon.com/terms/">Site terms</a> | &copy; 2021, Amazon Web Services, Inc. or its affiliates and NASA Multimission Ground Systems and Services. All rights reserved.
 </p>
 </body>
 </html>
 <!--
 repo commit:
-18b0ac85b08d4ad1b2a821731727e96e1ca78d9e
+b2b3597ceae7dce522e280620fe0114fc50e8441
 
 submodule config:
  eea042d0b9c005d2549a71349e5f28b02c81af75 docs/boilerplate (heads/main)
  311c180a3d632339345add61c9c12c1e7e9f2835 submodules/lambda-copyzips (heads/main)
  233fbd97e3563911a7dc91f8c6ba8e24e10d32c8 submodules/quickstart-aws-acm-certificate (heads/main)
  ffc7af4e59a09dbf52199a3ecf70f3805abeff48 submodules/quickstart-aws-vpc (v1.0-58-gffc7af4)
- 9aa7aedb1b35a28a1b0f7d8773319f75cce4b787 submodules/quickstart-linux-bastion (heads/main)
+ b8196c01ebf75f46074fc2e0336b82051e8b8b68 submodules/quickstart-linux-bastion (remotes/origin/develop)
 -->

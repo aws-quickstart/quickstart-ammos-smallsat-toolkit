@@ -3,17 +3,15 @@
 
 == Test the deployment
 
-// TODO: @MF @KM add input if necessary
-
 Verify that all the components have been deployed by doing the following tests in the documented order.
 
 === Verify the deployment of the application EC2 instances
 
 . Sign in to the AWS Management Console, and open the https://console.aws.amazon.com/ec2/[Amazon EC2 console^].
 . Choose *Instances* from the left navigation bar. Verify that the *AitAutoScalingGroup* and *EditorServer* EC2 instances appear.
-. For each instance, ensure that there are no failed checks in the the *Status checks* column.
-. Use AWS Systems Manager (formerly knows as SSM) to verify that you can connect to each instance.
-. On the AIT Editor instance, run `docker ps`. Verify that the Docker container is running.
+. For each instance, ensure that there are no failed checks in the *Status checks* column.
+. Use AWS Systems Manager (formerly known as SSM) to verify that you can connect to each instance.
+. On the AIT Sequence Editor instance, run `docker ps`. Verify that the Docker container is running.
 . On the AIT instance, verify that the Apache HTTPD Server and AIT-Core systemd services are active by running the following commands:
 * `service httpd status`
 * `service ait-server status`
@@ -24,7 +22,7 @@ NOTE: In the AIT documentation, the core AIT functionality is sometimes called a
 
 . Open a web browser, and enter your FQDN URL.
 +
-A landing page opens showing links to the AIT, OpenMCT, and AIT Editor applications.
+A landing page opens showing links to the AIT, OpenMCT, and AIT Sequence Editor applications.
 
 . Choose each link. Verify that each application opens.
 +
@@ -36,11 +34,11 @@ The AIT software includes two sample telemetry scripts: `ait-example` and `ait-t
 . Connect to the AIT EC2 instance. For details, see link:#_verify_access_to_the_application_ec2_instances[Verify access to the application EC2 instances] earlier in this guide.
 . Activate the Python virtual environment where AIT and the sample telemetry scripts are installed.
 +
-The scripts are installed in a virtual environment named `ait` on the AIT instance. As part of the activation, the virtual environment modifies your `PATH` variable to include a few AIT scripts that are now executable.
+The scripts are installed in a virtual environment named `ait` on the AIT instance. As part of the activation, the virtual environment modifies your `PATH` variable to include a few AIT scripts that you can run.
 
 . Use the commands `ait-example` and `ait-tlm-simulate` to run each script.
 +
-The two scripts generate sample telemetry. `ait-example`, which has a hard-coded packet structure, sends telemetry for 100 seconds. `ait-tlm-simulate`, which can simulate different packet types, emits telemetry once per second indefinitely.
+The two scripts generate sample telemetry. `ait-example`, which has a hardcoded packet structure, sends telemetry for 100 seconds. `ait-tlm-simulate`, which can simulate different packet types, emits telemetry once per second indefinitely.
 
 . Open the AIT application. In most cases, it's `ait.<fqdn>` (where <fqdn> represents your FQDN URL).
 
@@ -63,9 +61,6 @@ Quick Start deployment installs CloudWatch agents on both application EC2 instan
 
 . Verify that each of these log groups contains a few log streams and that each stream contains log data. If you deployed the Quick Start recently, you may see only a small amount of log data.
 
-//TODO: is this input complete? is more needed?
-//_Awaiting input from testing lead_
-
 == Post-deployment tasks
 Complete any of the following post-deployment tasks that are relevant your mission. You can do these tasks in any order.
 
@@ -80,8 +75,6 @@ Deploy the following records:
     Alias    |    editor.fqdn     →    fqdn
     Alias    |    logs.fqdn       →    fqdn
 
-//TODO LINK: Link to ALB stack or properly name when available  -- Is this done?
-
 To view the Application Load Balancer DNS name, see the value displayed in the *Outputs* tab for the stack.
 
 The Application Load Balancer handles redirection based on the host header in request. It's sufficient to deploy a single CNAME record pointing to the Application Load Balancer and to deploy all subdomains as aliases that redirect to the Application Load Balancer CNAME record.
@@ -90,20 +83,20 @@ For guidance on this process, see your DNS provider's documentation.
 
 === Create Amazon Cognito user identities
 
-The Application Load Balancer defines an authentication action to protect the AIT, Open MCT, and AIT Editor applications. To access the applications, you authenticate using an identity that's managed by Amazon Cognito. Create user identities in the Amazon Cognito user pool or set up federation with an existing identity provider.
+The Application Load Balancer defines an authentication action to protect the AIT, Open MCT, and AIT Sequence Editor applications. To access the applications, you authenticate using an identity that's managed by Amazon Cognito. Create user identities in the Amazon Cognito user pool or set up federation with an existing identity provider.
 
 For more information, see the following:
 
 * https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html[Creating User Accounts as Administrator^]
 * https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-federation.html[Adding User Pool Sign-in Through a Third Party^]
 
-=== Install the AIT Editor extension
+=== Install the AIT Sequence Editor extension
 
-While you could install the https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor[AIT Editor extension^] locally on any VS Code client, this Quick Start deploys a centralized browser-based integrated development environment (IDE) based on the open-source application https://github.com/cdr/code-server[code-server^]. With code-server, you can run VS Code on any machine.
+While you could install the https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor[AIT Sequence Editor extension^] locally on any VS Code client, this Quick Start deploys a centralized browser-based integrated development environment (IDE) based on the open-source application https://github.com/cdr/code-server[code-server^]. With code-server, you can run VS Code on any machine.
 
-After the Quick Start deploys the AIT Editor EC2 instance, it installs and configures code-server and the mission configuration used by AIT. Since code-server can't use Microsoft's extension marketplace due to Microsoft's terms of service for VS Code, you need to install the AIT Editor extension manually from the .vsix file published on GitHub and in the marketplace. 
+After the Quick Start deploys the AIT Sequence Editor EC2 instance, it installs and configures code-server and the mission configuration used by AIT. Since code-server can't use Microsoft's extension marketplace due to Microsoft's terms of service for VS Code, you need to install the AIT Sequence Editor extension manually from the .vsix file published on GitHub and in the marketplace.
 
-For more information, see the following: 
+For more information, see the following:
 
 * https://coder.com/docs/code-server/v3.11.1/FAQ#why-cant-code-server-use-microsofts-extension-marketplace[Why can't code-server use Microsoft's extension marketplace?^]
 * https://coder.com/docs/code-server/v3.11.1/FAQ#how-do-i-install-an-extension-manually[How do I install an extension manually?^]
@@ -124,9 +117,6 @@ For more information on installing and configuring AIT Core, see https://ait-cor
 
 
 ==== Customize AIT with extensions and plugins
-//TODO: awaiting @KM
-// ^ Request is pending, for now the following is sufficient
-
 AIT is an extensible framework that your mission team can adapt to your use cases. Use https://ait-core.readthedocs.io/en/master/extensions.html[extensions^] and https://ait-core.readthedocs.io/en/master/server_architecture.html#plugins[plugins^] as appropriate. You can install existing plugins or develop your own.
 
 For more information, see the following:
@@ -148,13 +138,9 @@ To retrieve new files from the S3 bucket, run the following command with your bu
 For more information, see https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html[sync^]) in the AWS CLI command reference.
 
 ==== (Optional) Upgrade the deployed applications
-If you upgrade AIT-Core or any of the other deployed applications, you are responsible for any impact that upgrading may have. This Quick Start supports only those versions listed under LINK: link to `Software version requirements`.
+If you upgrade AIT-Core or any of the other deployed applications, you are responsible for any impact that upgrading may have. This Quick Start supports only those versions listed under <<Software version requirements>>.
 
-//TODO Reminder: We need to fix internal links throughout the doc after content stabilizes.
-
-To upgrade any of the applications, refer to that application's documentation. Back up the `config` folder and any modified files. Then update and reinstall the cloned application repositories to the virtual environment, as documented later in this guide.
-
-//TODO Reminder: ...documented where, exactly? Add link after content stabilizes.
+To upgrade any of the applications, refer to that application's documentation. Back up the `config` folder and any modified files. Then update and reinstall the cloned application repositories to the virtual environment.
 
 ==== Modify the Open MCT static built files
 The Open MCT framework is written in JavaScript. You can bundle it into a set of static assets that can be served from a web server. In this Quick Start, the latest version of Open MCT has been packaged and uploaded to an S3 bucket as a .zip file. The Quick Start deployment downloads the .zip file from the S3 bucket and extracts it so that it can be served by Apache HTTP Server. On the EC2 instance, the static files are extracted and located in `var/www/html/openmct`.
@@ -202,9 +188,9 @@ Whenever you change an AIT configuration file, you must restart this service usi
 
 === Set up the CloudWatch agent
 
-This Quick Start installs an Amazon CloudWatch agent (cloudwatch-agent-ait.json) on all deployed EC2 instances. This agent is initialized by a default configuration file that tells the agent which files to monitor and where to direct the logs in CloudWatch.
+This Quick Start installs an Amazon CloudWatch agent (cloudwatch-agent-ait.json) on all deployed EC2 instances. This agent is initialized by a default configuration file that tells the agent which files to monitor and where to direct the logs in CloudWatch. See <<About the configuration files>> earlier in this guide.
 
-For information on viewing the default CloudWatch agent configuration files, see LINK: link to S3 config. Modify this file as detailed in the following section.
+Modify this file as detailed in the following section.
 
 For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent.html[Collecting metrics and logs from Amazon EC2 instances and on-premises servers with the CloudWatch agent^].
 
@@ -268,9 +254,6 @@ For more information, see the following:
 * https://docs.aws.amazon.com/opensearch-service/latest/developerguide/vpc.html[Launching your Amazon OpenSearch Service domains within a VPC^]
 * https://docs.aws.amazon.com/opensearch-service/latest/developerguide/security.html[Security in Amazon OpenSearch Service^]
 
-//TODO: what needs to be added/clarified here?
-//@MF:
-
 === Authentication
 
 The Application Load Balancer, which is deployed to a public subnet, brokers access to the application resources deployed in private subnets. Each application is accessible through a listener rule, which directs traffic according to the host header and performs an authentication action prior to forwarding the traffic to the appropriate target group.
@@ -284,9 +267,9 @@ For more information, see the following:
 
 === Code-server access
 
-The AIT Editor EC2 instance runs `cdr/code-server`. When you use Visual Studio Code's integrated terminal, you can execute system-level commands from a browser.
+The AIT Sequence Editor EC2 instance runs `cdr/code-server`. When you use Visual Studio Code's integrated terminal, you can run system-level commands from a browser.
 
-The AIT Editor instance runs in a Docker container with volumes mounted to the following locations:
+The AIT Sequence Editor instance runs in a Docker container with volumes mounted to the following locations:
 
 - /home/editor-user/.aerie-editor-data:/home/coder/.local/share/code-server
 - /home/editor-user/.aerie-editor-config:/home/coder/.config
@@ -322,20 +305,20 @@ OpenMCT:
 - https://nasa.github.io/openmct/docs/guide/index.html#open-mct-developer-guide[Open MCT Developer Guide^]
 - https://github.com/nasa/openmct-tutorial[Open MCT Integration Tutorials^]
 
-// AIT Editor:
+// AIT Sequence Editor:
 
-//TODO: @MF links to AIT Editor when available
+//TODO: @MF links to AIT Sequence Editor when available
 // ^ Request is pending final open source approval
 
 Community:
 
-- https://groups.google.com/g/ait-dev[AMMOS Instrument Toolkit Development and Users^] ( mailing group)
-- https://github.com/nasa/openmct/discussions[NASA Open MCT^] (Github discussions)
+- https://groups.google.com/g/ait-dev[AMMOS Instrument Toolkit Development and Users^] (mailing group)
+- https://github.com/nasa/openmct/discussions[NASA Open MCT^] (GitHub discussions)
 
 == Software version requirements
 
 === Operating system and dependency versions
-The Quick Start deploys AIT, Open MCT, and AIT Editor on EC2 instances running Red Hat Enterprise Linux 8 (RHEL8). These applications do not require RHEL8, but RHEL8 is the officially supported operating system for all AMMOS applications.
+The Quick Start deploys AIT, Open MCT, and AIT Sequence Editor on EC2 instances running Red Hat Enterprise Linux 8 (RHEL8). These applications do not require RHEL8, but RHEL8 is the officially supported operating system for all AMMOS applications.
 
 The Quick Start builds and installs Python 3.7.x on the application EC2 instances. This is the version that AIT software supports. Python 3.7 is not part of the official Red Hat Enterprise Linux 8 software repositories or Red Hat Software collections.
 

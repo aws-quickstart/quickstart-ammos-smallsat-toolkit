@@ -16,6 +16,10 @@ Parameters:
   PublicSubnetIds:
     Description: Comma-separated list of Pulbic Subnet ID's for ALB deployment
     Type: List<AWS::EC2::Subnet::Id>
+  AccessSgID:
+    Description: (Optional) ID of pre-configured Security Group to control access to ALB
+    Type: String
+    Default: ''
   HostedZoneID:
     Description: ID of Route53 Hosted Zone in which to create records for discovery
     Type: String
@@ -27,6 +31,7 @@ Parameters:
     Type: String
 Conditions:
   DeployR53Records: !Not [!Equals ["", !Ref HostedZoneID]]
+  AccessSg: !Not [!Equals ["", !Ref AccessSgID]]
 
 Resources:
   ################# ALB #################
@@ -52,6 +57,7 @@ Resources:
       Name: !Sub "${ProjectName}-alb"
       Scheme: internet-facing
       SecurityGroups:
+        - !If [AccessSg, !Ref AccessSgID, !Ref AWS::NoValue]
         - !GetAtt AlbSecurityGroup.GroupId
       Subnets: !Ref PublicSubnetIds
       Type: application
@@ -170,6 +176,7 @@ Resources:
         - RedirectConfig:
             Protocol: HTTPS
             StatusCode: HTTP_302
+            Port: "443"
           Type: redirect
       LoadBalancerArn: !Ref ApplicationLoadBalancer
       Port: 80
