@@ -12,7 +12,7 @@ For more information, see the https://docs.aws.amazon.com/opensearch-service/lat
 
 === Deploy and customize the configuration files
 
-The preconfiguration (prerequisite) stack for this Quick Start contains an S3 bucket that's populated with base configuration files for AIT, AIT Editor, and Open MCT. Deploy this stack and customize the configuration files as follows:
+The preconfiguration (prerequisite) stack for this Quick Start contains an S3 bucket that's populated with base configuration files for AIT, AIT Sequence Editor, and Open MCT. Deploy this stack and customize the configuration files as follows:
 
 . https://fwd.aws/jmp4j?[Deploy the preconfiguration stack^]. (https://fwd.aws/xb7vj?[View the template^].)
 
@@ -80,17 +80,17 @@ This file references a few other configuration files (file paths are relative) a
 For more information, see https://ait-core.readthedocs.io/en/latest/configuration_intro.html#config-yaml[config.yaml^] in the AIT documentation.
 
 ===== httpd_proxy.conf
-This configuration file defines how Apache HTTP Server proxies requests to either AIT or Open MCT. Both applications are set up as virtual hosts in Apache. Requests to AIT get proxied to the AIT backend Python process while requests to Open MCT are handled directly by the Apache web server that serves Open MCT's static files.
+This configuration file defines how Apache HTTP Server proxies requests to either AIT or Open MCT. Both applications are set up as virtual hosts in Apache. Requests to AIT get proxied to the AIT backend Python process. Requests to Open MCT are handled directly by the Apache web server that serves Open MCT's static files.
 
 Modify this file if you need a nonstandard configuration for routing traffic between applications.
 
 For more information, see https://httpd.apache.org/docs[Apache HTTP Server Project^].
 
 ===== configs/editor/
-This S3 folder contains configuration files for the AIT Editor deployment within this Quick Start.
+This S3 folder contains configuration files for the AIT Sequence Editor deployment within this Quick Start.
 
 ===== cloudwatch-agent-editor.json
-This file configures the CloudWatch agent that runs on the AIT Editor EC2 instance. Modify this file if you need to configure additional sources for logs to send to CloudWatch Logs.
+This file configures the CloudWatch agent that runs on the AIT Sequence Editor EC2 instance. Modify this file if you need to configure additional sources for logs to send to CloudWatch Logs.
 
 For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html[Manually create or edit the CloudWatch agent configuration file^].
 
@@ -111,7 +111,7 @@ This deployment relies on a fully qualified domain name (FQDN) that you provide.
 | <fqdn> | → Application Load Balancer
 | ait.<fqdn> | → AIT Auto Scaling group [Apache → ait-gui bottle app]
 | mct.<fqdn> | → AIT Auto Scaling group [Apache → mct static built app]
-| editor.<fqdn> | → AIT Editor EC2 instance [Docker container]
+| editor.<fqdn> | → AIT Sequence Editor EC2 instance [Docker container]
 | logs.<fqdn> | → Amazon OpenSearch Service
 |===
 

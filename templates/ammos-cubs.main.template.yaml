@@ -3,7 +3,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: (qs-1s6abjf8q)
 Metadata:
   QuickStartDocumentation:
-    EntrypointName: "Parameters for deploying into a new VPC"
+    EntrypointName: "Parameters for deploying AMMOS SmallSat Toolkit"
   'AWS::CloudFormation::Interface':
     ParameterGroups:
       - Label:
@@ -90,19 +90,19 @@ Metadata:
       QSS3BucketRegion:
         default: Quick Start S3 bucket Region
       VpcId:
-        default: ID for VPC if using an already-deployed VPC
+        default: ID for VPC in an existing VPC
       PublicSubnet1ID:
-        default: ID for Public Subnet 1 if using an already-deployed VPC
+        default: ID for public subnet 1 in an existing VPC
       PublicSubnet2ID:
-        default: ID for Public Subnet 2 if using an already-deployed VPC
+        default: ID for public subnet 2 in an existing VPC
       PrivateSubnet1AID:
-        default: ID for Private Subnet 1A if using an already-deployed VPC
+        default: ID for private subnet 1A in an existing VPC
       PrivateSubnet2AID:
-        default: ID for Private Subnet 2A if using an already-deployed VPC
+        default: ID for private subnet 2A in an existing VPC
       PrivateSubnet3AID:
-        default: ID for Private Subnet 3A if using an already-deployed VPC
+        default: ID for private subnet 3A in an existing VPC
       AccessSgID:
-        default: ID of pre-configured security group if using an already-deployed VPC
+        default: ID of preconfigured security group in an existing VPC
 Parameters:
   AITInstanceType:
     Description: Instance type to be used for AIT. See deployment
@@ -228,31 +228,31 @@ Parameters:
     Description: Name of your project.
     Type: String
   VpcId:
-    Description: (Optional) ID of VPC if already deployed
+    Description: (Optional) If you're deploying into an existing VPC, fill in the VPC ID.
     Type: String
     Default: ''
   PublicSubnet1ID:
-    Description: (Optional) ID of Public Subnet 1 if VPC already deployed
+    Description: (Optional) If you're deploying into an existing VPC, fill in the ID of the public subnet in Availability Zone 1.
     Type: String
     Default: ''
   PublicSubnet2ID:
-    Description: (Optional) ID of Public Subnet 2 if VPC already deployed
+    Description: (Optional) If you're deploying into an existing VPC, fill in the ID of the public subnet in Availability Zone 2.
     Type: String
     Default: ''
   PrivateSubnet1AID:
-    Description: (Optional) ID of Public Subnet 1A if VPC already deployed
+    Description: (Optional) If you're deploying into an existing VPC, fill in the ID of the private subnet in Availability Zone 1.
     Type: String
     Default: ''
   PrivateSubnet2AID:
-    Description: (Optional) ID of Public Subnet 2A if VPC already deployed
+    Description: (Optional) If you're deploying into an existing VPC, fill in the ID of the private subnet in Availability Zone 2.
     Type: String
     Default: ''
   PrivateSubnet3AID:
-    Description: (Optional) ID of Public Subnet 3A if VPC already deployed
+    Description: (Optional) If you're deploying into an existing VPC, fill in the ID of the private subnet in Availability Zone 3.
     Type: String
     Default: ''
   AccessSgID:
-    Description: (Optional) ID of pre-configured Security Group to control access to ALB
+    Description: (Optional) If you're deploying into an existing VPC, fill in the ID of the preconfigured security group to control access to the Application Load Balancer.
     Type: String
     Default: ''
 Rules:
