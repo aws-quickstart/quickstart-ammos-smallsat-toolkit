@@ -80,7 +80,7 @@ This file references a few other configuration files (file paths are relative) a
 For more information, see https://ait-core.readthedocs.io/en/latest/configuration_intro.html#config-yaml[config.yaml^] in the AIT documentation.
 
 ===== httpd_proxy.conf
-This configuration file defines how Apache HTTP Server proxies requests to either AIT or Open MCT. Both applications are set up as virtual hosts in Apache. Requests to AIT get proxied to the AIT backend Python process while requests to Open MCT are handled directly by the Apache web server that serves Open MCT's static files.
+This configuration file defines how Apache HTTP Server proxies requests to either AIT or Open MCT. Both applications are set up as virtual hosts in Apache. Requests to AIT get proxied to the AIT backend Python process. Requests to Open MCT are handled directly by the Apache web server that serves Open MCT's static files.
 
 Modify this file if you need a nonstandard configuration for routing traffic between applications.
 
