@@ -237,7 +237,7 @@ Resources:
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
-        ElasticsearchDomainName: !Ref ElasticsearchDomainName
+        # ElasticsearchDomainName: !Ref ElasticsearchDomainName
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         RolePath: !Ref RolePath
         VPCID: !GetAtt VPCStack.Outputs.VPCID
