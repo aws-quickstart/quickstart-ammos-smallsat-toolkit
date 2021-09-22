@@ -9,8 +9,8 @@ Verify that all the components have been deployed by doing the following tests i
 
 . Sign in to the AWS Management Console, and open the https://console.aws.amazon.com/ec2/[Amazon EC2 console^].
 . Choose *Instances* from the left navigation bar. Verify that the *AitAutoScalingGroup* and *EditorServer* EC2 instances appear.
-. For each instance, ensure that there are no failed checks in the the *Status checks* column.
-. Use AWS Systems Manager (formerly knows as SSM) to verify that you can connect to each instance.
+. For each instance, ensure that there are no failed checks in the *Status checks* column.
+. Use AWS Systems Manager (formerly known as SSM) to verify that you can connect to each instance.
 . On the AIT Editor instance, run `docker ps`. Verify that the Docker container is running.
 . On the AIT instance, verify that the Apache HTTPD Server and AIT-Core systemd services are active by running the following commands:
 * `service httpd status`
@@ -34,11 +34,11 @@ The AIT software includes two sample telemetry scripts: `ait-example` and `ait-t
 . Connect to the AIT EC2 instance. For details, see link:#_verify_access_to_the_application_ec2_instances[Verify access to the application EC2 instances] earlier in this guide.
 . Activate the Python virtual environment where AIT and the sample telemetry scripts are installed.
 +
-The scripts are installed in a virtual environment named `ait` on the AIT instance. As part of the activation, the virtual environment modifies your `PATH` variable to include a few AIT scripts that are now executable.
+The scripts are installed in a virtual environment named `ait` on the AIT instance. As part of the activation, the virtual environment modifies your `PATH` variable to include a few AIT scripts that you can run.
 
 . Use the commands `ait-example` and `ait-tlm-simulate` to run each script.
 +
-The two scripts generate sample telemetry. `ait-example`, which has a hard-coded packet structure, sends telemetry for 100 seconds. `ait-tlm-simulate`, which can simulate different packet types, emits telemetry once per second indefinitely.
+The two scripts generate sample telemetry. `ait-example`, which has a hardcoded packet structure, sends telemetry for 100 seconds. `ait-tlm-simulate`, which can simulate different packet types, emits telemetry once per second indefinitely.
 
 . Open the AIT application. In most cases, it's `ait.<fqdn>` (where <fqdn> represents your FQDN URL).
 
@@ -74,8 +74,6 @@ Deploy the following records:
     Alias    |    mct.fqdn        →    fqdn
     Alias    |    editor.fqdn     →    fqdn
     Alias    |    logs.fqdn       →    fqdn
-
-//TODO LINK: Link to ALB stack or properly name when available  -- Is this done?
 
 To view the Application Load Balancer DNS name, see the value displayed in the *Outputs* tab for the stack.
 
@@ -140,13 +138,9 @@ To retrieve new files from the S3 bucket, run the following command with your bu
 For more information, see https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html[sync^]) in the AWS CLI command reference.
 
 ==== (Optional) Upgrade the deployed applications
-If you upgrade AIT-Core or any of the other deployed applications, you are responsible for any impact that upgrading may have. This Quick Start supports only those versions listed under LINK: link to `Software version requirements`.
+If you upgrade AIT-Core or any of the other deployed applications, you are responsible for any impact that upgrading may have. This Quick Start supports only those versions listed under <<Software version requirements>>.
 
-//TODO Reminder: We need to fix internal links throughout the doc after content stabilizes.
-
-To upgrade any of the applications, refer to that application's documentation. Back up the `config` folder and any modified files. Then update and reinstall the cloned application repositories to the virtual environment, as documented later in this guide.
-
-//TODO Reminder: ...documented where, exactly? Add link after content stabilizes.
+To upgrade any of the applications, refer to that application's documentation. Back up the `config` folder and any modified files. Then update and reinstall the cloned application repositories to the virtual environment.
 
 ==== Modify the Open MCT static built files
 The Open MCT framework is written in JavaScript. You can bundle it into a set of static assets that can be served from a web server. In this Quick Start, the latest version of Open MCT has been packaged and uploaded to an S3 bucket as a .zip file. The Quick Start deployment downloads the .zip file from the S3 bucket and extracts it so that it can be served by Apache HTTP Server. On the EC2 instance, the static files are extracted and located in `var/www/html/openmct`.
@@ -194,9 +188,9 @@ Whenever you change an AIT configuration file, you must restart this service usi
 
 === Set up the CloudWatch agent
 
-This Quick Start installs an Amazon CloudWatch agent (cloudwatch-agent-ait.json) on all deployed EC2 instances. This agent is initialized by a default configuration file that tells the agent which files to monitor and where to direct the logs in CloudWatch.
+This Quick Start installs an Amazon CloudWatch agent (cloudwatch-agent-ait.json) on all deployed EC2 instances. This agent is initialized by a default configuration file that tells the agent which files to monitor and where to direct the logs in CloudWatch. See <<About the configuration files>> earlier in this guide.
 
-For information on viewing the default CloudWatch agent configuration files, see LINK: link to S3 config. Modify this file as detailed in the following section.
+Modify this file as detailed in the following section.
 
 For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent.html[Collecting metrics and logs from Amazon EC2 instances and on-premises servers with the CloudWatch agent^].
 
@@ -273,7 +267,7 @@ For more information, see the following:
 
 === Code-server access
 
-The AIT Editor EC2 instance runs `cdr/code-server`. When you use Visual Studio Code's integrated terminal, you can execute system-level commands from a browser.
+The AIT Editor EC2 instance runs `cdr/code-server`. When you use Visual Studio Code's integrated terminal, you can run system-level commands from a browser.
 
 The AIT Editor instance runs in a Docker container with volumes mounted to the following locations:
 
@@ -318,8 +312,8 @@ OpenMCT:
 
 Community:
 
-- https://groups.google.com/g/ait-dev[AMMOS Instrument Toolkit Development and Users^] ( mailing group)
-- https://github.com/nasa/openmct/discussions[NASA Open MCT^] (Github discussions)
+- https://groups.google.com/g/ait-dev[AMMOS Instrument Toolkit Development and Users^] (mailing group)
+- https://github.com/nasa/openmct/discussions[NASA Open MCT^] (GitHub discussions)
 
 == Software version requirements
 
