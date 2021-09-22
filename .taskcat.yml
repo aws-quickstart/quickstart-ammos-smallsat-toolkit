@@ -30,4 +30,4 @@ tests:
       FQDN: override
       HostedZoneID: override
       ProjectName: $[taskcat_random-string]
-    template: templates/ammos-cubs.testing.template.yaml
+    template: templates/ammos-cubs.main.template.yaml
