@@ -236,6 +236,7 @@ Resources:
         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
+        ProjectName: !Ref ProjectName
         CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
         # ElasticsearchDomainName: !Ref ElasticsearchDomainName
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
