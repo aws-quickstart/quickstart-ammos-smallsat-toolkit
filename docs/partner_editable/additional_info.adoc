@@ -11,7 +11,7 @@ Verify that all the components have been deployed by doing the following tests i
 . Choose *Instances* from the left navigation bar. Verify that the *AitAutoScalingGroup* and *EditorServer* EC2 instances appear.
 . For each instance, ensure that there are no failed checks in the *Status checks* column.
 . Use AWS Systems Manager (formerly known as SSM) to verify that you can connect to each instance.
-. On the AIT Editor instance, run `docker ps`. Verify that the Docker container is running.
+. On the AIT Sequence Editor instance, run `docker ps`. Verify that the Docker container is running.
 . On the AIT instance, verify that the Apache HTTPD Server and AIT-Core systemd services are active by running the following commands:
 * `service httpd status`
 * `service ait-server status`
@@ -22,7 +22,7 @@ NOTE: In the AIT documentation, the core AIT functionality is sometimes called a
 
 . Open a web browser, and enter your FQDN URL.
 +
-A landing page opens showing links to the AIT, OpenMCT, and AIT Editor applications.
+A landing page opens showing links to the AIT, OpenMCT, and AIT Sequence Editor applications.
 
 . Choose each link. Verify that each application opens.
 +
@@ -83,18 +83,18 @@ For guidance on this process, see your DNS provider's documentation.
 
 === Create Amazon Cognito user identities
 
-The Application Load Balancer defines an authentication action to protect the AIT, Open MCT, and AIT Editor applications. To access the applications, you authenticate using an identity that's managed by Amazon Cognito. Create user identities in the Amazon Cognito user pool or set up federation with an existing identity provider.
+The Application Load Balancer defines an authentication action to protect the AIT, Open MCT, and AIT Sequence Editor applications. To access the applications, you authenticate using an identity that's managed by Amazon Cognito. Create user identities in the Amazon Cognito user pool or set up federation with an existing identity provider.
 
 For more information, see the following:
 
 * https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html[Creating User Accounts as Administrator^]
 * https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-federation.html[Adding User Pool Sign-in Through a Third Party^]
 
-=== Install the AIT Editor extension
+=== Install the AIT Sequence Editor extension
 
-While you could install the https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor[AIT Editor extension^] locally on any VS Code client, this Quick Start deploys a centralized browser-based integrated development environment (IDE) based on the open-source application https://github.com/cdr/code-server[code-server^]. With code-server, you can run VS Code on any machine.
+While you could install the https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor[AIT Sequence Editor extension^] locally on any VS Code client, this Quick Start deploys a centralized browser-based integrated development environment (IDE) based on the open-source application https://github.com/cdr/code-server[code-server^]. With code-server, you can run VS Code on any machine.
 
-After the Quick Start deploys the AIT Editor EC2 instance, it installs and configures code-server and the mission configuration used by AIT. Since code-server can't use Microsoft's extension marketplace due to Microsoft's terms of service for VS Code, you need to install the AIT Editor extension manually from the .vsix file published on GitHub and in the marketplace.
+After the Quick Start deploys the AIT Sequence Editor EC2 instance, it installs and configures code-server and the mission configuration used by AIT. Since code-server can't use Microsoft's extension marketplace due to Microsoft's terms of service for VS Code, you need to install the AIT Sequence Editor extension manually from the .vsix file published on GitHub and in the marketplace.
 
 For more information, see the following:
 
@@ -267,9 +267,9 @@ For more information, see the following:
 
 === Code-server access
 
-The AIT Editor EC2 instance runs `cdr/code-server`. When you use Visual Studio Code's integrated terminal, you can run system-level commands from a browser.
+The AIT Sequence Editor EC2 instance runs `cdr/code-server`. When you use Visual Studio Code's integrated terminal, you can run system-level commands from a browser.
 
-The AIT Editor instance runs in a Docker container with volumes mounted to the following locations:
+The AIT Sequence Editor instance runs in a Docker container with volumes mounted to the following locations:
 
 - /home/editor-user/.aerie-editor-data:/home/coder/.local/share/code-server
 - /home/editor-user/.aerie-editor-config:/home/coder/.config
@@ -305,9 +305,9 @@ OpenMCT:
 - https://nasa.github.io/openmct/docs/guide/index.html#open-mct-developer-guide[Open MCT Developer Guide^]
 - https://github.com/nasa/openmct-tutorial[Open MCT Integration Tutorials^]
 
-// AIT Editor:
+// AIT Sequence Editor:
 
-//TODO: @MF links to AIT Editor when available
+//TODO: @MF links to AIT Sequence Editor when available
 // ^ Request is pending final open source approval
 
 Community:
@@ -318,7 +318,7 @@ Community:
 == Software version requirements
 
 === Operating system and dependency versions
-The Quick Start deploys AIT, Open MCT, and AIT Editor on EC2 instances running Red Hat Enterprise Linux 8 (RHEL8). These applications do not require RHEL8, but RHEL8 is the officially supported operating system for all AMMOS applications.
+The Quick Start deploys AIT, Open MCT, and AIT Sequence Editor on EC2 instances running Red Hat Enterprise Linux 8 (RHEL8). These applications do not require RHEL8, but RHEL8 is the officially supported operating system for all AMMOS applications.
 
 The Quick Start builds and installs Python 3.7.x on the application EC2 instances. This is the version that AIT software supports. Python 3.7 is not part of the official Red Hat Enterprise Linux 8 software repositories or Red Hat Software collections.
 

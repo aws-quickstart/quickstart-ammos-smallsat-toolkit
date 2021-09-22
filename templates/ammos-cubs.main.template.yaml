@@ -3,7 +3,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: (qs-1s6abjf8q)
 Metadata:
   QuickStartDocumentation:
-    EntrypointName: "Parameters for deploying into a new VPC"
+    EntrypointName: "Parameters for deploying AMMOS SmallSat Toolkit"
   'AWS::CloudFormation::Interface':
     ParameterGroups:
       - Label:

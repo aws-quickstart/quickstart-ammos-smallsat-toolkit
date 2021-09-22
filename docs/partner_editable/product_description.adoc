@@ -6,7 +6,7 @@ The toolkit includes the following:
 
 * https://github.com/NASA-AMMOS/AIT-Core[AMMOS Instrument Toolkit (AIT)^], a Python-based software suite that handles GDS, electrical ground support equipment (EGSE), commanding, telemetry uplink and downlink, and sequencing.
 * https://github.com/NASA-AMMOS/openmct-mcws[Open Mission Control Technologies (Open MCT)^] software, providing visualization and dashboarding capabilities.
-* https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor[AIT Editor^], a Microsoft Visual Studio Code (VS Code) extension that provides a centralized, browser-based environment for generating and editing spacecraft command sequence files.
+* https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor[AIT Sequence Editor^], a Microsoft Visual Studio Code (VS Code) extension that provides a centralized, browser-based environment for generating and editing spacecraft command sequence files.
 * A set of basic test data so you can test the software capabilities upon installation.
 * Instructions for adapting the deployment for your operation's needs both at launch and as your mission evolves.
 
