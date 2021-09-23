@@ -850,21 +850,20 @@ p.footer-text a{color:#d7d8d8}
 <li><a href="#_launch_the_quick_start">Launch the Quick Start</a></li>
 </ul>
 </li>
+<li><a href="#_post_deployment_tasks">Post-deployment tasks</a>
+<ul class="sectlevel2">
+<li><a href="#_optional_deploy_dns_records">(Optional) Deploy DNS records</a></li>
+<li><a href="#_create_amazon_cognito_user_identities">Create Amazon Cognito user identities</a></li>
+<li><a href="#_adapt_ait_to_your_mission">Adapt AIT to your mission</a></li>
+<li><a href="#_set_up_the_cloudwatch_agent">Set up the CloudWatch agent</a></li>
+</ul>
+</li>
 <li><a href="#_test_the_deployment">Test the deployment</a>
 <ul class="sectlevel2">
 <li><a href="#_verify_the_deployment_of_the_application_ec2_instances">Verify the deployment of the application EC2 instances</a></li>
 <li><a href="#_verify_the_deployment_of_the_applications">Verify the deployment of the applications</a></li>
 <li><a href="#_verify_that_telemetry_is_flowing">Verify that telemetry is flowing</a></li>
 <li><a href="#_verify_that_cloudwatch_is_receiving_logs">Verify that CloudWatch is receiving logs</a></li>
-</ul>
-</li>
-<li><a href="#_post_deployment_tasks">Post-deployment tasks</a>
-<ul class="sectlevel2">
-<li><a href="#_optional_deploy_dns_records">(Optional) Deploy DNS records</a></li>
-<li><a href="#_create_amazon_cognito_user_identities">Create Amazon Cognito user identities</a></li>
-<li><a href="#_install_the_ait_sequence_editor_extension">Install the AIT Sequence Editor extension</a></li>
-<li><a href="#_adapt_ait_to_your_mission">Adapt AIT to your mission</a></li>
-<li><a href="#_set_up_the_cloudwatch_agent">Set up the CloudWatch agent</a></li>
 </ul>
 </li>
 <li><a href="#_security">Security</a>
@@ -971,7 +970,7 @@ Amazon may share user-deployment information with the AWS Partner that collabora
 <p><a href="https://github.com/NASA-AMMOS/AIT-Core" target="_blank" rel="noopener">AMMOS Instrument Toolkit (AIT)</a>, a Python-based software suite that handles GDS, electrical ground support equipment (EGSE), commanding, telemetry uplink and downlink, and sequencing.</p>
 </li>
 <li>
-<p><a href="https://github.com/NASA-AMMOS/openmct-mcws" target="_blank" rel="noopener">Open Mission Control Technologies (Open MCT)</a> software, providing visualization and dashboarding capabilities.</p>
+<p><a href="https://github.com/nasa/openmct" target="_blank" rel="noopener">Open Mission Control Technologies (Open MCT)</a> software, providing visualization and dashboarding capabilities.</p>
 </li>
 <li>
 <p><a href="https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor" target="_blank" rel="noopener">AIT Sequence Editor</a>, a Microsoft Visual Studio Code (VS Code) extension that provides a centralized, browser-based environment for generating and editing spacecraft command sequence files.</p>
@@ -1073,7 +1072,7 @@ AWS Cloud.</p>
 <p>An EC2 instance that serves the AIT and Open MCT applications using Apache HTTP Server. This instance runs in an Auto Scaling group.</p>
 </li>
 <li>
-<p>An EC2 instance that serves the AIT Sequence Editor application. This instance runs in a Docker container. The container mitigates the impact of system commands that are run from the VS Code–integrated terminal that&#8217;s exposed in the browser.</p>
+<p>An EC2 instance that serves the AIT Sequence Editor application. This application runs in a Docker container on the instance to mitigate the impact of system commands that are run from the VS Code–integrated terminal that&#8217;s exposed in the browser.</p>
 </li>
 </ul>
 </div>
@@ -1094,7 +1093,7 @@ AWS Cloud.</p>
 <p>Amazon Route 53 to provide a canonical name (CNAME) record, an alias for the Application Load Balancer.</p>
 </li>
 <li>
-<p>Two S3 buckets, one for long-term storage of log files and the other for configuration files.</p>
+<p>Two S3 buckets, one for long-term storage of log files and the other for application-configuration files.</p>
 </li>
 </ul>
 </div>
@@ -1320,11 +1319,11 @@ Certain Regions are available on an opt-in basis. For more information, see <a h
 </li>
 </ol>
 </div>
-<div class="admonitionblock important">
+<div class="admonitionblock warning">
 <table>
 <tr>
 <td class="icon">
-<i class="fa icon-important" title="Important"></i>
+<i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
 Use the correct syntax and format in your configuration files so that the applications deploy.
@@ -1345,17 +1344,13 @@ Use the correct syntax and format in your configuration files so that the applic
 │   ├── config
 │   │   ├── bsc.yaml
 │   │   ├── ccsds_header.yaml
-│   │   ├── cmd.pkl
 │   │   ├── cmd.yaml
 │   │   ├── config.yaml
 │   │   ├── core_set_op_mode.yaml
-│   │   ├── evr.pkl
 │   │   ├── evr.yaml
 │   │   ├── leapseconds.dat
-│   │   ├── limits.pkl
 │   │   ├── limits.yaml
 │   │   ├── table.yaml
-│   │   ├── tlm.pkl
 │   │   └── tlm.yaml
 │   └── httpd_proxy.conf
 ├── editor
@@ -1400,10 +1395,10 @@ Use the correct syntax and format in your configuration files so that the applic
 <p>This is the main configuration file for AIT.</p>
 </div>
 <div class="paragraph">
-<p>During deployment, the Quick Start retrieves this file along with the other AIT configuration files (the files in the <code>configs/ait/config</code> S3 folder) and places them in <code>/home/ec2-user/AIT-Core/config</code> on the AIT EC2 instance.</p>
+<p>During deployment, the Quick Start retrieves this file along with the other AIT configuration files (the files in the <code>configs/ait/config</code> S3 folder) and places them in the folder <code>/home/ec2-user/AIT-Core/config</code> on the AIT EC2 instance.</p>
 </div>
 <div class="paragraph">
-<p>This file references a few other configuration files (file paths are relative) as well as enabling a default set of AIT plugins: AIT GUI, the Data Archive plugin for InfluxDB, and the AIT Open MCT plugin.</p>
+<p>This file references other configuration files (file paths are relative) as well as enabling a default set of AIT plugins: AIT GUI, the Data Archive plugin for InfluxDB, and the AIT Open MCT plugin.</p>
 </div>
 <div class="paragraph">
 <p>For more information, see <a href="https://ait-core.readthedocs.io/en/latest/configuration_intro.html#config-yaml" target="_blank" rel="noopener">config.yaml</a> in the AIT documentation.</p>
@@ -1470,11 +1465,11 @@ Use the correct syntax and format in your configuration files so that the applic
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">ait.&lt;fqdn&gt;</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">→ AIT Auto Scaling group [Apache → ait-gui bottle app]</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">→ AIT Auto Scaling group [Apache → AIT application]</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">mct.&lt;fqdn&gt;</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">→ AIT Auto Scaling group [Apache → mct static built app]</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">→ AIT Auto Scaling group [Apache → Open MCT static files]</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">editor.&lt;fqdn&gt;</p></td>
@@ -1561,7 +1556,7 @@ Use the correct syntax and format in your configuration files so that the applic
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-If you’re deploying AMMOS SmallSat Toolkit into an existing VPC, make sure that your VPC has two private subnets in different Availability Zones for the workload instances and that the subnets aren’t shared. This Quick Start doesn’t support shared subnets. These subnets require NAT gateways in their route tables to allow the instances to download packages and software without exposing them to the internet. The NAT gateway itself should be deployed to one of the two public subnets in your VPC. You provide your VPC settings when you launch the Quick Start.
+If you’re deploying AMMOS SmallSat Toolkit into an existing VPC, make sure that your VPC has at least two private subnets in different Availability Zones for the application EC2 instances and that the subnets aren’t shared. This Quick Start doesn’t support shared subnets. These subnets require NAT gateways in their route tables to allow the instances to download packages and software without exposing them to the internet. The NAT gateway itself should be deployed to one of the public subnets in your VPC. You provide your VPC settings when you launch the Quick Start.
 </td>
 </tr>
 </table>
@@ -1597,152 +1592,6 @@ If you’re deploying AMMOS SmallSat Toolkit into an existing VPC, make sure tha
 </li>
 <li>
 <p>To view the created resources, see the values displayed in the <strong>Outputs</strong> tab for the stack.</p>
-</li>
-</ol>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_test_the_deployment">Test the deployment</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Verify that all the components have been deployed by doing the following tests in the documented order.</p>
-</div>
-<div class="sect2">
-<h3 id="_verify_the_deployment_of_the_application_ec2_instances">Verify the deployment of the application EC2 instances</h3>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Sign in to the AWS Management Console, and open the <a href="https://console.aws.amazon.com/ec2/" target="_blank" rel="noopener">Amazon EC2 console</a>.</p>
-</li>
-<li>
-<p>Choose <strong>Instances</strong> from the left navigation bar. Verify that the <strong>AitAutoScalingGroup</strong> and <strong>EditorServer</strong> EC2 instances appear.</p>
-</li>
-<li>
-<p>For each instance, ensure that there are no failed checks in the <strong>Status checks</strong> column.</p>
-</li>
-<li>
-<p>Use AWS Systems Manager (formerly known as SSM) to verify that you can connect to each instance.</p>
-</li>
-<li>
-<p>On the AIT Sequence Editor instance, run <code>docker ps</code>. Verify that the Docker container is running.</p>
-</li>
-<li>
-<p>On the AIT instance, verify that the Apache HTTPD Server and AIT-Core systemd services are active by running the following commands:</p>
-<div class="ulist">
-<ul>
-<li>
-<p><code>service httpd status</code></p>
-</li>
-<li>
-<p><code>service ait-server status</code></p>
-</li>
-</ul>
-</div>
-</li>
-</ol>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-In the AIT documentation, the core AIT functionality is sometimes called a "server," specifically <a href="https://ait-core.readthedocs.io/en/master/server_architecture.html#plugins" target="_blank" rel="noopener">AIT Server</a>. This is where the file <code>ait-server</code> gets its name.
-</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_verify_the_deployment_of_the_applications">Verify the deployment of the applications</h3>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Open a web browser, and enter your FQDN URL.</p>
-<div class="paragraph">
-<p>A landing page opens showing links to the AIT, OpenMCT, and AIT Sequence Editor applications.</p>
-</div>
-</li>
-<li>
-<p>Choose each link. Verify that each application opens.</p>
-<div class="paragraph">
-<p>You may be prompted for login credentials the first time you open the applications. Login credentials are managed by Amazon Cognito. For more information, see <a href="#_create_amazon_cognito_user_identities">Create Amazon Cognito user identities</a> later in this guide.</p>
-</div>
-</li>
-</ol>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_verify_that_telemetry_is_flowing">Verify that telemetry is flowing</h3>
-<div class="paragraph">
-<p>The AIT software includes two sample telemetry scripts: <code>ait-example</code> and <code>ait-tlm-simulate</code>. Verify the telemetry by running both of these command line interface (CLI) programs on the AIT EC2 instance as follows.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Connect to the AIT EC2 instance. For details, see <a href="#_verify_access_to_the_application_ec2_instances">Verify access to the application EC2 instances</a> earlier in this guide.</p>
-</li>
-<li>
-<p>Activate the Python virtual environment where AIT and the sample telemetry scripts are installed.</p>
-<div class="paragraph">
-<p>The scripts are installed in a virtual environment named <code>ait</code> on the AIT instance. As part of the activation, the virtual environment modifies your <code>PATH</code> variable to include a few AIT scripts that you can run.</p>
-</div>
-</li>
-<li>
-<p>Use the commands <code>ait-example</code> and <code>ait-tlm-simulate</code> to run each script.</p>
-<div class="paragraph">
-<p>The two scripts generate sample telemetry. <code>ait-example</code>, which has a hardcoded packet structure, sends telemetry for 100 seconds. <code>ait-tlm-simulate</code>, which can simulate different packet types, emits telemetry once per second indefinitely.</p>
-</div>
-</li>
-<li>
-<p>Open the AIT application. In most cases, it&#8217;s <code>ait.&lt;fqdn&gt;</code> (where &lt;fqdn&gt; represents your FQDN URL).</p>
-</li>
-<li>
-<p>Choose the <strong>Telemetry</strong> tab.</p>
-<div class="paragraph">
-<p>If you&#8217;re using the default AIT configuration files, you see two graphs: one for voltages and one for currents.</p>
-</div>
-</li>
-<li>
-<p>While the scripts are running, verify that you see new data points on the graphs and a line plot forming. This indicates that telemetry is flowing through the AIT software.</p>
-</li>
-</ol>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_verify_that_cloudwatch_is_receiving_logs">Verify that CloudWatch is receiving logs</h3>
-<div class="paragraph">
-<p>Quick Start deployment installs CloudWatch agents on both application EC2 instances. The agents send <code>agent</code> and <code>syslog</code> logs to CloudWatch. Verify that CloudWatch is receiving logs as follows:</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Open the <a href="https://console.aws.amazon.com/cloudwatch/" target="_blank" rel="noopener">CloudWatch console</a>.</p>
-</li>
-<li>
-<p>In the left navigation bar, under <strong>Logs</strong>, choose <strong>Log groups</strong>. Locate the following log groups:</p>
-<div class="ulist">
-<ul>
-<li>
-<p><code>/cloudwatch-agent/ait-editor/agent</code></p>
-</li>
-<li>
-<p><code>/cloudwatch-agent/ait-editor/syslog</code></p>
-</li>
-<li>
-<p><code>/cloudwatch-agent/ait-server/agent</code></p>
-</li>
-<li>
-<p><code>/cloudwatch-agent/ait-server/syslog</code></p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p>Verify that each of these log groups contains a few log streams and that each stream contains log data. If you deployed the Quick Start recently, you may see only a small amount of log data.</p>
 </li>
 </ol>
 </div>
@@ -1802,28 +1651,6 @@ Alias    |    logs.fqdn       →    fqdn</pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_install_the_ait_sequence_editor_extension">Install the AIT Sequence Editor extension</h3>
-<div class="paragraph">
-<p>While you could install the <a href="https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor" target="_blank" rel="noopener">AIT Sequence Editor extension</a> locally on any VS Code client, this Quick Start deploys a centralized browser-based integrated development environment (IDE) based on the open-source application <a href="https://github.com/cdr/code-server" target="_blank" rel="noopener">code-server</a>. With code-server, you can run VS Code on any machine.</p>
-</div>
-<div class="paragraph">
-<p>After the Quick Start deploys the AIT Sequence Editor EC2 instance, it installs and configures code-server and the mission configuration used by AIT. Since code-server can&#8217;t use Microsoft&#8217;s extension marketplace due to Microsoft&#8217;s terms of service for VS Code, you need to install the AIT Sequence Editor extension manually from the .vsix file published on GitHub and in the marketplace.</p>
-</div>
-<div class="paragraph">
-<p>For more information, see the following:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="https://coder.com/docs/code-server/v3.11.1/FAQ#why-cant-code-server-use-microsofts-extension-marketplace" target="_blank" rel="noopener">Why can&#8217;t code-server use Microsoft&#8217;s extension marketplace?</a></p>
-</li>
-<li>
-<p><a href="https://coder.com/docs/code-server/v3.11.1/FAQ#how-do-i-install-an-extension-manually" target="_blank" rel="noopener">How do I install an extension manually?</a></p>
-</li>
-</ul>
-</div>
-</div>
-<div class="sect2">
 <h3 id="_adapt_ait_to_your_mission">Adapt AIT to your mission</h3>
 <div class="paragraph">
 <p>Adapt AIT for your operation&#8217;s needs both at launch and as your mission evolves. You can make changes directly on the AIT EC2 instance over an SSH- or SSM-managed session.</p>
@@ -1857,10 +1684,10 @@ Alias    |    logs.fqdn       →    fqdn</pre>
 <p><a href="https://ait-core.readthedocs.io/en/master/extensions.html" target="_blank" rel="noopener">Core Library Extensions</a></p>
 </li>
 <li>
-<p><a href="https://ait-core.readthedocs.io/en/master/databases.html?highlight=data%20archive#data-archive-plugin" target="_blank" rel="noopener">Data Archive Plugin</a></p>
+<p><a href="https://ait-core.readthedocs.io/en/master/databases.html#data-archive-plugin" target="_blank" rel="noopener">Data Archive Plugin</a></p>
 </li>
 <li>
-<p><a href="https://ait-dsn.readthedocs.io/en/latest/index.html" target="_blank" rel="noopener">Welcome to AIT DSN’s (Deep Space Network&#8217;s) documentation!</a></p>
+<p><a href="https://ait-dsn.readthedocs.io/en/latest/index.html" target="_blank" rel="noopener">AIT DSN documentation</a></p>
 </li>
 <li>
 <p><a href="https://ait-core.readthedocs.io/en/master/plugin_openmct.html" target="_blank" rel="noopener">AIT OpenMCT Plugin</a></p>
@@ -1881,11 +1708,11 @@ Alias    |    logs.fqdn       →    fqdn</pre>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>`aws s3 sync s3://&lt;bucket_name&gt;/ait/config /home/ec2-user/AIT-Core/config`</pre>
+<pre>aws s3 sync s3://&lt;bucket_name&gt;/ait/config /home/ec2-user/AIT-Core/config</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>For more information, see <a href="https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html" target="_blank" rel="noopener">sync</a>) in the AWS CLI command reference.</p>
+<p>For more information, see <a href="https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html" target="_blank" rel="noopener">sync</a> in the AWS CLI command reference.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1912,7 +1739,7 @@ Alias    |    logs.fqdn       →    fqdn</pre>
 <div class="sect3">
 <h4 id="_adapt_the_systemd_services">Adapt the systemd services</h4>
 <div class="paragraph">
-<p>The <code>systemd</code> file on the AIT EC2 instance manages the following services:</p>
+<p>The <code>systemd</code> daemon on the AIT EC2 instance manages the following services:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -2017,6 +1844,152 @@ Alias    |    logs.fqdn       →    fqdn</pre>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_test_the_deployment">Test the deployment</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Verify that all the components have been deployed by doing the following tests in the documented order.</p>
+</div>
+<div class="sect2">
+<h3 id="_verify_the_deployment_of_the_application_ec2_instances">Verify the deployment of the application EC2 instances</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Sign in to the AWS Management Console, and open the <a href="https://console.aws.amazon.com/ec2/" target="_blank" rel="noopener">Amazon EC2 console</a>.</p>
+</li>
+<li>
+<p>Choose <strong>Instances</strong> from the left navigation bar. Verify that the <strong>AitAutoScalingGroup</strong> and <strong>EditorServer</strong> EC2 instances appear.</p>
+</li>
+<li>
+<p>For each instance, ensure that there are no failed checks in the <strong>Status checks</strong> column.</p>
+</li>
+<li>
+<p>Use AWS Systems Manager (formerly known as SSM) to verify that you can connect to each instance.</p>
+</li>
+<li>
+<p>On the AIT Sequence Editor instance, run <code>docker ps</code>. Verify that the Docker container is running.</p>
+</li>
+<li>
+<p>On the AIT instance, verify that the Apache HTTPD Server and AIT-Core systemd services are active by running the following commands:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>service httpd status</code></p>
+</li>
+<li>
+<p><code>service ait-server status</code></p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+In the AIT documentation, the core AIT functionality is sometimes called a "server," specifically <a href="https://ait-core.readthedocs.io/en/master/server_architecture.html#plugins" target="_blank" rel="noopener">AIT Server</a>. This is where the file <code>ait-server</code> gets its name.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_the_deployment_of_the_applications">Verify the deployment of the applications</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open a web browser, and enter your FQDN URL.</p>
+<div class="paragraph">
+<p>A landing page opens showing links to the AIT, Open MCT, and AIT Sequence Editor applications.</p>
+</div>
+</li>
+<li>
+<p>Choose each link. Verify that each application opens.</p>
+<div class="paragraph">
+<p>You may be prompted for login credentials the first time you open the applications. Login credentials are managed by Amazon Cognito. For more information, see <a href="#_create_amazon_cognito_user_identities">Create Amazon Cognito user identities</a> later in this guide.</p>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_that_telemetry_is_flowing">Verify that telemetry is flowing</h3>
+<div class="paragraph">
+<p>The AIT software includes two scripts that generate sample telemetry: <code>ait-example</code> and <code>ait-tlm-simulate</code>. Verify the telemetry by running both of these command line interface (CLI) programs on the AIT EC2 instance as follows.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Connect to the AIT EC2 instance. For details, see <a href="#_verify_access_to_the_application_ec2_instances">Verify access to the application EC2 instances</a> earlier in this guide.</p>
+</li>
+<li>
+<p>Activate the Python virtual environment where AIT and the sample telemetry scripts are installed.</p>
+<div class="paragraph">
+<p>The scripts are installed in a virtual environment named <code>ait</code> on the AIT instance. As part of the activation, the virtual environment modifies your <code>PATH</code> variable to include a few AIT scripts that you can run.</p>
+</div>
+</li>
+<li>
+<p>Use the commands <code>ait-example</code> and <code>ait-tlm-simulate</code> to run each script.</p>
+<div class="paragraph">
+<p>The two scripts generate sample telemetry. <code>ait-example</code>, which has a hardcoded packet structure, sends telemetry for 100 seconds. <code>ait-tlm-simulate</code>, which can simulate different packet types, emits telemetry once per second indefinitely.</p>
+</div>
+</li>
+<li>
+<p>Open the AIT application. In most cases, it&#8217;s <code>ait.&lt;fqdn&gt;</code> (where &lt;fqdn&gt; represents your FQDN URL).</p>
+</li>
+<li>
+<p>Choose the <strong>Telemetry</strong> tab.</p>
+<div class="paragraph">
+<p>If you&#8217;re using the default AIT configuration files, you see two graphs: one for voltages and one for currents.</p>
+</div>
+</li>
+<li>
+<p>While the scripts are running, verify that you see new data points on the graphs and a line plot forming. This indicates that telemetry is flowing through the AIT software.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_that_cloudwatch_is_receiving_logs">Verify that CloudWatch is receiving logs</h3>
+<div class="paragraph">
+<p>Quick Start deployment installs CloudWatch agents on both application EC2 instances. The agents send <code>agent</code> and <code>syslog</code> logs to CloudWatch. Verify that CloudWatch is receiving logs as follows:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open the <a href="https://console.aws.amazon.com/cloudwatch/" target="_blank" rel="noopener">CloudWatch console</a>.</p>
+</li>
+<li>
+<p>In the left navigation bar, under <strong>Logs</strong>, choose <strong>Log groups</strong>. Locate the following log groups:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>/cloudwatch-agent/ait-editor/agent</code></p>
+</li>
+<li>
+<p><code>/cloudwatch-agent/ait-editor/syslog</code></p>
+</li>
+<li>
+<p><code>/cloudwatch-agent/ait-server/agent</code></p>
+</li>
+<li>
+<p><code>/cloudwatch-agent/ait-server/syslog</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Verify that each of these log groups contains a few log streams and that each stream contains log data. If you deployed the Quick Start recently, you may see only a small amount of log data.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_security">Security</h2>
 <div class="sectionbody">
 <div class="sect2">
@@ -2111,7 +2084,7 @@ The Amazon OpenSearch Service domain uses an open-access policy with access cont
 <p>The Application Load Balancer, which is deployed to a public subnet, brokers access to the application resources deployed in private subnets. Each application is accessible through a listener rule, which directs traffic according to the host header and performs an authentication action prior to forwarding the traffic to the appropriate target group.</p>
 </div>
 <div class="paragraph">
-<p>This authentication action is configured with the deployed Amazon Cognito user pool as an OpenID Connect (OIDC) provider. Access is granted on a full-access basis. s who can authenticate as known identities are allowed through the Application Load Balancer to the underlying resource.</p>
+<p>This authentication action is configured with the deployed Amazon Cognito user pool as an OpenID Connect (OIDC) provider. Access is granted on a full-access basis. Users who can authenticate as known identities are allowed through the Application Load Balancer to the underlying resource.</p>
 </div>
 <div class="paragraph">
 <p>For more information, see the following:</p>
@@ -2130,7 +2103,7 @@ The Amazon OpenSearch Service domain uses an open-access policy with access cont
 <div class="sect2">
 <h3 id="_code_server_access">Code-server access</h3>
 <div class="paragraph">
-<p>The AIT Sequence Editor EC2 instance runs <code>cdr/code-server</code>. When you use Visual Studio Code&#8217;s integrated terminal, you can run system-level commands from a browser.</p>
+<p>The AIT Sequence Editor EC2 instance runs the <code>cdr/code-server</code> Docker image published on Docker Hub. When you use Visual Studio Code&#8217;s integrated terminal, you can run system-level commands from a browser.</p>
 </div>
 <div class="paragraph">
 <p>The AIT Sequence Editor instance runs in a Docker container with volumes mounted to the following locations:</p>
@@ -2138,18 +2111,18 @@ The Amazon OpenSearch Service domain uses an open-access policy with access cont
 <div class="ulist">
 <ul>
 <li>
-<p>/home/editor-user/.aerie-editor-data:/home/coder/.local/share/code-server</p>
+<p><code>$HOME/.ait-editor-config:/home/coder/.config</code></p>
 </li>
 <li>
-<p>/home/editor-user/.aerie-editor-config:/home/coder/.config</p>
+<p><code>$HOME/project:/home/coder/project</code></p>
 </li>
 <li>
-<p>/home/editor-user:/home/coder/project</p>
+<p><code>$HOME/extensions:/home/coder/extra-extensions</code></p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>For more information, see <a href="https://coder.com/docs/code-server/v3.11.1/FAQ#how-do-i-change-the-password" target="_blank" rel="noopener">How do I change the password?</a></p>
+<p>Additionally, a simple password can be set to restrict interface access. For more information, see <a href="https://coder.com/docs/code-server/v3.11.1/FAQ#how-do-i-change-the-password" target="_blank" rel="noopener">How do I change the password?</a></p>
 </div>
 </div>
 <div class="sect2">
@@ -2198,7 +2171,7 @@ The Amazon OpenSearch Service domain uses an open-access policy with access cont
 </ul>
 </div>
 <div class="paragraph">
-<p>OpenMCT:</p>
+<p>Open MCT:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -2674,7 +2647,7 @@ and to share your customizations with others.</p>
 </html>
 <!--
 repo commit:
-b2b3597ceae7dce522e280620fe0114fc50e8441
+55c35397c447ecc497714c635ce2051debe7c9bc
 
 submodule config:
  eea042d0b9c005d2549a71349e5f28b02c81af75 docs/boilerplate (heads/main)

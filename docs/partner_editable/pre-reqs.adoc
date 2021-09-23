@@ -22,7 +22,7 @@ The preconfiguration (prerequisite) stack for this Quick Start contains an S3 bu
 +
 For details on customizing these files, see the following section: <<_about_the_configuration_files>>.
 
-IMPORTANT: Use the correct syntax and format in your configuration files so that the applications deploy.
+WARNING: Use the correct syntax and format in your configuration files so that the applications deploy.
 
 ==== About the configuration files
 The configuration files in the S3 bucket are organized by application with the following structure:
@@ -34,17 +34,13 @@ configs
 │   ├── config
 │   │   ├── bsc.yaml
 │   │   ├── ccsds_header.yaml
-│   │   ├── cmd.pkl
 │   │   ├── cmd.yaml
 │   │   ├── config.yaml
 │   │   ├── core_set_op_mode.yaml
-│   │   ├── evr.pkl
 │   │   ├── evr.yaml
 │   │   ├── leapseconds.dat
-│   │   ├── limits.pkl
 │   │   ├── limits.yaml
 │   │   ├── table.yaml
-│   │   ├── tlm.pkl
 │   │   └── tlm.yaml
 │   └── httpd_proxy.conf
 ├── editor
@@ -53,7 +49,7 @@ configs
     └── openmct-static.tgz
 ----
 
-Review the descriptions in the following sections to determine which files you need to modify before you deploy the Quick Start. 
+Review the descriptions in the following sections to determine which files you need to modify before you deploy the Quick Start.
 
 During deployment, the Quick Start retrieves the AIT configuration files (the ones in the `configs/ait/config` S3 folder) and places them in `/home/ec2-user/AIT-Core/config` on the AIT EC2 instance.
 
@@ -68,14 +64,14 @@ This file configures the CloudWatch agent that runs on the AIT EC2 instance. Mod
 For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html[Manually create or edit the CloudWatch agent configuration file^].
 
 ===== configs/ait/config/
-This S3 folder contains configuration files for the AIT application. 
+This S3 folder contains configuration files for the AIT application.
 
 ===== config.yaml
-This is the main configuration file for AIT. 
+This is the main configuration file for AIT.
 
-During deployment, the Quick Start retrieves this file along with the other AIT configuration files (the files in the `configs/ait/config` S3 folder) and places them in `/home/ec2-user/AIT-Core/config` on the AIT EC2 instance.
+During deployment, the Quick Start retrieves this file along with the other AIT configuration files (the files in the `configs/ait/config` S3 folder) and places them in the folder `/home/ec2-user/AIT-Core/config` on the AIT EC2 instance.
 
-This file references a few other configuration files (file paths are relative) as well as enabling a default set of AIT plugins: AIT GUI, the Data Archive plugin for InfluxDB, and the AIT Open MCT plugin.
+This file references other configuration files (file paths are relative) as well as enabling a default set of AIT plugins: AIT GUI, the Data Archive plugin for InfluxDB, and the AIT Open MCT plugin.
 
 For more information, see https://ait-core.readthedocs.io/en/latest/configuration_intro.html#config-yaml[config.yaml^] in the AIT documentation.
 
@@ -109,8 +105,8 @@ This deployment relies on a fully qualified domain name (FQDN) that you provide.
 |===
 
 | <fqdn> | → Application Load Balancer
-| ait.<fqdn> | → AIT Auto Scaling group [Apache → ait-gui bottle app]
-| mct.<fqdn> | → AIT Auto Scaling group [Apache → mct static built app]
+| ait.<fqdn> | → AIT Auto Scaling group [Apache → AIT application]
+| mct.<fqdn> | → AIT Auto Scaling group [Apache → Open MCT static files]
 | editor.<fqdn> | → AIT Sequence Editor EC2 instance [Docker container]
 | logs.<fqdn> | → Amazon OpenSearch Service
 |===
