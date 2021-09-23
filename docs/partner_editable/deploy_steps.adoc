@@ -19,7 +19,7 @@ endif::marketplace_subscription[]
 
 === Launch the Quick Start
 
-WARNING: If you’re deploying {partner-product-short-name} into an existing VPC, make sure that your VPC has two private subnets in different Availability Zones for the workload instances and that the subnets aren’t shared. This Quick Start doesn’t support shared subnets. These subnets require NAT gateways in their route tables to allow the instances to download packages and software without exposing them to the internet. The NAT gateway itself should be deployed to one of the two public subnets in your VPC. You provide your VPC settings when you launch the Quick Start.
+WARNING: If you’re deploying {partner-product-short-name} into an existing VPC, make sure that your VPC has two private subnets in different Availability Zones for the application EC2 instances and that the subnets aren’t shared. This Quick Start doesn’t support shared subnets. These subnets require NAT gateways in their route tables to allow the instances to download packages and software without exposing them to the internet. The NAT gateway itself should be deployed to one of the two public subnets in your VPC. You provide your VPC settings when you launch the Quick Start.
 
 //TODO The above warning refers to two private and two public subnets. Our architecture shows three of each, and we say that this QS spans three Availability Zones. Should we change the twos in the warning to threes? 
 

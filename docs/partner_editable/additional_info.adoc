@@ -98,8 +98,8 @@ After the Quick Start deploys the AIT Sequence Editor EC2 instance, it installs 
 
 For more information, see the following:
 
-* https://coder.com/docs/code-server/v3.11.1/FAQ#why-cant-code-server-use-microsofts-extension-marketplace[Why can't code-server use Microsoft's extension marketplace?^]
-* https://coder.com/docs/code-server/v3.11.1/FAQ#how-do-i-install-an-extension-manually[How do I install an extension manually?^]
+* https://coder.com/docs/code-server/v3.12.0/FAQ#why-cant-code-server-use-microsofts-extension-marketplace[Why can't code-server use Microsoft's extension marketplace?^]
+* https://coder.com/docs/code-server/v3.12.0/FAQ#how-do-i-install-an-extension-manually[How do I install an extension manually?^]
 
 === Adapt AIT to your mission
 
@@ -133,9 +133,9 @@ After you modify AIT configuration files, you must restart the `ait-server` syst
 
 To retrieve new files from the S3 bucket, run the following command with your bucket name in place of the bracketed text:
 
-    `aws s3 sync s3://<bucket_name>/ait/config /home/ec2-user/AIT-Core/config`
+    aws s3 sync s3://<bucket_name>/ait/config /home/ec2-user/AIT-Core/config
 
-For more information, see https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html[sync^]) in the AWS CLI command reference.
+For more information, see https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html[sync^] in the AWS CLI command reference.
 
 ==== (Optional) Upgrade the deployed applications
 If you upgrade AIT-Core or any of the other deployed applications, you are responsible for any impact that upgrading may have. This Quick Start supports only those versions listed under <<Software version requirements>>.
@@ -150,7 +150,7 @@ Save any configuration changes and additional plugins for Open MCT to `var/www/h
 For more information, see https://github.com/nasa/openmct/blob/master/API.md#building-applications-with-open-mct[Building Applications With Open MCT^].
 
 ==== Adapt the systemd services
-The `systemd` file on the AIT EC2 instance manages the following services:
+The `systemd` daemon on the AIT EC2 instance manages the following services:
 
 * Apache HTTPD Server (httpd.service)
 * InfluxDB (influxdb.service)
@@ -258,7 +258,7 @@ For more information, see the following:
 
 The Application Load Balancer, which is deployed to a public subnet, brokers access to the application resources deployed in private subnets. Each application is accessible through a listener rule, which directs traffic according to the host header and performs an authentication action prior to forwarding the traffic to the appropriate target group.
 
-This authentication action is configured with the deployed Amazon Cognito user pool as an OpenID Connect (OIDC) provider. Access is granted on a full-access basis. s who can authenticate as known identities are allowed through the Application Load Balancer to the underlying resource.
+This authentication action is configured with the deployed Amazon Cognito user pool as an OpenID Connect (OIDC) provider. Access is granted on a full-access basis. Users who can authenticate as known identities are allowed through the Application Load Balancer to the underlying resource.
 
 For more information, see the following:
 
@@ -267,15 +267,15 @@ For more information, see the following:
 
 === Code-server access
 
-The AIT Sequence Editor EC2 instance runs `cdr/code-server`. When you use Visual Studio Code's integrated terminal, you can run system-level commands from a browser.
+The AIT Sequence Editor EC2 instance runs the `cdr/code-server` Docker image published on Docker Hub. When you use Visual Studio Code's integrated terminal, you can run system-level commands from a browser.
 
 The AIT Sequence Editor instance runs in a Docker container with volumes mounted to the following locations:
 
-- /home/editor-user/.aerie-editor-data:/home/coder/.local/share/code-server
-- /home/editor-user/.aerie-editor-config:/home/coder/.config
-- /home/editor-user:/home/coder/project
+- `$HOME/.ait-editor-config:/home/coder/.config`
+- `$HOME/project:/home/coder/project`
+- `$HOME/extensions:/home/coder/extra-extensions`
 
-For more information, see https://coder.com/docs/code-server/v3.11.1/FAQ#how-do-i-change-the-password[How do I change the password?^]
+Additionally, a simple password can be set to restrict interface access. For more information, see https://coder.com/docs/code-server/v3.11.1/FAQ#how-do-i-change-the-password[How do I change the password?^]
 
 === SSL/TLS protocol
 Clients that access applications through the Application Load Balancer have their traffic encrypted using the SSL/TLS protocol. The Application Load Balancer uses HTTPS listeners. Any normal HTTP traffic going to the Application Load Balancer is redirected to the HTTPS listener.
