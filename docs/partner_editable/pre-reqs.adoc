@@ -75,7 +75,7 @@ This is the main configuration file for AIT.
 
 During deployment, the Quick Start retrieves this file along with the other AIT configuration files (the files in the `configs/ait/config` S3 folder) and places them in `/home/ec2-user/AIT-Core/config` on the AIT EC2 instance.
 
-This file references a few other configuration files (file paths are relative) as well as enabling a default set of AIT plugins: AIT GUI, the Data Archive plugin for InfluxDB, and the AIT Open MCT plugin.
+This file references other configuration files (file paths are relative) as well as enabling a default set of AIT plugins: AIT GUI, the Data Archive plugin for InfluxDB, and the AIT Open MCT plugin.
 
 For more information, see https://ait-core.readthedocs.io/en/latest/configuration_intro.html#config-yaml[config.yaml^] in the AIT documentation.
 
