@@ -24,6 +24,6 @@ As shown in <<architecture1>>, the Quick Start sets up the following:
 * AWS Lambda to process logs for Amazon Kinesis Data Firehose.
 * Kinesis Data Firehose to deliver log data from CloudWatch Logs to Amazon S3 and Amazon OpenSearch Service (successor to Amazon Elasticsearch Service).
 * Amazon Route 53 to provide a canonical name (CNAME) record, an alias for the Application Load Balancer.
-* Two S3 buckets, one for long-term storage of log files and the other for application configuration files.
+* Two S3 buckets, one for long-term storage of log files and the other for application-configuration files.
 
 [.small]#* The template that deploys the Quick Start into an existing VPC skips the components marked by asterisks and prompts you for your existing VPC configuration.#
