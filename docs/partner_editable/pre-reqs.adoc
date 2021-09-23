@@ -22,7 +22,7 @@ The preconfiguration (prerequisite) stack for this Quick Start contains an S3 bu
 +
 For details on customizing these files, see the following section: <<_about_the_configuration_files>>.
 
-IMPORTANT: Use the correct syntax and format in your configuration files so that the applications deploy.
+WARNING: Use the correct syntax and format in your configuration files so that the applications deploy.
 
 ==== About the configuration files
 The configuration files in the S3 bucket are organized by application with the following structure:
@@ -105,8 +105,8 @@ This deployment relies on a fully qualified domain name (FQDN) that you provide.
 |===
 
 | <fqdn> | → Application Load Balancer
-| ait.<fqdn> | → AIT Auto Scaling group [Apache → ait-gui bottle app]
-| mct.<fqdn> | → AIT Auto Scaling group [Apache → mct static built app]
+| ait.<fqdn> | → AIT Auto Scaling group [Apache → AIT application]
+| mct.<fqdn> | → AIT Auto Scaling group [Apache → Open MCT static files]
 | editor.<fqdn> | → AIT Sequence Editor EC2 instance [Docker container]
 | logs.<fqdn> | → Amazon OpenSearch Service
 |===
