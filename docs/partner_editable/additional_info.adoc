@@ -1,66 +1,6 @@
 // Add steps as necessary for accessing the software, post-configuration, and testing. Don’t include full usage instructions for your software, but add links to your product documentation for that information.
 //Should any sections not be applicable, remove them
 
-== Test the deployment
-
-Verify that all the components have been deployed by doing the following tests in the documented order.
-
-=== Verify the deployment of the application EC2 instances
-
-. Sign in to the AWS Management Console, and open the https://console.aws.amazon.com/ec2/[Amazon EC2 console^].
-. Choose *Instances* from the left navigation bar. Verify that the *AitAutoScalingGroup* and *EditorServer* EC2 instances appear.
-. For each instance, ensure that there are no failed checks in the *Status checks* column.
-. Use AWS Systems Manager (formerly known as SSM) to verify that you can connect to each instance.
-. On the AIT Sequence Editor instance, run `docker ps`. Verify that the Docker container is running.
-. On the AIT instance, verify that the Apache HTTPD Server and AIT-Core systemd services are active by running the following commands:
-* `service httpd status`
-* `service ait-server status`
-
-NOTE: In the AIT documentation, the core AIT functionality is sometimes called a "server," specifically https://ait-core.readthedocs.io/en/master/server_architecture.html#plugins[AIT Server^]. This is where the file `ait-server` gets its name.
-
-=== Verify the deployment of the applications
-
-. Open a web browser, and enter your FQDN URL.
-+
-A landing page opens showing links to the AIT, OpenMCT, and AIT Sequence Editor applications.
-
-. Choose each link. Verify that each application opens.
-+
-You may be prompted for login credentials the first time you open the applications. Login credentials are managed by Amazon Cognito. For more information, see link:#_create_amazon_cognito_user_identities[Create Amazon Cognito user identities] later in this guide.
-
-=== Verify that telemetry is flowing
-The AIT software includes two sample telemetry scripts: `ait-example` and `ait-tlm-simulate`. Verify the telemetry by running both of these command line interface (CLI) programs on the AIT EC2 instance as follows.
-
-. Connect to the AIT EC2 instance. For details, see link:#_verify_access_to_the_application_ec2_instances[Verify access to the application EC2 instances] earlier in this guide.
-. Activate the Python virtual environment where AIT and the sample telemetry scripts are installed.
-+
-The scripts are installed in a virtual environment named `ait` on the AIT instance. As part of the activation, the virtual environment modifies your `PATH` variable to include a few AIT scripts that you can run.
-
-. Use the commands `ait-example` and `ait-tlm-simulate` to run each script.
-+
-The two scripts generate sample telemetry. `ait-example`, which has a hardcoded packet structure, sends telemetry for 100 seconds. `ait-tlm-simulate`, which can simulate different packet types, emits telemetry once per second indefinitely.
-
-. Open the AIT application. In most cases, it's `ait.<fqdn>` (where <fqdn> represents your FQDN URL).
-
-. Choose the *Telemetry* tab.
-+
-If you're using the default AIT configuration files, you see two graphs: one for voltages and one for currents.
-
-. While the scripts are running, verify that you see new data points on the graphs and a line plot forming. This indicates that telemetry is flowing through the AIT software.
-
-=== Verify that CloudWatch is receiving logs
-Quick Start deployment installs CloudWatch agents on both application EC2 instances. The agents send `agent` and `syslog` logs to CloudWatch. Verify that CloudWatch is receiving logs as follows:
-
-. Open the https://console.aws.amazon.com/cloudwatch/[CloudWatch console^].
-. In the left navigation bar, under *Logs*, choose *Log groups*. Locate the following log groups:
-+
-* `/cloudwatch-agent/ait-editor/agent`
-* `/cloudwatch-agent/ait-editor/syslog`
-* `/cloudwatch-agent/ait-server/agent`
-* `/cloudwatch-agent/ait-server/syslog`
-
-. Verify that each of these log groups contains a few log streams and that each stream contains log data. If you deployed the Quick Start recently, you may see only a small amount of log data.
-
 == Post-deployment tasks
 Complete any of the following post-deployment tasks that are relevant your mission. You can do these tasks in any order.
 
@@ -90,17 +30,6 @@ For more information, see the following:
 * https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html[Creating User Accounts as Administrator^]
 * https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-federation.html[Adding User Pool Sign-in Through a Third Party^]
 
-=== Install the AIT Sequence Editor extension
-
-While you could install the https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor[AIT Sequence Editor extension^] locally on any VS Code client, this Quick Start deploys a centralized browser-based integrated development environment (IDE) based on the open-source application https://github.com/cdr/code-server[code-server^]. With code-server, you can run VS Code on any machine.
-
-After the Quick Start deploys the AIT Sequence Editor EC2 instance, it installs and configures code-server and the mission configuration used by AIT. Since code-server can't use Microsoft's extension marketplace due to Microsoft's terms of service for VS Code, you need to install the AIT Sequence Editor extension manually from the .vsix file published on GitHub and in the marketplace.
-
-For more information, see the following:
-
-* https://coder.com/docs/code-server/v3.12.0/FAQ#why-cant-code-server-use-microsofts-extension-marketplace[Why can't code-server use Microsoft's extension marketplace?^]
-* https://coder.com/docs/code-server/v3.12.0/FAQ#how-do-i-install-an-extension-manually[How do I install an extension manually?^]
-
 === Adapt AIT to your mission
 
 Adapt AIT for your operation's needs both at launch and as your mission evolves. You can make changes directly on the AIT EC2 instance over an SSH- or SSM-managed session.
@@ -117,13 +46,14 @@ For more information on installing and configuring AIT Core, see https://ait-cor
 
 
 ==== Customize AIT with extensions and plugins
+
 AIT is an extensible framework that your mission team can adapt to your use cases. Use https://ait-core.readthedocs.io/en/master/extensions.html[extensions^] and https://ait-core.readthedocs.io/en/master/server_architecture.html#plugins[plugins^] as appropriate. You can install existing plugins or develop your own.
 
 For more information, see the following:
 
 * https://ait-core.readthedocs.io/en/master/extensions.html[Core Library Extensions^]
-* https://ait-core.readthedocs.io/en/master/databases.html?highlight=data%20archive#data-archive-plugin[Data Archive Plugin^]
-* https://ait-dsn.readthedocs.io/en/latest/index.html[Welcome to AIT DSN’s (Deep Space Network's) documentation!^]
+* https://ait-core.readthedocs.io/en/master/databases.html#data-archive-plugin[Data Archive Plugin^]
+* https://ait-dsn.readthedocs.io/en/latest/index.html[AIT DSN documentation^]
 * https://ait-core.readthedocs.io/en/master/plugin_openmct.html[AIT OpenMCT Plugin^]
 
 ==== Manage the configuration files
@@ -214,6 +144,66 @@ The CloudWatch Logs log groups that receive application logs are configured with
 
 For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#SettingLogRetention[Change log data retention in CloudWatch Logs^].
 
+== Test the deployment
+
+Verify that all the components have been deployed by doing the following tests in the documented order.
+
+=== Verify the deployment of the application EC2 instances
+
+. Sign in to the AWS Management Console, and open the https://console.aws.amazon.com/ec2/[Amazon EC2 console^].
+. Choose *Instances* from the left navigation bar. Verify that the *AitAutoScalingGroup* and *EditorServer* EC2 instances appear.
+. For each instance, ensure that there are no failed checks in the *Status checks* column.
+. Use AWS Systems Manager (formerly known as SSM) to verify that you can connect to each instance.
+. On the AIT Sequence Editor instance, run `docker ps`. Verify that the Docker container is running.
+. On the AIT instance, verify that the Apache HTTPD Server and AIT-Core systemd services are active by running the following commands:
+* `service httpd status`
+* `service ait-server status`
+
+NOTE: In the AIT documentation, the core AIT functionality is sometimes called a "server," specifically https://ait-core.readthedocs.io/en/master/server_architecture.html#plugins[AIT Server^]. This is where the file `ait-server` gets its name.
+
+=== Verify the deployment of the applications
+
+. Open a web browser, and enter your FQDN URL.
++
+A landing page opens showing links to the AIT, Open MCT, and AIT Sequence Editor applications.
+
+. Choose each link. Verify that each application opens.
++
+You may be prompted for login credentials the first time you open the applications. Login credentials are managed by Amazon Cognito. For more information, see link:#_create_amazon_cognito_user_identities[Create Amazon Cognito user identities] later in this guide.
+
+=== Verify that telemetry is flowing
+The AIT software includes two scripts that generate sample telemetry: `ait-example` and `ait-tlm-simulate`. Verify the telemetry by running both of these command line interface (CLI) programs on the AIT EC2 instance as follows.
+
+. Connect to the AIT EC2 instance. For details, see link:#_verify_access_to_the_application_ec2_instances[Verify access to the application EC2 instances] earlier in this guide.
+. Activate the Python virtual environment where AIT and the sample telemetry scripts are installed.
++
+The scripts are installed in a virtual environment named `ait` on the AIT instance. As part of the activation, the virtual environment modifies your `PATH` variable to include a few AIT scripts that you can run.
+
+. Use the commands `ait-example` and `ait-tlm-simulate` to run each script.
++
+The two scripts generate sample telemetry. `ait-example`, which has a hardcoded packet structure, sends telemetry for 100 seconds. `ait-tlm-simulate`, which can simulate different packet types, emits telemetry once per second indefinitely.
+
+. Open the AIT application. In most cases, it's `ait.<fqdn>` (where <fqdn> represents your FQDN URL).
+
+. Choose the *Telemetry* tab.
++
+If you're using the default AIT configuration files, you see two graphs: one for voltages and one for currents.
+
+. While the scripts are running, verify that you see new data points on the graphs and a line plot forming. This indicates that telemetry is flowing through the AIT software.
+
+=== Verify that CloudWatch is receiving logs
+Quick Start deployment installs CloudWatch agents on both application EC2 instances. The agents send `agent` and `syslog` logs to CloudWatch. Verify that CloudWatch is receiving logs as follows:
+
+. Open the https://console.aws.amazon.com/cloudwatch/[CloudWatch console^].
+. In the left navigation bar, under *Logs*, choose *Log groups*. Locate the following log groups:
++
+* `/cloudwatch-agent/ait-editor/agent`
+* `/cloudwatch-agent/ait-editor/syslog`
+* `/cloudwatch-agent/ait-server/agent`
+* `/cloudwatch-agent/ait-server/syslog`
+
+. Verify that each of these log groups contains a few log streams and that each stream contains log data. If you deployed the Quick Start recently, you may see only a small amount of log data.
+
 == Security
 // Provide post-deployment best practices for using the technology on AWS, including considerations such as migrating data, backups, ensuring high performance, high availability, etc. Link to software documentation for detailed information.
 
@@ -299,7 +289,7 @@ AIT:
 - https://ait-gui.readthedocs.io/en/latest/index.html[Welcome to the AMMOS Instrument Toolkit GUI documentation!^]
 - https://ait-dsn.readthedocs.io/en/latest/index.html[Welcome to AIT DSN's documentation!^]
 
-OpenMCT:
+Open MCT:
 
 - https://nasa.github.io/openmct/[Open MCT^]
 - https://nasa.github.io/openmct/docs/guide/index.html#open-mct-developer-guide[Open MCT Developer Guide^]
