@@ -34,17 +34,13 @@ configs
 │   ├── config
 │   │   ├── bsc.yaml
 │   │   ├── ccsds_header.yaml
-│   │   ├── cmd.pkl
 │   │   ├── cmd.yaml
 │   │   ├── config.yaml
 │   │   ├── core_set_op_mode.yaml
-│   │   ├── evr.pkl
 │   │   ├── evr.yaml
 │   │   ├── leapseconds.dat
-│   │   ├── limits.pkl
 │   │   ├── limits.yaml
 │   │   ├── table.yaml
-│   │   ├── tlm.pkl
 │   │   └── tlm.yaml
 │   └── httpd_proxy.conf
 ├── editor
