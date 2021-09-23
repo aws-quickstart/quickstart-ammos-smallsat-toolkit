@@ -133,7 +133,7 @@ After you modify AIT configuration files, you must restart the `ait-server` syst
 
 To retrieve new files from the S3 bucket, run the following command with your bucket name in place of the bracketed text:
 
-    `aws s3 sync s3://<bucket_name>/ait/config /home/ec2-user/AIT-Core/config`
+    aws s3 sync s3://<bucket_name>/ait/config /home/ec2-user/AIT-Core/config
 
 For more information, see https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html[sync^] in the AWS CLI command reference.
 
