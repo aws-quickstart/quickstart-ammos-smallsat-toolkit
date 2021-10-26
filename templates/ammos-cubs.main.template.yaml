@@ -317,13 +317,12 @@ Resources:
     Type: AWS::CloudFormation::CustomResource
     Condition: InspectIam
     Properties:
-      ServiceToken: !Ref RoleChecker
+      ServiceToken: !GetAtt RoleChecker.Arn
       RoleNames:
         - !Sub ${ProjectName}-AitServerRole
         - !Sub ${ProjectName}-EditorServerRole
         - !Sub ${ProjectName}-LoggingLambdaRole
         - !Sub ${ProjectName}-CognitoInspectRole
-  # TODO: Conditionally pass outputs (Attrs) of RoleArns resource to IamRoleArn parameter of nested stacks
   VPCStack:
     Condition: DeployVpc
     Type: AWS::CloudFormation::Stack
@@ -383,6 +382,8 @@ Resources:
         ProjectName: !Ref ProjectName
         RolePath: !Ref RolePath
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
+        # TODO: Check output for NA value and conditionally create the single role?
+        IamRoleArn: !If [InspectIam, !GetAtt RoleArns.CognitoInspectRole, '']
   AmmosCubsALBStack:
     # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
@@ -418,6 +419,8 @@ Resources:
         CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         RolePath: !Ref RolePath
+        # TODO: Check output for NA value and conditionally create the single role?
+        IamRoleArn: !If [InspectIam, !GetAtt RoleArns.LoggingLambdaRole, '']
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
         PrivateSubnet1ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
         PrivateSubnet2ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
@@ -441,14 +444,16 @@ Resources:
         CognitoProviderUrl: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolProviderUrl
         FQDN: !Ref FQDN
         KeyPairName: !Ref KeyPairName
-        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         PrivateSubnetIds:
           Fn::Join:
             - ','
             - - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
               - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
         ProjectName: !Ref ProjectName
+        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         RolePath: !Ref RolePath
+        # TODO: Check output for NA value and conditionally create the single role?
+        IamRoleArn: !If [InspectIam, !GetAtt RoleArns.EditorServerRole, '']
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
   AmmosCubsAITStack:
     DependsOn: AmmosCognitoStack
@@ -475,8 +480,10 @@ Resources:
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         QSS3BucketRegion: !Ref QSS3BucketRegion
-        RolePath: !Ref RolePath
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
+        RolePath: !Ref RolePath
+        # TODO: Check output for NA value and conditionally create the single role?
+        IamRoleArn: !If [InspectIam, !GetAtt RoleArns.AitServerRole, '']
         CognitoDomainName: !GetAtt AmmosCognitoStack.Outputs.CognitoDomainName
         ALBSecurityGroupID: !GetAtt AmmosCubsALBStack.Outputs.AlbSecurityGroupId
         CognitoClientID: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientId
