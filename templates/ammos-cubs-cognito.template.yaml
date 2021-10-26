@@ -31,11 +31,16 @@ Parameters:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
     Default: ''
+  IamRoleArn:
+    Description: ARN of the pre-deployed IAM Role to use with the AIT Server
+    Type: String
+    Default: ''
 
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
   RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
   PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
+  DeployIam: !Equals ['', !Ref IamRoleArn]
 
 Resources:
   CognitoClientInspectionFunction:
@@ -48,11 +53,13 @@ Resources:
           - !Ref QSS3BucketName
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/CognitoClientInspect/lambda.zip'
       Handler: cfn_cognito_inspect.lambda_handler
-      Role: !GetAtt LambdaRole.Arn
+      Role: !If [DeployIam, !GetAtt LambdaRole.Arn, !Ref IamRoleArn]
       Runtime: python3.8
   LambdaRole:
     Type: AWS::IAM::Role
+    Condition: DeployIam
     Properties:
+      RoleName: !Sub ${ProjectName}-CognitoInspectRole
       AssumeRolePolicyDocument:
         Statement:
           - Action: sts:AssumeRole

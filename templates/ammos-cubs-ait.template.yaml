@@ -62,14 +62,16 @@ Parameters:
     Default: 604800  # One day
     MinValue: 60
     MaxValue: 604800
-  # TODO: Enforce AllowedValues
   RolePath:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
     Default: ''
-  # TODO: Enforce AllowedValues
   PermissionsBoundaryArn:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
+    Type: String
+    Default: ''
+  IamRoleArn:
+    Description: ARN of the pre-deployed IAM Role to use with the AIT Server
     Type: String
     Default: ''
   CognitoDomainName:
@@ -98,6 +100,7 @@ Conditions:
   RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
   PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
   UserProvidedConfigBucket: !Not [!Equals ['', !Ref ConfigBucketName]]
+  DeployIam: !Equals ['', !Ref IamRoleArn]
 Mappings:
   AWSAMIRegionMap:
     us-east-1:
@@ -137,12 +140,9 @@ Resources:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Roles:
-        - !Ref 'InstanceRole'
+        - !If [DeployIam, !Ref 'InstanceRole', !Ref IamRoleArn]
   AitAutoScalingGroupLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
-    DependsOn:
-      - InstanceRoleDefaultPolicy
-      - InstanceRole
     Properties:
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
@@ -452,7 +452,10 @@ Resources:
       SslPolicy: ELBSecurityPolicy-FS-1-2-2019-08
   InstanceRole:
     Type: AWS::IAM::Role
+    Condition: DeployIam
     Properties:
+      RoleName: !Sub ${ProjectName}-AitServerRole
+      Description: IAM Role to be used by the AIT Application Servers
       AssumeRolePolicyDocument:
         Statement:
           - Action: sts:AssumeRole
@@ -460,55 +463,50 @@ Resources:
             Principal:
               Service: ec2.amazonaws.com
         Version: '2012-10-17'
-      Description: IAM Role to be used by the AIT Application Servers
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy'
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
       Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
       PermissionsBoundary:  !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
-  InstanceRoleDefaultPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Action: cloudformation:SignalResource
-            Effect: Allow
-            Resource: !Ref 'AWS::StackId'
-          - Action:
-              - s3:GetBucketAcl
-              - s3:GetBucketLocation
-              - s3:GetObject
-              - s3:GetObjectAcl
-              - s3:GetObjectTagging
-              - s3:GetObjectVersion
-              - s3:ListBucket
-            Effect: Allow
-            Resource:
-              - !Sub
-                - 'arn:${AWS::Partition}:s3:::${ConfigBucket}'
-                - ConfigBucket: !If
-                  - UserProvidedConfigBucket
-                  - !Ref ConfigBucketName
-                  - Fn::ImportValue:
-                      Fn::Sub: "${ProjectName}-ConfigBucketName"
-              - !Sub
-                - 'arn:${AWS::Partition}:s3:::${ConfigBucket}/*'
-                - ConfigBucket: !If
-                  - UserProvidedConfigBucket
-                  - !Ref ConfigBucketName
-                  - Fn::ImportValue:
-                      Fn::Sub: "${ProjectName}-ConfigBucketName"
-          - Action:
-              - 's3:GetObject'
-              - s3:ListBucket
-            Resource: !Sub
-              - arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}*
-              - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-            Effect: Allow
-        Version: '2012-10-17'
-      PolicyName: InstanceRoleDefaultPolicy
-      Roles:
-        - !Ref 'InstanceRole'
+      Policies:
+        - PolicyName: ec2-app-server
+          PolicyDocument:
+            Statement:
+              - Action: cloudformation:SignalResource
+                Effect: Allow
+                Resource: !Ref 'AWS::StackId'
+              - Action:
+                  - s3:GetBucketAcl
+                  - s3:GetBucketLocation
+                  - s3:GetObject
+                  - s3:GetObjectAcl
+                  - s3:GetObjectTagging
+                  - s3:GetObjectVersion
+                  - s3:ListBucket
+                Effect: Allow
+                Resource:
+                  - !Sub
+                    - 'arn:${AWS::Partition}:s3:::${ConfigBucket}'
+                    - ConfigBucket: !If
+                      - UserProvidedConfigBucket
+                      - !Ref ConfigBucketName
+                      - Fn::ImportValue:
+                          Fn::Sub: "${ProjectName}-ConfigBucketName"
+                  - !Sub
+                    - 'arn:${AWS::Partition}:s3:::${ConfigBucket}/*'
+                    - ConfigBucket: !If
+                      - UserProvidedConfigBucket
+                      - !Ref ConfigBucketName
+                      - Fn::ImportValue:
+                          Fn::Sub: "${ProjectName}-ConfigBucketName"
+              - Action:
+                  - 's3:GetObject'
+                  - s3:ListBucket
+                Resource: !Sub
+                  - arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}*
+                  - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+                Effect: Allow
+            Version: '2012-10-17'
 Outputs:
   GovCloudCondition:
     Value: !If [IsGovCloud, "yes", "no"]

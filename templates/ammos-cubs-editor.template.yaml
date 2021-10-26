@@ -38,6 +38,10 @@ Parameters:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
     Default: ''
+  IamRoleArn:
+    Description: ARN of the pre-deployed IAM Role to use with the AIT Server
+    Type: String
+    Default: ''
   ALBSecurityGroupID:
     Description: ID of Pre-configured Security Group attached to the ALB
     Type: String
@@ -78,6 +82,7 @@ Conditions:
   RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
   PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
   UserProvidedConfigBucket: !Not [!Equals ['', !Ref ConfigBucketName]]
+  DeployIam: !Equals ['', !Ref IamRoleArn]
 Resources:
   AitEditorSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -146,8 +151,6 @@ Resources:
       ResourceSignal:
         Count: 1
         Timeout: PT1H
-    DependsOn:
-      - InstanceRole
     Properties:
       Tags:
         - Key: Name
@@ -290,7 +293,10 @@ Resources:
                 Fn::Sub: "${ProjectName}-ConfigBucketName"
   InstanceRole:
     Type: AWS::IAM::Role
+    Condition: DeployIam
     Properties:
+      RoleName: !Sub ${ProjectName}-EditorServerRole
+      Description: IAM Role to be used by the AIT Editor Servers
       AssumeRolePolicyDocument:
         Statement:
           - Action: sts:AssumeRole
@@ -298,7 +304,6 @@ Resources:
             Principal:
               Service: ec2.amazonaws.com
         Version: '2012-10-17'
-      Description: IAM Role to be used by the AIT Editor Servers
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy'
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
@@ -339,7 +344,7 @@ Resources:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Roles:
-        - !Ref InstanceRole
+        - !If [DeployIam, !Ref 'InstanceRole', !Ref IamRoleArn]
 Outputs:
   InstanceId:
     Value: !Ref Instance

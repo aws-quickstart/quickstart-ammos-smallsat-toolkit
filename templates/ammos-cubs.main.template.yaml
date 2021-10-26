@@ -255,6 +255,10 @@ Parameters:
     Description: (Optional) If you're deploying into an existing VPC, fill in the ID of the preconfigured security group to control access to the Application Load Balancer.
     Type: String
     Default: ''
+  IamInspectRoleArn:
+    Description: (Optional) If you choose to pre-deploy IAM Roles, you must supply the ARN of the Role which has permissions to inspect IAM Roles in the account
+    Type: String
+    Default: ''
 Rules:
   DomainNamePresentWithHostedID:
     Assertions:
@@ -271,6 +275,7 @@ Rules:
             - !Not [!Equals [!Ref FQDN, '']]
         AssertDescription: "Using an SSL certificate is enforced. A CertificateArn or a HostedZoneID and FQDN must be provided."
 Conditions:
+  InspectIam: !Not [!Equals ['', !Ref IamInspectRoleArn]]
   GenerateSSL: !And
     - !Equals [!Ref SSLCertificateArn, '']
     - !Not [!Equals [!Ref FQDN, '']]
@@ -292,6 +297,33 @@ Resources:
   #       RolePath: !Ref RolePath
   #       PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
 # ---
+  RoleChecker:
+    Type: AWS::Lambda::Function
+    Condition: InspectIam
+    Properties:
+      Description: Check the account for required IAM Roles so that they may be omitted from the QuickStart deployment if already present
+      FunctionName: RoleChecker
+      Handler: role_checker.lambda_handler
+      MemorySize: 128
+      Role: !Ref IamInspectRoleArn
+      Runtime: python3.8
+      Code:
+        S3Bucket: !If
+          - UsingDefaultBucket
+          - !Sub '${QSS3BucketName}-${AWS::Region}'
+          - !Ref QSS3BucketName
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/RoleChecker/lambda.zip'
+  RoleArns:
+    Type: AWS::CloudFormation::CustomResource
+    Condition: InspectIam
+    Properties:
+      ServiceToken: !Ref RoleChecker
+      RoleNames:
+        - !Sub ${ProjectName}-AitServerRole
+        - !Sub ${ProjectName}-EditorServerRole
+        - !Sub ${ProjectName}-LoggingLambdaRole
+        - !Sub ${ProjectName}-CognitoInspectRole
+  # TODO: Conditionally pass outputs (Attrs) of RoleArns resource to IamRoleArn parameter of nested stacks
   VPCStack:
     Condition: DeployVpc
     Type: AWS::CloudFormation::Stack
