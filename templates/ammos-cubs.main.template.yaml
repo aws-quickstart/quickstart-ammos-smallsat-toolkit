@@ -21,6 +21,7 @@ Metadata:
         Parameters:
           - RolePath
           - PermissionsBoundaryArn
+          - DeployIam
       - Label:
           default: Network configuration
         Parameters:
@@ -67,6 +68,8 @@ Metadata:
         default: Remote access CIDR
       RolePath:
         default: Role path
+      DeployIam:
+        default: Flag to control IAM Resource deployment
       SSLCertificateArn:
         default: SSL certificate ARN
       VPCCIDR:
