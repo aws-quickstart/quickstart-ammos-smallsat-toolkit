@@ -291,3 +291,17 @@ Resources:
                      - "-*"
             Version: "2012-10-17"
           PolicyName: role-checker
+
+Outputs:
+  LoggingLambdaRoleArn:
+    Description: ARN of the LoggingLambdaRole created for AST deployment
+    Value: !GetAtt LoggingLambdaRole.Arn
+  AitServerRoleArn:
+    Description: ARN of the AitServerRole created for AST deployment
+    Value: !GetAtt AitServerRole.Arn
+  EditorServerRoleArn:
+    Description: ARN of the EditorServerRole created for AST deployment
+    Value: !GetAtt EditorServerRole.Arn
+  CognitoInspectRoleArn:
+    Description: ARN of the CognitoInspectRole created for AST deployment
+    Value: !GetAtt CognitoInspectRole.Arn

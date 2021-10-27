@@ -24,7 +24,7 @@ def lambda_handler(event, context):
 
         if event["RequestType"] in ["Create", "Update"]:
             for name in role_names:
-                key = name.split("-")[-1]  # Strip the leading ProjectName from role name
+                key = name.split("-")[-1] + "Arn"  # Strip the leading ProjectName from role name
                 try:
                     logger.debug(f"Checking Account Roles for {name}")
                     arn = client.get_role(RoleName=name)["Role"]["Arn"]
@@ -32,9 +32,9 @@ def lambda_handler(event, context):
                     role_arns[key] = arn
                 except botocore.exceptions.ClientError as e:
                     if e.response["Error"]["Code"] == "NoSuchEntity":
-                        # TODO: Do we really want to fail here or just mark the missing role as NA
                         logger.error(f"{name} Role does not exist")
-                        # role_arns[key] = "NA"
+                        # The roles should be deployed all at once or not at all (via the supplied template);
+                        #  therefore, it does not make sense to proceed with the deployment if one of them is missing
                         result = cfnresponse.FAILED
                         missing_roles.append(name)
                     else:

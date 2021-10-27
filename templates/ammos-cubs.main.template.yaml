@@ -255,10 +255,14 @@ Parameters:
     Description: (Optional) If you're deploying into an existing VPC, fill in the ID of the preconfigured security group to control access to the Application Load Balancer.
     Type: String
     Default: ''
-  IamInspectRoleArn:
-    Description: (Optional) If you choose to pre-deploy IAM Roles, you must supply the ARN of the Role which has permissions to inspect IAM Roles in the account
+  DeployIam:
+    Description: Allow the QuickStart to deploy the required IAM Roles on your behalf. Otherwise, you will need to pre-deploy
+      these IAM resources before launching the QuickStart; see the Deployment Guide for more details
     Type: String
-    Default: ''
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
 Rules:
   DomainNamePresentWithHostedID:
     Assertions:
@@ -275,7 +279,8 @@ Rules:
             - !Not [!Equals [!Ref FQDN, '']]
         AssertDescription: "Using an SSL certificate is enforced. A CertificateArn or a HostedZoneID and FQDN must be provided."
 Conditions:
-  InspectIam: !Not [!Equals ['', !Ref IamInspectRoleArn]]
+  DeployIam: !Equals [!Ref DeployIam, 'true']
+  InspectIam: !Not [Condition: DeployIam]
   GenerateSSL: !And
     - !Equals [!Ref SSLCertificateArn, '']
     - !Not [!Equals [!Ref FQDN, '']]
@@ -305,7 +310,7 @@ Resources:
       FunctionName: RoleChecker
       Handler: role_checker.lambda_handler
       MemorySize: 128
-      Role: !Ref IamInspectRoleArn
+      Role: !Sub ${ProjectName}-DeploymentHelperRole
       Runtime: python3.8
       Code:
         S3Bucket: !If
@@ -323,6 +328,21 @@ Resources:
         - !Sub ${ProjectName}-EditorServerRole
         - !Sub ${ProjectName}-LoggingLambdaRole
         - !Sub ${ProjectName}-CognitoInspectRole
+  IamStack:
+    Type: AWS::CloudFormation::Stack
+    Condition: DeployIam
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ast-iam-roles.template.yaml'
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Parameters:
+        ProjectName: !Ref ProjectName
+        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
+        RolePath: !Ref RolePath
+        QSS3BucketName: !Ref QSS3BucketName
+        QSS3BucketRegion: !Ref QSS3BucketRegion
+        QSS3KeyPrefix: !Ref QSS3KeyPrefix
   VPCStack:
     Condition: DeployVpc
     Type: AWS::CloudFormation::Stack
@@ -382,8 +402,7 @@ Resources:
         ProjectName: !Ref ProjectName
         RolePath: !Ref RolePath
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
-        # TODO: Check output for NA value and conditionally create the single role?
-        IamRoleArn: !If [InspectIam, !GetAtt RoleArns.CognitoInspectRole, '']
+        IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.CognitoInspectRoleArn, !GetAtt RoleArns.CognitoInspectRoleArn]
   AmmosCubsALBStack:
     # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
@@ -419,8 +438,7 @@ Resources:
         CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         RolePath: !Ref RolePath
-        # TODO: Check output for NA value and conditionally create the single role?
-        IamRoleArn: !If [InspectIam, !GetAtt RoleArns.LoggingLambdaRole, '']
+        IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.LoggingLambdaRoleArn, !GetAtt RoleArns.LoggingLambdaRoleArn]
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
         PrivateSubnet1ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
         PrivateSubnet2ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
@@ -452,11 +470,9 @@ Resources:
         ProjectName: !Ref ProjectName
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         RolePath: !Ref RolePath
-        # TODO: Check output for NA value and conditionally create the single role?
-        IamRoleArn: !If [InspectIam, !GetAtt RoleArns.EditorServerRole, '']
+        IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.EditorServerRoleArn, !GetAtt RoleArns.EditorServerRoleArn]
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
   AmmosCubsAITStack:
-    DependsOn: AmmosCognitoStack
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -482,8 +498,7 @@ Resources:
         QSS3BucketRegion: !Ref QSS3BucketRegion
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         RolePath: !Ref RolePath
-        # TODO: Check output for NA value and conditionally create the single role?
-        IamRoleArn: !If [InspectIam, !GetAtt RoleArns.AitServerRole, '']
+        IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.AitServerRoleArn, !GetAtt RoleArns.AitServerRoleArn]
         CognitoDomainName: !GetAtt AmmosCognitoStack.Outputs.CognitoDomainName
         ALBSecurityGroupID: !GetAtt AmmosCubsALBStack.Outputs.AlbSecurityGroupId
         CognitoClientID: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientId
