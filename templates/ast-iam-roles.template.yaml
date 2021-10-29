@@ -294,6 +294,7 @@ Resources:
   BastionHostRole:
     Type: 'AWS::IAM::Role'
     Properties:
+      RoleName: !Sub ${ProjectName}-BastionHostRole
       Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
       PermissionsBoundary:
         !If [
