@@ -24,12 +24,14 @@ def lambda_handler(event, context):
 
         if event["RequestType"] in ["Create", "Update"]:
             for name in role_names:
-                key = name.split("-")[-1] + "Arn"  # Strip the leading ProjectName from role name
+                key = name.split("-")[-1]  # Strip the leading ProjectName from role name
                 try:
                     logger.debug(f"Checking Account Roles for {name}")
-                    arn = client.get_role(RoleName=name)["Role"]["Arn"]
-                    logger.debug(f"Role already exists: {arn}")
-                    role_arns[key] = arn
+                    role = client.get_role(RoleName=name)["Role"]
+                    role_arn = role["Arn"]
+                    logger.debug(f"Role already exists: {role_arn}")
+                    role_arns[key + "Arn"] = role_arn
+                    role_arns[key + "Name"] = role["RoleName"]
                 except botocore.exceptions.ClientError as e:
                     if e.response["Error"]["Code"] == "NoSuchEntity":
                         logger.error(f"{name} Role does not exist")

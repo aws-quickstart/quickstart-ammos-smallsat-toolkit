@@ -41,7 +41,7 @@ Resources:
   ConfigBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub ${ProjectName}-ConfigBucket
+      BucketName: !Sub ${ProjectName}-config
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
   CopyZipsStack:

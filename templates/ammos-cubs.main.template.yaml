@@ -310,10 +310,12 @@ Resources:
     Condition: InspectIam
     Properties:
       Description: Check the account for required IAM Roles so that they may be omitted from the QuickStart deployment if already present
-      FunctionName: RoleChecker
+      FunctionName: !Sub ${ProjectName}-RoleChecker
       Handler: role_checker.lambda_handler
       MemorySize: 128
-      Role: !Sub ${ProjectName}-DeploymentHelperRole
+      Role:
+        Fn::ImportValue:
+          !Sub ${ProjectName}-DeploymentHelperRoleArn
       Runtime: python3.8
       Code:
         S3Bucket: !If
@@ -389,6 +391,7 @@ Resources:
         QSS3BucketRegion: !Ref QSS3BucketRegion
         RemoteAccessCIDR: !Ref RemoteAccessCIDR
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
+        AlternativeIamRole: !If [DeployIam, !GetAtt IamStack.Outputs.BastionHostRoleName, !GetAtt RoleArns.BastionHostRoleName]
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         RolePath: !Ref RolePath
   AmmosCognitoStack:
@@ -403,8 +406,6 @@ Resources:
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         ProjectName: !Ref ProjectName
-        RolePath: !Ref RolePath
-        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.CognitoInspectRoleArn, !GetAtt RoleArns.CognitoInspectRoleArn]
   AmmosCubsALBStack:
     # DependsOn: CFNEndpoint
@@ -439,8 +440,6 @@ Resources:
       Parameters:
         ProjectName: !Ref ProjectName
         CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
-        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
-        RolePath: !Ref RolePath
         IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.LoggingLambdaRoleArn, !GetAtt RoleArns.LoggingLambdaRoleArn]
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
         PrivateSubnet1ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
@@ -471,9 +470,8 @@ Resources:
             - - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
               - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
         ProjectName: !Ref ProjectName
-        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
-        RolePath: !Ref RolePath
         IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.EditorServerRoleArn, !GetAtt RoleArns.EditorServerRoleArn]
+        IamRoleName: !If [DeployIam, !GetAtt IamStack.Outputs.EditorServerRoleName, !GetAtt RoleArns.EditorServerRoleName]
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
   AmmosCubsAITStack:
     Type: AWS::CloudFormation::Stack
@@ -496,12 +494,8 @@ Resources:
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
         InstanceType: !Ref AITInstanceType
         KeyPairName: !Ref KeyPairName
-        QSS3BucketName: !Ref QSS3BucketName
-        QSS3KeyPrefix: !Ref QSS3KeyPrefix
-        QSS3BucketRegion: !Ref QSS3BucketRegion
-        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
-        RolePath: !Ref RolePath
         IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.AitServerRoleArn, !GetAtt RoleArns.AitServerRoleArn]
+        IamRoleName: !If [DeployIam, !GetAtt IamStack.Outputs.AitServerRoleName, !GetAtt RoleArns.AitServerRoleName]
         CognitoDomainName: !GetAtt AmmosCognitoStack.Outputs.CognitoDomainName
         ALBSecurityGroupID: !GetAtt AmmosCubsALBStack.Outputs.AlbSecurityGroupId
         CognitoClientID: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientId
