@@ -333,6 +333,7 @@ Resources:
         - !Sub ${ProjectName}-EditorServerRole
         - !Sub ${ProjectName}-LoggingLambdaRole
         - !Sub ${ProjectName}-CognitoInspectRole
+        - !Sub ${ProjectName}-BastionHostRole
   IamStack:
     Type: AWS::CloudFormation::Stack
     Condition: DeployIam
