@@ -392,7 +392,7 @@ Resources:
         QSS3BucketRegion: !Ref QSS3BucketRegion
         RemoteAccessCIDR: !Ref RemoteAccessCIDR
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
-        AlternativeIamRole: !If [DeployIam, !GetAtt IamStack.Outputs.BastionHostRoleName, !GetAtt RoleArns.BastionHostRoleName]
+        AlternativeIAMRole: !If [DeployIam, !GetAtt IamStack.Outputs.BastionHostRoleName, !GetAtt RoleArns.BastionHostRoleName]
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         RolePath: !Ref RolePath
   AmmosCognitoStack:

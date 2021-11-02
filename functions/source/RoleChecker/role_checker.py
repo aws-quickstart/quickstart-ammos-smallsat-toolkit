@@ -33,7 +33,7 @@ def lambda_handler(event, context):
                     role_arns[key + "Arn"] = role_arn
                     role_arns[key + "Name"] = role["RoleName"]
                 except botocore.exceptions.ClientError as e:
-                    if e.response["Error"]["Code"] == "NoSuchEntity":
+                    if e.response["Error"]["Code"] in ["NoSuchEntity", "AccessDenied"]:
                         logger.error(f"{name} Role does not exist")
                         # The roles should be deployed all at once or not at all (via the supplied template);
                         #  therefore, it does not make sense to proceed with the deployment if one of them is missing

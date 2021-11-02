@@ -182,8 +182,9 @@ Resources:
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
   LoggingBucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
     Properties:
-      BucketName: !Sub ${ProjectName}-LogsBucket
+      BucketName: !Sub ${ProjectName}-logs
   FirehoseLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
