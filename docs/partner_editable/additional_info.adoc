@@ -215,6 +215,10 @@ To facilitate compliance with your organization's restrictions on IAM role creat
 
 * `RolePath`: String used as the path attribute for the created role. For more information, see https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-friendly-names[Friendly names and paths^].
 
+Additionally, all IAM Roles are named and centrally managed in the `ast-iam-roles.template.yaml` CloudFormation Template. This allows the IAM Resources to be deployed independent from the main stack, lending greater flexibility to deployments in accounts with more restrictive IAM policies. If a user wishes to take advantage of this, they must deploy or request an account administrator to deploy the IAM stack prior to the main QuickStart deployment, using the same `ProjectName` parameter that the subsequent deployment will use. Then, during the main QuickStart deployment, set the `DeployIam` parameter to `false`, informing the QuickStart that IAM Roles are already deployed and their creation can be skipped during the main deployment step.
+
+If IAM Role creation is skipped in the main deployment (`DeployIam == false`), a custom resource referred to as the `RoleChecker` will be deployed to check that the required IAM Roles have been successfully pre-deployed and will be available to the dependent resources during the rest of the deployment. If IAM Roles are to be deployed (`DeployIam == true`), then the QuickStart will create the `IamStack` resource as a Nested Stack.
+
 === Security groups
 
 As part of the Quick Start deployment, you specify security groups that define inbound and outbound network traffic rules. You create inbound rules for the security groups and define appropriate CIDR/IP ranges that are allowed for inbound access to various deployed resources.
