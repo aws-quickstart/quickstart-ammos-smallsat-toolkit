@@ -8,12 +8,8 @@ Parameters:
     Description: The number of days to retain log events in CloudWatch log groups
     Type: Number
     Default: 30
-  PermissionsBoundaryArn:
-    Description: Will be attached to all created IAM Roles to satisfy security requirements
-    Type: String
-    Default: ''
-  RolePath:
-    Description: Will be attached to all created IAM Roles to satisfy security requirements
+  IamRoleArn:
+    Description: ARN of the pre-deployed IAM Role to use with the AIT Server
     Type: String
     Default: ''
   VPCID:
@@ -47,9 +43,6 @@ Parameters:
       can include numbers, lowercase letters, uppercase letters, hyphens (-), and
       forward slash (/).
     Type: String
-Conditions:
-  RolePathProvided: !Not [!Equals ["", !Ref RolePath]]
-  PermissionsBoundaryProvided: !Not [!Equals ["", !Ref PermissionsBoundaryArn]]
 Resources:
   ElasticsearchSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -189,92 +182,9 @@ Resources:
       RetentionInDays: !Ref CloudWatchLogsRetentionPeriod
   LoggingBucket:
     Type: AWS::S3::Bucket
-  FirehoseRole:
-    Metadata:
-      cfn-lint:
-        config:
-          ignore_checks:
-            - EIAMPolicyWildcardResource
-          ignore_reasons:
-            EIAMPolicyWildcardResource: Network interface permissions are a circular dependency. Specific nodes/interfaces of an Elasticsearch domain are not easily surfaced to CFN
-    Type: AWS::IAM::Role
+    DeletionPolicy: Delete
     Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - firehose.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
-      PermissionsBoundary:
-        !If [
-          PermissionsBoundaryProvided,
-          !Ref PermissionsBoundaryArn,
-          !Ref AWS::NoValue,
-        ]
-      Policies:
-        - PolicyName: firehose-s3
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:AbortMultipartUpload
-                  - s3:GetBucketLocation
-                  - s3:GetObject
-                  - s3:ListBucket
-                  - s3:ListBucketMultipartUploads
-                  - s3:PutObject
-                Resource:
-                  - !GetAtt LoggingBucket.Arn
-                  - !Sub ${LoggingBucket.Arn}/*
-        - PolicyName: firehose-ec2
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - ec2:DescribeVpcs
-                  - ec2:DescribeVpcAttribute
-                  - ec2:DescribeSubnets
-                  - ec2:DescribeSecurityGroups
-                  - ec2:DescribeNetworkInterfaces
-                  - ec2:CreateNetworkInterface
-                  - ec2:DeleteNetworkInterface
-                  - ec2:CreateNetworkInterfacePermission
-                Resource: "*"
-        - PolicyName: firehose-elasticsearch
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - es:DescribeElasticsearchDomain
-                  - es:DescribeElasticsearchDomains
-                  - es:DescribeElasticsearchDomainConfig
-                  - es:ESHttpPost
-                  - es:ESHttpPut
-                Resource:
-                  - !GetAtt ElasticsearchDomain.Arn
-                  - !Sub ${ElasticsearchDomain.Arn}/*
-        - PolicyName: firehose-cloudwatch-errors
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - logs:PutLogEvents
-                Resource:
-                  - !GetAtt FirehoseLogGroup.Arn
-        - PolicyName: firehose-lambda-transform
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - lambda:InvokeFunction
-                  - lambda:GetFunctionConfiguration
-                Resource:
-                  - !GetAtt LoggingProcessorLambda.Arn
-
+      BucketName: !Sub ${ProjectName}-logs
   FirehoseLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -296,6 +206,7 @@ Resources:
   LogKinesisDeliveryStream:
     Type: AWS::KinesisFirehose::DeliveryStream
     Properties:
+      DeliveryStreamName: !Sub ${ProjectName}-DeliveryStream
       DeliveryStreamType: DirectPut
       ElasticsearchDestinationConfiguration:
         ProcessingConfiguration:
@@ -321,7 +232,7 @@ Resources:
         IndexRotationPeriod: OneDay
         RetryOptions:
           DurationInSeconds: 300
-        RoleARN: !GetAtt FirehoseRole.Arn
+        RoleARN: !Ref IamRoleArn
         S3BackupMode: AllDocuments
         S3Configuration:
           CompressionFormat: UNCOMPRESSED
@@ -333,59 +244,20 @@ Resources:
           BufferingHints:
             IntervalInSeconds: 300
             SizeInMBs: 5
-          RoleARN: !GetAtt FirehoseRole.Arn
+          RoleARN: !Ref IamRoleArn
         VpcConfiguration:
-          RoleARN: !GetAtt FirehoseRole.Arn
+          RoleARN: !Ref IamRoleArn
           SecurityGroupIds:
             - !GetAtt ElasticsearchSecurityGroup.GroupId
           SubnetIds:
             - !Ref PrivateSubnet1ID
             - !Ref PrivateSubnet2ID
             - !Ref PrivateSubnet3ID
-  CloudWatchLogRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - logs.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
-      PermissionsBoundary:
-        !If [
-          PermissionsBoundaryProvided,
-          !Ref PermissionsBoundaryArn,
-          !Ref AWS::NoValue,
-        ]
-      Policies:
-        - PolicyName: cloudwatch-firehose
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - firehose:CreateDeliveryStream
-                  - firehose:DeleteDeliveryStream
-                  - firehose:DescribeDeliveryStream
-                  - firehose:ListDeliveryStreams
-                  - firehose:ListTagsForDeliveryStream
-                  - firehose:PutRecord
-                  - firehose:PutRecordBatch
-                  - firehose:StartDeliveryStreamEncryption
-                  - firehose:StopDeliveryStreamEncryption
-                  - firehose:TagDeliveryStream
-                  - firehose:UntagDeliveryStream
-                  - firehose:UpdateDestination
-                Resource:
-                  - !GetAtt LogKinesisDeliveryStream.Arn
 
   AitEditorAgentSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
     Properties:
-      RoleArn: !GetAtt CloudWatchLogRole.Arn
+      RoleArn: !Ref IamRoleArn
       LogGroupName: !Ref AitEditorAgentLogGroup
       DestinationArn: !GetAtt LogKinesisDeliveryStream.Arn
       FilterPattern: ""
@@ -393,7 +265,7 @@ Resources:
   AitEditorSyslogSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
     Properties:
-      RoleArn: !GetAtt CloudWatchLogRole.Arn
+      RoleArn: !Ref IamRoleArn
       LogGroupName: !Ref AitEditorSyslogLogGroup
       DestinationArn: !GetAtt LogKinesisDeliveryStream.Arn
       FilterPattern: ""
@@ -401,7 +273,7 @@ Resources:
   AitServerAgentSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
     Properties:
-      RoleArn: !GetAtt CloudWatchLogRole.Arn
+      RoleArn: !Ref IamRoleArn
       LogGroupName: !Ref AitServerAgentLogGroup
       DestinationArn: !GetAtt LogKinesisDeliveryStream.Arn
       FilterPattern: ""
@@ -409,60 +281,18 @@ Resources:
   AitServerSyslogSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
     Properties:
-      RoleArn: !GetAtt CloudWatchLogRole.Arn
+      RoleArn: !Ref IamRoleArn
       LogGroupName: !Ref AitServerSyslogLogGroup
       DestinationArn: !GetAtt LogKinesisDeliveryStream.Arn
       FilterPattern: ""
 
-  LambdaLogRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
-      PermissionsBoundary:
-        !If [
-          PermissionsBoundaryProvided,
-          !Ref PermissionsBoundaryArn,
-          !Ref AWS::NoValue,
-        ]
-      Policies:
-        - PolicyName: cloudwatch-firehose
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - firehose:CreateDeliveryStream
-                  - firehose:DeleteDeliveryStream
-                  - firehose:DescribeDeliveryStream
-                  - firehose:ListDeliveryStreams
-                  - firehose:ListTagsForDeliveryStream
-                  - firehose:PutRecord
-                  - firehose:PutRecordBatch
-                  - firehose:StartDeliveryStreamEncryption
-                  - firehose:StopDeliveryStreamEncryption
-                  - firehose:TagDeliveryStream
-                  - firehose:UntagDeliveryStream
-                  - firehose:UpdateDestination
-                Resource:
-                  - !Sub arn:${AWS::Partition}:firehose:${AWS::Region}:${AWS::AccountId}:deliverystream/*
-                  # - !GetAtt LogKinesisDeliveryStream.Arn # XXX: can't reference stream directly because of circular dependency
-      ManagedPolicyArns:
-        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
-
   LoggingProcessorLambda:
     Type: AWS::Lambda::Function
     Properties:
+      FunctionName: !Sub "${ProjectName}-LoggingProcessor"
       Description: An Amazon Kinesis Firehose stream processor that extracts individual log events from records sent by Cloudwatch Logs subscription filters.
       Handler: index.handler
-      Role: !GetAtt LambdaLogRole.Arn
+      Role: !Ref IamRoleArn
       Runtime: nodejs12.x
       Timeout: 60
       VpcConfig:

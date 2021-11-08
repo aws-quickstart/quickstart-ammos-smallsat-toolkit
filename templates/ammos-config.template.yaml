@@ -36,13 +36,13 @@ Parameters:
     Type: String
     Default: ''
 Conditions:
-  RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
-  PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, "aws-quickstart"]
 Resources:
   ConfigBucket:
     Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Sub ${ProjectName}-config
+    DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
   CopyZipsStack:
     Type: AWS::CloudFormation::Stack

@@ -21,6 +21,7 @@ Metadata:
         Parameters:
           - RolePath
           - PermissionsBoundaryArn
+          - DeployIam
       - Label:
           default: Network configuration
         Parameters:
@@ -67,6 +68,8 @@ Metadata:
         default: Remote access CIDR
       RolePath:
         default: Role path
+      DeployIam:
+        default: Flag to control IAM Resource deployment
       SSLCertificateArn:
         default: SSL certificate ARN
       VPCCIDR:
@@ -255,6 +258,14 @@ Parameters:
     Description: (Optional) If you're deploying into an existing VPC, fill in the ID of the preconfigured security group to control access to the Application Load Balancer.
     Type: String
     Default: ''
+  DeployIam:
+    Description: Allow the QuickStart to deploy the required IAM Roles on your behalf. Otherwise, you will need to pre-deploy
+      these IAM resources before launching the QuickStart; see the Deployment Guide for more details
+    Type: String
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
 Rules:
   DomainNamePresentWithHostedID:
     Assertions:
@@ -271,6 +282,8 @@ Rules:
             - !Not [!Equals [!Ref FQDN, '']]
         AssertDescription: "Using an SSL certificate is enforced. A CertificateArn or a HostedZoneID and FQDN must be provided."
 Conditions:
+  DeployIam: !Equals [!Ref DeployIam, 'true']
+  InspectIam: !Not [Condition: DeployIam]
   GenerateSSL: !And
     - !Equals [!Ref SSLCertificateArn, '']
     - !Not [!Equals [!Ref FQDN, '']]
@@ -292,6 +305,50 @@ Resources:
   #       RolePath: !Ref RolePath
   #       PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
 # ---
+  RoleChecker:
+    Type: AWS::Lambda::Function
+    Condition: InspectIam
+    Properties:
+      Description: Check the account for required IAM Roles so that they may be omitted from the QuickStart deployment if already present
+      FunctionName: !Sub ${ProjectName}-RoleChecker
+      Handler: role_checker.lambda_handler
+      MemorySize: 128
+      Role:
+        Fn::ImportValue:
+          !Sub ${ProjectName}-DeploymentHelperRoleArn
+      Runtime: python3.8
+      Code:
+        S3Bucket: !If
+          - UsingDefaultBucket
+          - !Sub '${QSS3BucketName}-${AWS::Region}'
+          - !Ref QSS3BucketName
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/RoleChecker/lambda.zip'
+  RoleArns:
+    Type: AWS::CloudFormation::CustomResource
+    Condition: InspectIam
+    Properties:
+      ServiceToken: !GetAtt RoleChecker.Arn
+      RoleNames:
+        - !Sub ${ProjectName}-AitServerRole
+        - !Sub ${ProjectName}-EditorServerRole
+        - !Sub ${ProjectName}-LoggingLambdaRole
+        - !Sub ${ProjectName}-CognitoInspectRole
+        - !Sub ${ProjectName}-BastionHostRole
+  IamStack:
+    Type: AWS::CloudFormation::Stack
+    Condition: DeployIam
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ast-iam-roles.template.yaml'
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Parameters:
+        ProjectName: !Ref ProjectName
+        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
+        RolePath: !Ref RolePath
+        QSS3BucketName: !Ref QSS3BucketName
+        QSS3BucketRegion: !Ref QSS3BucketRegion
+        QSS3KeyPrefix: !Ref QSS3KeyPrefix
   VPCStack:
     Condition: DeployVpc
     Type: AWS::CloudFormation::Stack
@@ -335,6 +392,7 @@ Resources:
         QSS3BucketRegion: !Ref QSS3BucketRegion
         RemoteAccessCIDR: !Ref RemoteAccessCIDR
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
+        AlternativeIAMRole: !If [DeployIam, !GetAtt IamStack.Outputs.BastionHostRoleName, !GetAtt RoleArns.BastionHostRoleName]
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         RolePath: !Ref RolePath
   AmmosCognitoStack:
@@ -349,8 +407,7 @@ Resources:
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         ProjectName: !Ref ProjectName
-        RolePath: !Ref RolePath
-        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
+        IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.CognitoInspectRoleArn, !GetAtt RoleArns.CognitoInspectRoleArn]
   AmmosCubsALBStack:
     # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
@@ -384,8 +441,7 @@ Resources:
       Parameters:
         ProjectName: !Ref ProjectName
         CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
-        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
-        RolePath: !Ref RolePath
+        IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.LoggingLambdaRoleArn, !GetAtt RoleArns.LoggingLambdaRoleArn]
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
         PrivateSubnet1ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
         PrivateSubnet2ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
@@ -409,17 +465,16 @@ Resources:
         CognitoProviderUrl: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolProviderUrl
         FQDN: !Ref FQDN
         KeyPairName: !Ref KeyPairName
-        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         PrivateSubnetIds:
           Fn::Join:
             - ','
             - - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
               - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
         ProjectName: !Ref ProjectName
-        RolePath: !Ref RolePath
+        IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.EditorServerRoleArn, !GetAtt RoleArns.EditorServerRoleArn]
+        IamRoleName: !If [DeployIam, !GetAtt IamStack.Outputs.EditorServerRoleName, !GetAtt RoleArns.EditorServerRoleName]
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
   AmmosCubsAITStack:
-    DependsOn: AmmosCognitoStack
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -440,11 +495,8 @@ Resources:
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
         InstanceType: !Ref AITInstanceType
         KeyPairName: !Ref KeyPairName
-        QSS3BucketName: !Ref QSS3BucketName
-        QSS3KeyPrefix: !Ref QSS3KeyPrefix
-        QSS3BucketRegion: !Ref QSS3BucketRegion
-        RolePath: !Ref RolePath
-        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
+        IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.AitServerRoleArn, !GetAtt RoleArns.AitServerRoleArn]
+        IamRoleName: !If [DeployIam, !GetAtt IamStack.Outputs.AitServerRoleName, !GetAtt RoleArns.AitServerRoleName]
         CognitoDomainName: !GetAtt AmmosCognitoStack.Outputs.CognitoDomainName
         ALBSecurityGroupID: !GetAtt AmmosCubsALBStack.Outputs.AlbSecurityGroupId
         CognitoClientID: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientId

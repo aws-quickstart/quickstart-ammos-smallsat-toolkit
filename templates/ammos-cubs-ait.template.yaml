@@ -26,52 +26,18 @@ Parameters:
     Description: Name of created SSH Key for instance access - must use SSM sessions
       if no key supplied
     Type: AWS::EC2::KeyPair::KeyName
-  QSS3BucketName:
-    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
-    ConstraintDescription: The Quick Start bucket name can include numbers, lowercase
-      letters, uppercase letters, and hyphens (-). It cannot start or end with a
-      hyphen (-).
-    Default: aws-quickstart
-    Description: Name of the S3 bucket for your copy of the Quick Start assets.
-      Keep the default name unless you are customizing the template.
-      Changing the name updates code references to point to a new Quick
-      Start location. This name can include numbers, lowercase letters,
-      uppercase letters, and hyphens, but do not start or end with a hyphen (-).
-      See https://aws-quickstart.github.io/option1.html.
-    Type: String
-  QSS3BucketRegion:
-    Default: 'us-east-1'
-    Description: The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value.
-    Type: String
-  QSS3KeyPrefix:
-    AllowedPattern: ^([0-9a-zA-Z-.]+/)*$
-    ConstraintDescription: The Quick Start S3 key prefix can include numbers, lowercase letters,
-      uppercase letters, hyphens (-), and forward slashes (/).
-    Default: quickstart-ammos-smallsat-toolkit/
-    Description: S3 key prefix that is used to simulate a directory for your copy of the
-      Quick Start assets. Keep the default prefix unless you are customizing
-      the template. Changing this prefix updates code references to point to
-      a new Quick Start location. This prefix can include numbers, lowercase
-      letters, uppercase letters, hyphens (-), and forward slashes (/). End with a forward slash.
-      See https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html
-      and https://aws-quickstart.github.io/option1.html.
-    Type: String
   SessionTimeout:
     Description: The maximum duration of the authentication session, in seconds.
     Type: Number
     Default: 604800  # One day
     MinValue: 60
     MaxValue: 604800
-  # TODO: Enforce AllowedValues
-  RolePath:
-    Description: Will be attached to all created IAM Roles to satisfy security requirements.
+  IamRoleArn:
+    Description: ARN of the IAM Role to use with the AIT Server
     Type: String
-    Default: ''
-  # TODO: Enforce AllowedValues
-  PermissionsBoundaryArn:
-    Description: Will be attached to all created IAM Roles to satisfy security requirements.
+  IamRoleName:
+    Description: Name of the pre-deployed IAM Role to use with the AIT Server
     Type: String
-    Default: ''
   CognitoDomainName:
     Type: String
   ALBSecurityGroupID:
@@ -93,11 +59,7 @@ Conditions:
     - !Equals
       - ''
       - !Ref 'KeyPairName'
-  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
   IsGovCloud: !Not [!Equals ['aws', !Ref AWS::Partition]]
-  RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
-  PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
-  UserProvidedConfigBucket: !Not [!Equals ['', !Ref ConfigBucketName]]
 Mappings:
   AWSAMIRegionMap:
     us-east-1:
@@ -137,12 +99,9 @@ Resources:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Roles:
-        - !Ref 'InstanceRole'
+        - !Ref IamRoleName
   AitAutoScalingGroupLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
-    DependsOn:
-      - InstanceRoleDefaultPolicy
-      - InstanceRole
     Properties:
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
@@ -450,65 +409,6 @@ Resources:
       Certificates:
         - CertificateArn: !Ref ListenerCertificateArn
       SslPolicy: ELBSecurityPolicy-FS-1-2-2019-08
-  InstanceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: ec2.amazonaws.com
-        Version: '2012-10-17'
-      Description: IAM Role to be used by the AIT Application Servers
-      ManagedPolicyArns:
-        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy'
-        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
-      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
-      PermissionsBoundary:  !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
-  InstanceRoleDefaultPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Action: cloudformation:SignalResource
-            Effect: Allow
-            Resource: !Ref 'AWS::StackId'
-          - Action:
-              - s3:GetBucketAcl
-              - s3:GetBucketLocation
-              - s3:GetObject
-              - s3:GetObjectAcl
-              - s3:GetObjectTagging
-              - s3:GetObjectVersion
-              - s3:ListBucket
-            Effect: Allow
-            Resource:
-              - !Sub
-                - 'arn:${AWS::Partition}:s3:::${ConfigBucket}'
-                - ConfigBucket: !If
-                  - UserProvidedConfigBucket
-                  - !Ref ConfigBucketName
-                  - Fn::ImportValue:
-                      Fn::Sub: "${ProjectName}-ConfigBucketName"
-              - !Sub
-                - 'arn:${AWS::Partition}:s3:::${ConfigBucket}/*'
-                - ConfigBucket: !If
-                  - UserProvidedConfigBucket
-                  - !Ref ConfigBucketName
-                  - Fn::ImportValue:
-                      Fn::Sub: "${ProjectName}-ConfigBucketName"
-          - Action:
-              - 's3:GetObject'
-              - s3:ListBucket
-            Resource: !Sub
-              - arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}*
-              - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-            Effect: Allow
-        Version: '2012-10-17'
-      PolicyName: InstanceRoleDefaultPolicy
-      Roles:
-        - !Ref 'InstanceRole'
 Outputs:
   GovCloudCondition:
     Value: !If [IsGovCloud, "yes", "no"]
