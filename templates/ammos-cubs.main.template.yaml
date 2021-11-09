@@ -347,7 +347,6 @@ Resources:
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         RolePath: !Ref RolePath
         QSS3BucketName: !Ref QSS3BucketName
-        QSS3BucketRegion: !Ref QSS3BucketRegion
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
   VPCStack:
     Condition: DeployVpc
@@ -376,7 +375,7 @@ Resources:
         PublicSubnet3CIDR: !Ref PublicSubnet3CIDR
   BastionStack:
     # DependsOn: CFNEndpoint
-    Type: AWS::CloudFormation::Stack 
+    Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template'
