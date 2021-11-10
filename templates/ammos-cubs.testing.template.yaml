@@ -11,9 +11,6 @@ Parameters:
     Description: The number of days to retain log events in CloudWatch log groups
     Type: Number
     Default: 30
-  ElasticsearchDomainName:
-    Description: Name of the Elasticsearch domain
-    Type: String
   KeyPairName:
     Description: A public/private key pair, which allows you to connect securely to your instance after it launches.
     Type: AWS::EC2::KeyPair::KeyName

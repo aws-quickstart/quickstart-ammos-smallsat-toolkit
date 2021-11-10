@@ -32,9 +32,6 @@ Parameters:
     Default: 604800  # One day
     MinValue: 60
     MaxValue: 604800
-  IamRoleArn:
-    Description: ARN of the IAM Role to use with the AIT Server
-    Type: String
   IamRoleName:
     Description: Name of the pre-deployed IAM Role to use with the AIT Server
     Type: String
