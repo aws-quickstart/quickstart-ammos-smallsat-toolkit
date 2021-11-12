@@ -103,14 +103,6 @@ Parameters:
   FQDN:
     Description: Fully Qualified Domain Name to use for project resources root.
     Type: String
-  PermissionsBoundaryArn:
-    Description: Will be attached to all created IAM Roles to satisfy security requirements
-    Type: String
-    Default: ''
-  RolePath:
-    Description: Will be attached to all created IAM Roles to satisfy security requirements
-    Type: String
-    Default: ''
   ProjectName:
     Description: Name of your project
     Type: String
@@ -147,8 +139,6 @@ Resources:
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         QSS3BucketRegion: !Ref QSS3BucketRegion
         ProjectName: !Ref ProjectName
-        RolePath: !Ref RolePath
-        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
 # ---
   VPCStack:
     DependsOn: AmmosConfigStack
@@ -205,8 +195,6 @@ Resources:
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         ProjectName: !Ref ProjectName
-        RolePath: !Ref RolePath
-        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
   AmmosCubsALBStack:
     DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
@@ -236,8 +224,6 @@ Resources:
         ProjectName: !Ref ProjectName
         CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
         # ElasticsearchDomainName: !Ref ElasticsearchDomainName
-        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
-        RolePath: !Ref RolePath
         VPCID: !GetAtt VPCStack.Outputs.VPCID
         PrivateSubnet1ID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
         PrivateSubnet2ID: !GetAtt VPCStack.Outputs.PrivateSubnet2AID
@@ -262,10 +248,8 @@ Resources:
         ConfigBucketName: !GetAtt AmmosConfigStack.Outputs.ConfigBucket
         FQDN: !Ref FQDN
         KeyPairName: !Ref KeyPairName
-        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         PrivateSubnetIds: !Join [',',[!GetAtt VPCStack.Outputs.PrivateSubnet1AID,!GetAtt VPCStack.Outputs.PrivateSubnet2AID]]
         ProjectName: !Ref ProjectName
-        RolePath: !Ref RolePath
         VPCID: !GetAtt VPCStack.Outputs.VPCID
   AmmosCubsAITStack:
     DependsOn: AmmosCognitoStack
@@ -286,8 +270,6 @@ Resources:
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         QSS3BucketRegion: !Ref QSS3BucketRegion
-        RolePath: !Ref RolePath
-        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         CognitoDomainName: !GetAtt AmmosCognitoStack.Outputs.CognitoDomainName
         ALBSecurityGroupID: !GetAtt AmmosCubsALBStack.Outputs.AlbSecurityGroupId
         CognitoClientID: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientId
