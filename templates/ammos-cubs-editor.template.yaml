@@ -30,14 +30,9 @@ Parameters:
     Default: 604800  # One day
     MinValue: 60
     MaxValue: 604800
-  RolePath:
-    Description: Will be attached to all created IAM Roles to satisfy security requirements.
+  IamRoleName:
+    Description: Name of the pre-deployed IAM Role to use with the Editor Server
     Type: String
-    Default: ''
-  PermissionsBoundaryArn:
-    Description: Will be attached to all created IAM Roles to satisfy security requirements.
-    Type: String
-    Default: ''
   ALBSecurityGroupID:
     Description: ID of Pre-configured Security Group attached to the ALB
     Type: String
@@ -75,8 +70,6 @@ Mappings:
 Conditions:
   SshEnabled: !Not [!Equals ['', !Ref KeyPairName]]
   IsGovCloud: !Not [!Equals ['aws', !Ref AWS::Partition]]
-  RolePathProvided: !Not [!Equals ['', !Ref RolePath]]
-  PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
   UserProvidedConfigBucket: !Not [!Equals ['', !Ref ConfigBucketName]]
 Resources:
   AitEditorSecurityGroup:
@@ -146,8 +139,6 @@ Resources:
       ResourceSignal:
         Count: 1
         Timeout: PT1H
-    DependsOn:
-      - InstanceRole
     Properties:
       Tags:
         - Key: Name
@@ -288,58 +279,11 @@ Resources:
             - !Ref ConfigBucketName
             - Fn::ImportValue:
                 Fn::Sub: "${ProjectName}-ConfigBucketName"
-  InstanceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: ec2.amazonaws.com
-        Version: '2012-10-17'
-      Description: IAM Role to be used by the AIT Editor Servers
-      ManagedPolicyArns:
-        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy'
-        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
-      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
-      PermissionsBoundary:
-        !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
-      Policies:
-        - PolicyDocument:
-            Statement:
-              - Action:
-                  - s3:GetBucketAcl
-                  - s3:GetBucketLocation
-                  - s3:GetObject
-                  - s3:GetObjectAcl
-                  - s3:GetObjectTagging
-                  - s3:GetObjectVersion
-                  - s3:ListBucket
-                Effect: Allow
-                Resource:
-                  - !Sub
-                    - 'arn:${AWS::Partition}:s3:::${ConfigBucket}'
-                    - ConfigBucket: !If
-                      - UserProvidedConfigBucket
-                      - !Ref ConfigBucketName
-                      - Fn::ImportValue:
-                          Fn::Sub: "${ProjectName}-ConfigBucketName"
-                  - !Sub
-                    - 'arn:${AWS::Partition}:s3:::${ConfigBucket}/*'
-                    - ConfigBucket: !If
-                      - UserProvidedConfigBucket
-                      - !Ref ConfigBucketName
-                      - Fn::ImportValue:
-                          Fn::Sub: "${ProjectName}-ConfigBucketName"
-            Version: '2012-10-17'
-          PolicyName: InstanceRoleDefaultPolicy
-
   InstanceOneInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Roles:
-        - !Ref InstanceRole
+        - !Ref IamRoleName
 Outputs:
   InstanceId:
     Value: !Ref Instance

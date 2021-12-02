@@ -2,16 +2,16 @@
 .Environment configuration
 [width="100%",cols="16%,11%,73%",options="header",]
 |===
-|Parameter label (name) |Default value|Description|Project name
-(`ProjectName`)|`**__Requires input__**`|Name of your project.|Permissions boundary ARN
-(`PermissionsBoundaryArn`)|`**__Blank string__**`|(Optional) Amazon Resource Name of a managed policy in your account to be used as the permissions boundary. This ARN will be attached to all IAM roles created to satisfy your organization's security requirements. If you keep this blank, this attribute is not set. For more information, see https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html.|Role path
-(`RolePath`)|`**__Blank string__**`|(Optional) Path that will be attached to all IAM roles created to satisfy your organization's security requirements. If you keep this blank, this attribute is not set. For more information, see https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-friendly-names.
+|Parameter label (name) |Default value|Description|Project Name
+(`ProjectName`)|`**__Requires input__**`|Name of your project|Permissions Boundary ARN
+(`PermissionsBoundaryArn`)|`**__Blank string__**`|Will be attached to all created IAM Roles to satisfy security requirements|Role Path
+(`RolePath`)|`**__Blank string__**`|Will be attached to all created IAM Roles to satisfy security requirements
 |===
 .AWS Quick Start configuration
 [width="100%",cols="16%,11%,73%",options="header",]
 |===
 |Parameter label (name) |Default value|Description|Quick Start S3 bucket name
-(`QSS3BucketName`)|`aws-quickstart`|Name of the S3 bucket for your copy of the Quick Start assets. Keep the default name unless you are customizing the template. Changing the name updates code references to point to a new Quick Start location. This name can include numbers, lowercase letters, uppercase letters, and hyphens, but do not start or end with a hyphen (-). See https://aws-quickstart.github.io/option1.html.|Quick Start S3 key prefix
-(`QSS3KeyPrefix`)|`quickstart-ammos-smallsat-toolkit/`|S3 key prefix that is used to simulate a directory for your copy of the Quick Start assets. Keep the default prefix unless you are customizing the template. Changing this prefix updates code references to point to a new Quick Start location. This prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slashes (/). End with a forward slash. See https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html and https://aws-quickstart.github.io/option1.html.|Quick Start S3 bucket Region
-(`QSS3BucketRegion`)|`us-east-1`|AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. Keep the default Region unless you are customizing the template. Changing this Region updates code references to point to a new Quick Start location. When using your own bucket, specify the Region. See https://aws-quickstart.github.io/option1.html.
+(`QSS3BucketName`)|`aws-quickstart`|S3 bucket name for the Quick Start assets. This string can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).|Quick Start S3 key prefix
+(`QSS3KeyPrefix`)|`quickstart-nasa-jpl-cubs/`|S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).|Quick Start S3 bucket region
+(`QSS3BucketRegion`)|`us-east-1`|The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value.
 |===

@@ -1,6 +1,6 @@
 
-=== Parameters for preconfiguring your AWS account
+=== Pre-Configure your AWS account
 include::ammos-cubs.preconfig.template.adoc[]
 
-=== Parameters for deploying AMMOS SmallSat Toolkit
+=== Launch into a new VPC
 include::ammos-cubs.main.template.adoc[]

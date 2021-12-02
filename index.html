@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.15">
+<meta name="generator" content="Asciidoctor 2.0.16">
 <title>AMMOS SmallSat Toolkit on the AWS Cloud</title>
 <style>
 
@@ -891,8 +891,8 @@ p.footer-text a{color:#d7d8d8}
 <li><a href="#_customer_responsibility">Customer responsibility</a></li>
 <li><a href="#_parameter_reference">Parameter reference</a>
 <ul class="sectlevel2">
-<li><a href="#_parameters_for_preconfiguring_your_aws_account">Parameters for preconfiguring your AWS account</a></li>
-<li><a href="#_parameters_for_deploying_ammos_smallsat_toolkit">Parameters for deploying AMMOS SmallSat Toolkit</a></li>
+<li><a href="#_pre_configure_your_aws_account">Pre-Configure your AWS account</a></li>
+<li><a href="#_launch_into_a_new_vpc">Launch into a new VPC</a></li>
 </ul>
 </li>
 <li><a href="#_send_us_feedback">Send us feedback</a></li>
@@ -1241,15 +1241,6 @@ Certain Regions are available on an opt-in basis. For more information, see <a h
 </td>
 </tr>
 </table>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_amazon_ec2_key_pairs">Amazon EC2 key pairs</h4>
-<div class="paragraph">
-<p>Ensure that at least one Amazon EC2 key pair exists in your AWS account in the Region where you plan to deploy the Quick Start. Note the key-pair name because you will use it during deployment. To create a key pair, see <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html" target="_blank" rel="noopener">Amazon EC2 key pairs and Linux instances</a>.</p>
-</div>
-<div class="paragraph">
-<p>For testing or proof-of-concept purposes, we recommend creating a new key pair instead of using one that’s already being used by a production instance.</p>
 </div>
 </div>
 <div class="sect3">
@@ -2286,7 +2277,7 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 </table>
 </div>
 <div class="sect2">
-<h3 id="_parameters_for_preconfiguring_your_aws_account">Parameters for preconfiguring your AWS account</h3>
+<h3 id="_pre_configure_your_aws_account">Pre-Configure your AWS account</h3>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 1. Environment configuration</caption>
 <colgroup>
@@ -2303,22 +2294,22 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Project name
+<td class="tableblock halign-left valign-top"><p class="tableblock">Project Name
 (<code>ProjectName</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Name of your project.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name of your project</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Permissions boundary ARN
+<td class="tableblock halign-left valign-top"><p class="tableblock">Permissions Boundary ARN
 (<code>PermissionsBoundaryArn</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Amazon Resource Name of a managed policy in your account to be used as the permissions boundary. This ARN will be attached to all IAM roles created to satisfy your organization&#8217;s security requirements. If you keep this blank, this attribute is not set. For more information, see <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html" class="bare">https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Will be attached to all created IAM Roles to satisfy security requirements</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Role path
+<td class="tableblock halign-left valign-top"><p class="tableblock">Role Path
 (<code>RolePath</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Path that will be attached to all IAM roles created to satisfy your organization&#8217;s security requirements. If you keep this blank, this attribute is not set. For more information, see <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-friendly-names" class="bare">https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-friendly-names</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Will be attached to all created IAM Roles to satisfy security requirements</p></td>
 </tr>
 </tbody>
 </table>
@@ -2341,25 +2332,25 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 <td class="tableblock halign-left valign-top"><p class="tableblock">Quick Start S3 bucket name
 (<code>QSS3BucketName</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>aws-quickstart</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Name of the S3 bucket for your copy of the Quick Start assets. Keep the default name unless you are customizing the template. Changing the name updates code references to point to a new Quick Start location. This name can include numbers, lowercase letters, uppercase letters, and hyphens, but do not start or end with a hyphen (-). See <a href="https://aws-quickstart.github.io/option1.html" class="bare">https://aws-quickstart.github.io/option1.html</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">S3 bucket name for the Quick Start assets. This string can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Quick Start S3 key prefix
 (<code>QSS3KeyPrefix</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>quickstart-ammos-smallsat-toolkit/</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">S3 key prefix that is used to simulate a directory for your copy of the Quick Start assets. Keep the default prefix unless you are customizing the template. Changing this prefix updates code references to point to a new Quick Start location. This prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slashes (/). End with a forward slash. See <a href="https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html" class="bare">https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html</a> and <a href="https://aws-quickstart.github.io/option1.html" class="bare">https://aws-quickstart.github.io/option1.html</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>quickstart-nasa-jpl-cubs/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Quick Start S3 bucket Region
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quick Start S3 bucket region
 (<code>QSS3BucketRegion</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>us-east-1</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. Keep the default Region unless you are customizing the template. Changing this Region updates code references to point to a new Quick Start location. When using your own bucket, specify the Region. See <a href="https://aws-quickstart.github.io/option1.html" class="bare">https://aws-quickstart.github.io/option1.html</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 <div class="sect2">
-<h3 id="_parameters_for_deploying_ammos_smallsat_toolkit">Parameters for deploying AMMOS SmallSat Toolkit</h3>
+<h3 id="_launch_into_a_new_vpc">Launch into a new VPC</h3>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 3. AIT configuration</caption>
 <colgroup>
@@ -2376,46 +2367,52 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Project name
-(<code>ProjectName</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Name of your project.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Fully qualified domain name
-(<code>FQDN</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">URL to use for the project-resources root.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">SSL certificate ARN
-(<code>SSLCertificateArn</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Amazon Resource Name of the SSL certificate to use for the load balancer. Use SSLCertificateArn if you are not using FQDN and HostedZoneID.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Hosted-zone ID
-(<code>HostedZoneID</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) ID of the Route 53 hosted-zone domain. If you fill in both FQDN and HostedZoneID, this deployment generates an ACM certificate.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">AIT instance type
+<td class="tableblock halign-left valign-top"><p class="tableblock">AIT Instance Type
 (<code>AITInstanceType</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>m5.large</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Instance type to be used for AIT. See deployment guide for recommendations.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Instance type to be used for AIT Server instances; see deployment guide for recommendations</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Key-pair name
-(<code>KeyPairName</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Elasticsearch Domain Name
+(<code>ElasticsearchDomainName</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Name of the key pair that you will use to connect securely to your instance after it launches.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name of the Elasticsearch domain</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CloudWatch Logs retention period
+<td class="tableblock halign-left valign-top"><p class="tableblock">CloudWatch Retention Period
 (<code>CloudWatchLogsRetentionPeriod</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>30</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Number of days to retain log events in CloudWatch Logs log groups. Increasing this number results in higher log-storage costs.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The number of days to retain log events in CloudWatch log groups</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Key Pair Name
+(<code>KeyPairName</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A public/private key pair, which allows you to connect securely to your instance after it launches.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FQDN
+(<code>FQDN</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fully Qualified Domain Name to use for project resources root.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SSL Certificate ARN
+(<code>SSLCertificateArn</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The ARN of the SSL certificate to use for the load balancer. Use 'SSLCertificateArn' if you are not using 'FQDN' and 'HostedZoneID'.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Hosted Zone ID
+(<code>HostedZoneID</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Route 53 Hosted Zone ID of the domain name. Used in conjunction with a 'FQDN'.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Project Name
+(<code>ProjectName</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name of your project</p></td>
 </tr>
 </tbody>
 </table>
@@ -2435,16 +2432,16 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Role path
+<td class="tableblock halign-left valign-top"><p class="tableblock">Role Path
 (<code>RolePath</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Path that will be attached to all IAM roles created to satisfy your organization&#8217;s security requirements. If you keep this blank, this attribute is not set. For more information, see <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-friendly-names" class="bare">https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-friendly-names</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Will be attached to all created IAM Roles to satisfy security requirements</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Permissions boundary ARN
+<td class="tableblock halign-left valign-top"><p class="tableblock">Permissions Boundary ARN
 (<code>PermissionsBoundaryArn</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) Amazon Resource Name of a managed policy in your account to be used as the permissions boundary. This ARN will be attached to all IAM roles created to satisfy your organization&#8217;s security requirements. If you keep this blank, this attribute is not set. For more information, see <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html" class="bare">https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Will be attached to all created IAM Roles to satisfy security requirements</p></td>
 </tr>
 </tbody>
 </table>
@@ -2467,97 +2464,55 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 <td class="tableblock halign-left valign-top"><p class="tableblock">Availability Zones
 (<code>AvailabilityZones</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Availability Zones to use for the subnets in the VPC. This deployment uses three Availability Zones, and the logical order of your selections is preserved.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List of Availability Zones to use for the subnets in the VPC. This deployment uses two Availability Zones, and the logical order of your selections is preserved.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">VPC CIDR
 (<code>VPCCIDR</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.0.0/16</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block for the VPC.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The CIDR block for the VPC.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Private subnet 1 CIDR
 (<code>PrivateSubnet1CIDR</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.128.0/24</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block used for the private subnet located in Availability Zone 1.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The CIDR block used for the private subnet located in Availability Zone 1.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Private subnet 2 CIDR
 (<code>PrivateSubnet2CIDR</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.192.0/24</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block used for the private subnet located in Availability Zone 2.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The CIDR block used for the private subnet located in Availability Zone 2.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Private subnet 3 CIDR
 (<code>PrivateSubnet3CIDR</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.200.0/24</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block used for the private subnet located in Availability Zone 3.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The CIDR block used for the private subnet located in Availability Zone 2.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Public subnet 1 CIDR
 (<code>PublicSubnet1CIDR</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.32.0/24</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block used for the public subnet located in Availability Zone 1.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The CIDR block used for the public subnet located in Availability Zone 1.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Public subnet 2 CIDR
 (<code>PublicSubnet2CIDR</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.64.0/24</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block used for the public subnet located in Availability Zone 2.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The CIDR block used for the public subnet located in Availability Zone 2.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Public subnet 3 CIDR
 (<code>PublicSubnet3CIDR</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>10.0.70.0/24</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR block used for the public subnet located in Availability Zone 3.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The CIDR block used for the public subnet located in Availability Zone 2.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Remote access CIDR
+<td class="tableblock halign-left valign-top"><p class="tableblock">RemoteAccessCIDR
 (<code>RemoteAccessCIDR</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Requires input</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CIDR IP range that is permitted to access the instances. Set this value to a trusted IP range.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">ID for VPC in an existing VPC
-(<code>VpcId</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) If you&#8217;re deploying into an existing VPC, fill in the VPC ID.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">ID for public subnet 1 in an existing VPC
-(<code>PublicSubnet1ID</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) If you&#8217;re deploying into an existing VPC, fill in the ID of the public subnet in Availability Zone 1.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">ID for public subnet 2 in an existing VPC
-(<code>PublicSubnet2ID</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) If you&#8217;re deploying into an existing VPC, fill in the ID of the public subnet in Availability Zone 2.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">ID for private subnet 1A in an existing VPC
-(<code>PrivateSubnet1AID</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) If you&#8217;re deploying into an existing VPC, fill in the ID of the private subnet in Availability Zone 1.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">ID for private subnet 2A in an existing VPC
-(<code>PrivateSubnet2AID</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) If you&#8217;re deploying into an existing VPC, fill in the ID of the private subnet in Availability Zone 2.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">ID for private subnet 3A in an existing VPC
-(<code>PrivateSubnet3AID</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) If you&#8217;re deploying into an existing VPC, fill in the ID of the private subnet in Availability Zone 3.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">ID of preconfigured security group in an existing VPC
-(<code>AccessSgID</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong><em>Blank string</em></strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(Optional) If you&#8217;re deploying into an existing VPC, fill in the ID of the preconfigured security group to control access to the Application Load Balancer.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The CIDR IP range that is permitted to access the instances. We recommend that you set this value to a trusted IP range.</p></td>
 </tr>
 </tbody>
 </table>
@@ -2580,19 +2535,19 @@ Unless you are customizing the Quick Start templates for your own deployment pro
 <td class="tableblock halign-left valign-top"><p class="tableblock">Quick Start S3 bucket name
 (<code>QSS3BucketName</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>aws-quickstart</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Name of the S3 bucket for your copy of the Quick Start assets. Keep the default name unless you are customizing the template. Changing the name updates code references to point to a new Quick Start location. This name can include numbers, lowercase letters, uppercase letters, and hyphens, but do not start or end with a hyphen (-). See <a href="https://aws-quickstart.github.io/option1.html" class="bare">https://aws-quickstart.github.io/option1.html</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">S3 bucket name for the Quick Start assets. This string can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Quick Start S3 key prefix
 (<code>QSS3KeyPrefix</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>quickstart-ammos-smallsat-toolkit/</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">S3 key prefix that is used to simulate a directory for your copy of the Quick Start assets. Keep the default prefix unless you are customizing the template. Changing this prefix updates code references to point to a new Quick Start location. This prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slashes (/). End with a forward slash. See <a href="https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html" class="bare">https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html</a> and <a href="https://aws-quickstart.github.io/option1.html" class="bare">https://aws-quickstart.github.io/option1.html</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>quickstart-nasa-jpl-cubs/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Quick Start S3 bucket Region
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quick Start S3 bucket region
 (<code>QSS3BucketRegion</code>)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>us-east-1</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. Keep the default Region unless you are customizing the template. Changing this Region updates code references to point to a new Quick Start location. When using your own bucket, specify the Region. See <a href="https://aws-quickstart.github.io/option1.html" class="bare">https://aws-quickstart.github.io/option1.html</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value.</p></td>
 </tr>
 </tbody>
 </table>
@@ -2640,19 +2595,19 @@ and to share your customizations with others.</p>
 </div>
 <p class="footer-text">
 <!-- We can use document attributes: -->
-<!-- Generated with Asciidoctor v2.0.15. -->
+<!-- Generated with Asciidoctor v2.0.16. -->
 <a href="https://aws.amazon.com/privacy/">Privacy</a> | <a href="https://aws.amazon.com/terms/">Site terms</a> | &copy; 2021, Amazon Web Services, Inc. or its affiliates and NASA Multimission Ground Systems and Services. All rights reserved.
 </p>
 </body>
 </html>
 <!--
 repo commit:
-55c35397c447ecc497714c635ce2051debe7c9bc
+8d6cdc5e3fc2aff7ca13524453deb4cf583f5fb3
 
 submodule config:
- eea042d0b9c005d2549a71349e5f28b02c81af75 docs/boilerplate (heads/main)
- 311c180a3d632339345add61c9c12c1e7e9f2835 submodules/lambda-copyzips (heads/main)
- 233fbd97e3563911a7dc91f8c6ba8e24e10d32c8 submodules/quickstart-aws-acm-certificate (heads/main)
- ffc7af4e59a09dbf52199a3ecf70f3805abeff48 submodules/quickstart-aws-vpc (v1.0-58-gffc7af4)
- b8196c01ebf75f46074fc2e0336b82051e8b8b68 submodules/quickstart-linux-bastion (remotes/origin/develop)
+ cd43052c7c9fd4da2ec184add84f530a9242b7ef docs/boilerplate (remotes/origin/cdk-23-gcd43052)
+ d9e292c29d1ec62515ac3c6259ad90e32a09047f submodules/lambda-copyzips (heads/main)
+ a49d9b514d7640bbd7d772367a0961542581cde2 submodules/quickstart-aws-acm-certificate (heads/main)
+ b7aefd089e944d77cdc2b083886cdc498d2a6ee4 submodules/quickstart-aws-vpc (v1.0-59-gb7aefd0)
+ 645f03e28125e145b243f2b6cd21e9ee3b429c98 submodules/quickstart-linux-bastion (heads/main)
 -->

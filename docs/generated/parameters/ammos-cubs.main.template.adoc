@@ -2,48 +2,42 @@
 .AIT configuration
 [width="100%",cols="16%,11%,73%",options="header",]
 |===
-|Parameter label (name) |Default value|Description|Project name
-(`ProjectName`)|`**__Requires input__**`|Name of your project.|Fully qualified domain name
-(`FQDN`)|`**__Requires input__**`|URL to use for the project-resources root.|SSL certificate ARN
-(`SSLCertificateArn`)|`**__Blank string__**`|(Optional) Amazon Resource Name of the SSL certificate to use for the load balancer. Use SSLCertificateArn if you are not using FQDN and HostedZoneID.|Hosted-zone ID
-(`HostedZoneID`)|`**__Blank string__**`|(Optional) ID of the Route 53 hosted-zone domain. If you fill in both FQDN and HostedZoneID, this deployment generates an ACM certificate.|AIT instance type
-(`AITInstanceType`)|`m5.large`|Instance type to be used for AIT. See deployment guide for recommendations.|Key-pair name
-(`KeyPairName`)|`**__Requires input__**`|Name of the key pair that you will use to connect securely to your instance after it launches.|CloudWatch Logs retention period
-(`CloudWatchLogsRetentionPeriod`)|`30`|Number of days to retain log events in CloudWatch Logs log groups. Increasing this number results in higher log-storage costs.
+|Parameter label (name) |Default value|Description|AIT Instance Type
+(`AITInstanceType`)|`m5.large`|Instance type to be used for AIT Server instances; see deployment guide for recommendations|Elasticsearch Domain Name
+(`ElasticsearchDomainName`)|`**__Requires input__**`|Name of the Elasticsearch domain|CloudWatch Retention Period
+(`CloudWatchLogsRetentionPeriod`)|`30`|The number of days to retain log events in CloudWatch log groups|Key Pair Name
+(`KeyPairName`)|`**__Requires input__**`|A public/private key pair, which allows you to connect securely to your instance after it launches.|FQDN
+(`FQDN`)|`**__Requires input__**`|Fully Qualified Domain Name to use for project resources root.|SSL Certificate ARN
+(`SSLCertificateArn`)|`**__Blank string__**`|The ARN of the SSL certificate to use for the load balancer. Use 'SSLCertificateArn' if you are not using 'FQDN' and 'HostedZoneID'.|Hosted Zone ID
+(`HostedZoneID`)|`**__Blank string__**`|Route 53 Hosted Zone ID of the domain name. Used in conjunction with a 'FQDN'.|Project Name
+(`ProjectName`)|`**__Requires input__**`|Name of your project
 |===
 .IAM configuration
 [width="100%",cols="16%,11%,73%",options="header",]
 |===
-|Parameter label (name) |Default value|Description|Role path
-(`RolePath`)|`**__Blank string__**`|(Optional) Path that will be attached to all IAM roles created to satisfy your organization's security requirements. If you keep this blank, this attribute is not set. For more information, see https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-friendly-names.|Permissions boundary ARN
-(`PermissionsBoundaryArn`)|`**__Blank string__**`|(Optional) Amazon Resource Name of a managed policy in your account to be used as the permissions boundary. This ARN will be attached to all IAM roles created to satisfy your organization's security requirements. If you keep this blank, this attribute is not set. For more information, see https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html.
+|Parameter label (name) |Default value|Description|Role Path
+(`RolePath`)|`**__Blank string__**`|Will be attached to all created IAM Roles to satisfy security requirements|Permissions Boundary ARN
+(`PermissionsBoundaryArn`)|`**__Blank string__**`|Will be attached to all created IAM Roles to satisfy security requirements
 |===
 .Network configuration
 [width="100%",cols="16%,11%,73%",options="header",]
 |===
 |Parameter label (name) |Default value|Description|Availability Zones
-(`AvailabilityZones`)|`**__Requires input__**`|Availability Zones to use for the subnets in the VPC. This deployment uses three Availability Zones, and the logical order of your selections is preserved.|VPC CIDR
-(`VPCCIDR`)|`10.0.0.0/16`|CIDR block for the VPC.|Private subnet 1 CIDR
-(`PrivateSubnet1CIDR`)|`10.0.128.0/24`|CIDR block used for the private subnet located in Availability Zone 1.|Private subnet 2 CIDR
-(`PrivateSubnet2CIDR`)|`10.0.192.0/24`|CIDR block used for the private subnet located in Availability Zone 2.|Private subnet 3 CIDR
-(`PrivateSubnet3CIDR`)|`10.0.200.0/24`|CIDR block used for the private subnet located in Availability Zone 3.|Public subnet 1 CIDR
-(`PublicSubnet1CIDR`)|`10.0.32.0/24`|CIDR block used for the public subnet located in Availability Zone 1.|Public subnet 2 CIDR
-(`PublicSubnet2CIDR`)|`10.0.64.0/24`|CIDR block used for the public subnet located in Availability Zone 2.|Public subnet 3 CIDR
-(`PublicSubnet3CIDR`)|`10.0.70.0/24`|CIDR block used for the public subnet located in Availability Zone 3.|Remote access CIDR
-(`RemoteAccessCIDR`)|`**__Requires input__**`|CIDR IP range that is permitted to access the instances. Set this value to a trusted IP range.|ID for VPC in an existing VPC
-(`VpcId`)|`**__Blank string__**`|(Optional) If you're deploying into an existing VPC, fill in the VPC ID.|ID for public subnet 1 in an existing VPC
-(`PublicSubnet1ID`)|`**__Blank string__**`|(Optional) If you're deploying into an existing VPC, fill in the ID of the public subnet in Availability Zone 1.|ID for public subnet 2 in an existing VPC
-(`PublicSubnet2ID`)|`**__Blank string__**`|(Optional) If you're deploying into an existing VPC, fill in the ID of the public subnet in Availability Zone 2.|ID for private subnet 1A in an existing VPC
-(`PrivateSubnet1AID`)|`**__Blank string__**`|(Optional) If you're deploying into an existing VPC, fill in the ID of the private subnet in Availability Zone 1.|ID for private subnet 2A in an existing VPC
-(`PrivateSubnet2AID`)|`**__Blank string__**`|(Optional) If you're deploying into an existing VPC, fill in the ID of the private subnet in Availability Zone 2.|ID for private subnet 3A in an existing VPC
-(`PrivateSubnet3AID`)|`**__Blank string__**`|(Optional) If you're deploying into an existing VPC, fill in the ID of the private subnet in Availability Zone 3.|ID of preconfigured security group in an existing VPC
-(`AccessSgID`)|`**__Blank string__**`|(Optional) If you're deploying into an existing VPC, fill in the ID of the preconfigured security group to control access to the Application Load Balancer.
+(`AvailabilityZones`)|`**__Requires input__**`|List of Availability Zones to use for the subnets in the VPC. This deployment uses two Availability Zones, and the logical order of your selections is preserved.|VPC CIDR
+(`VPCCIDR`)|`10.0.0.0/16`|The CIDR block for the VPC.|Private subnet 1 CIDR
+(`PrivateSubnet1CIDR`)|`10.0.128.0/24`|The CIDR block used for the private subnet located in Availability Zone 1.|Private subnet 2 CIDR
+(`PrivateSubnet2CIDR`)|`10.0.192.0/24`|The CIDR block used for the private subnet located in Availability Zone 2.|Private subnet 3 CIDR
+(`PrivateSubnet3CIDR`)|`10.0.200.0/24`|The CIDR block used for the private subnet located in Availability Zone 2.|Public subnet 1 CIDR
+(`PublicSubnet1CIDR`)|`10.0.32.0/24`|The CIDR block used for the public subnet located in Availability Zone 1.|Public subnet 2 CIDR
+(`PublicSubnet2CIDR`)|`10.0.64.0/24`|The CIDR block used for the public subnet located in Availability Zone 2.|Public subnet 3 CIDR
+(`PublicSubnet3CIDR`)|`10.0.70.0/24`|The CIDR block used for the public subnet located in Availability Zone 2.|RemoteAccessCIDR
+(`RemoteAccessCIDR`)|`**__Requires input__**`|The CIDR IP range that is permitted to access the instances. We recommend that you set this value to a trusted IP range.
 |===
 .AWS Quick Start configuration
 [width="100%",cols="16%,11%,73%",options="header",]
 |===
 |Parameter label (name) |Default value|Description|Quick Start S3 bucket name
-(`QSS3BucketName`)|`aws-quickstart`|Name of the S3 bucket for your copy of the Quick Start assets. Keep the default name unless you are customizing the template. Changing the name updates code references to point to a new Quick Start location. This name can include numbers, lowercase letters, uppercase letters, and hyphens, but do not start or end with a hyphen (-). See https://aws-quickstart.github.io/option1.html.|Quick Start S3 key prefix
-(`QSS3KeyPrefix`)|`quickstart-ammos-smallsat-toolkit/`|S3 key prefix that is used to simulate a directory for your copy of the Quick Start assets. Keep the default prefix unless you are customizing the template. Changing this prefix updates code references to point to a new Quick Start location. This prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slashes (/). End with a forward slash. See https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html and https://aws-quickstart.github.io/option1.html.|Quick Start S3 bucket Region
-(`QSS3BucketRegion`)|`us-east-1`|AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. Keep the default Region unless you are customizing the template. Changing this Region updates code references to point to a new Quick Start location. When using your own bucket, specify the Region. See https://aws-quickstart.github.io/option1.html.
+(`QSS3BucketName`)|`aws-quickstart`|S3 bucket name for the Quick Start assets. This string can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).|Quick Start S3 key prefix
+(`QSS3KeyPrefix`)|`quickstart-nasa-jpl-cubs/`|S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).|Quick Start S3 bucket region
+(`QSS3BucketRegion`)|`us-east-1`|The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value.
 |===
