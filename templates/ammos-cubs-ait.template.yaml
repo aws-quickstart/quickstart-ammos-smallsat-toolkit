@@ -97,6 +97,7 @@ Resources:
     Properties:
       Roles:
         - !Ref IamRoleName
+      Path: /account-managed/
   AitAutoScalingGroupLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
