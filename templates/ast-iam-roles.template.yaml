@@ -310,6 +310,40 @@ Resources:
                 - !Sub 'ec2.${AWS::URLSuffix}'
             Effect: Allow
         Version: 2012-10-17
+      Policies:
+      - PolicyName: BastionPolicy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Sid: GetAssetsS3
+            Action:
+              - 's3:GetObject'
+            Resource: !Sub
+              - arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}*
+              - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+            Effect: Allow
+          - Sid: Logging
+            Action:
+              - 'logs:CreateLogStream'
+              - 'logs:GetLogEvents'
+              - 'logs:PutLogEvents'
+              - 'logs:DescribeLogGroups'
+              - 'logs:DescribeLogStreams'
+              - 'logs:PutRetentionPolicy'
+              - 'logs:PutMetricFilter'
+              - 'logs:CreateLogGroup'
+            Resource: '*'
+            Effect: Allow
+          - Sid: DescribeAddress
+            Action:
+              - 'ec2:DescribeAddresses'
+            Resource: '*'
+            Effect: Allow
+          - Sid: AssociateAddress
+            Effect: Allow
+            Action:
+              - 'ec2:AssociateAddress'
+            Resource: '*'
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy'

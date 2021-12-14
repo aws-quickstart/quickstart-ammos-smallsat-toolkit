@@ -284,6 +284,7 @@ Resources:
     Properties:
       Roles:
         - !Ref IamRoleName
+      Path: /account-managed/
 Outputs:
   InstanceId:
     Value: !Ref Instance
