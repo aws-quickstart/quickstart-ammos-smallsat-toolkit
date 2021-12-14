@@ -35,6 +35,11 @@ Parameters:
     Description: Will be attached to all created IAM Roles to satisfy security requirements.
     Type: String
     Default: ''
+  IamRoleArn:
+    Description: ARN of a pre-deployed IAM Role with sufficient permissions for the lambda;
+      see the CopyRole resource in the copy-zips template for reference
+    Type: String
+    Default: ''
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, "aws-quickstart"]
 Resources:
@@ -64,6 +69,7 @@ Resources:
         StripPrefixAtDestination: 'true'
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         RolePath: !Ref RolePath
+        IamRoleArn: !Ref IamRoleArn
         SourceObjects: !Join
           - ','
           - - configs/ait/ait-config.zip
