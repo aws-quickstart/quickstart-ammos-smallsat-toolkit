@@ -69,7 +69,7 @@ Metadata:
       RolePath:
         default: Role path
       DeployIam:
-        default: Flag to control IAM Resource deployment
+        default: Deploy IAM Roles on my behalf
       SSLCertificateArn:
         default: SSL certificate ARN
       VPCCIDR:
@@ -99,11 +99,11 @@ Metadata:
       PublicSubnet2ID:
         default: ID for public subnet 2 in an existing VPC
       PrivateSubnet1AID:
-        default: ID for private subnet 1A in an existing VPC
+        default: ID for private subnet 1 in an existing VPC
       PrivateSubnet2AID:
-        default: ID for private subnet 2A in an existing VPC
+        default: ID for private subnet 2 in an existing VPC
       PrivateSubnet3AID:
-        default: ID for private subnet 3A in an existing VPC
+        default: ID for private subnet 3 in an existing VPC
       AccessSgID:
         default: ID of preconfigured security group in an existing VPC
 Parameters:
@@ -228,8 +228,10 @@ Parameters:
     Type: String
     Default: ''
   ProjectName:
-    Description: Name of your project.
+    Description: Name of your project. Please use lowercase alphanumeric characters and hypens (-) only.
     Type: String
+    AllowedPattern: ^[0-9a-z-]*$
+    ConstraintDescription: The ProjectName can include numbers, lowercase letters, and hyphens (-).
   VpcId:
     Description: (Optional) If you're deploying into an existing VPC, fill in the VPC ID.
     Type: String
