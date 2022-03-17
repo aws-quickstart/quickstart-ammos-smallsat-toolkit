@@ -458,6 +458,10 @@ Resources:
         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
+        ProjectName: !Ref ProjectName
+        ConfigBucketName:
+          Fn::ImportValue:
+            !Sub "${ProjectName}-ConfigBucketName"
         ALBHttpsListenerArn: !GetAtt AmmosCubsALBStack.Outputs.HttpsListenerArn
         ALBSecurityGroupID: !GetAtt AmmosCubsALBStack.Outputs.AlbSecurityGroupId
         CognitoClientID: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientId
@@ -471,7 +475,6 @@ Resources:
             - ','
             - - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
               - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
-        ProjectName: !Ref ProjectName
         IamRoleName: !If [DeployIam, !GetAtt IamStack.Outputs.EditorServerRoleName, !GetAtt RoleArns.EditorServerRoleName]
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
   AmmosCubsAITStack:

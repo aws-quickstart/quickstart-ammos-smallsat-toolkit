@@ -70,7 +70,6 @@ Mappings:
 Conditions:
   SshEnabled: !Not [!Equals ['', !Ref KeyPairName]]
   IsGovCloud: !Not [!Equals ['aws', !Ref AWS::Partition]]
-  UserProvidedConfigBucket: !Not [!Equals ['', !Ref ConfigBucketName]]
 Resources:
   AitEditorSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -174,7 +173,7 @@ Resources:
                 --region ${AWS::Region} -e $exitCode || echo 'Failed to send Cloudformation Signal'
             }
             trap exitTrap EXIT
-            CONFIG_BUCKET_NAME=${ConfigBucket}
+            CONFIG_BUCKET_NAME=${ConfigBucketName}
 
             yum install -y -q python3 wget unzip
             mkdir -p /opt/aws/bin
@@ -274,11 +273,6 @@ Resources:
 
             /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
                 -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
-          - ConfigBucket: !If
-            - UserProvidedConfigBucket
-            - !Ref ConfigBucketName
-            - Fn::ImportValue:
-                Fn::Sub: "${ProjectName}-ConfigBucketName"
   InstanceOneInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
