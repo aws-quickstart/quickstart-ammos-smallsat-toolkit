@@ -386,6 +386,7 @@ Resources:
       Parameters:
         BastionAMIOS: 'Amazon-Linux2-HVM'
         KeyPairName: !Ref 'KeyPairName'
+        BastionHostName: !Sub "${ProjectName}/LinuxBastion"
         PublicSubnet1ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PublicSubnet1ID, !Ref PublicSubnet1ID]
         PublicSubnet2ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PublicSubnet2ID, !Ref PublicSubnet2ID]
         QSS3BucketName: !Ref QSS3BucketName
