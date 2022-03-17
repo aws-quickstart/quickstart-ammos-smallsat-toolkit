@@ -265,7 +265,7 @@ Resources:
               -v $PROJECT_HOME/.ait-editor-config:/home/coder/.config \
               -v $PROJECT_HOME/project:/home/coder/project \
               -v $PROJECT_HOME/extensions:/home/coder/extra-extensions \
-              -u $(id -u):$(id -g) \
+              -u $(id -u $USER):$(id -g $USER) \
               -e AIT_CONFIG=/home/coder/project/ait-config/config.yaml \
               $CODER_IMAGE_URI:$CODER_IMAGE_TAG;
 
