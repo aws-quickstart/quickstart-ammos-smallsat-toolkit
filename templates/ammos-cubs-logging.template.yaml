@@ -51,22 +51,6 @@ Resources:
     Properties:
       VpcId: !Ref VPCID
       GroupDescription: Security group for access to AMMOS Cubs Elasticsearch domain.
-      SecurityGroupIngress:
-        - CidrIp: 128.149.0.0/16
-          Description: JPL Internal
-          IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-        - CidrIp: 137.78.0.0/16
-          Description: JPL Internal
-          IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-        - CidrIp: 137.79.0.0/16
-          Description: JPL Internal
-          IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
 
   ElasticsearchSecurityGroupIngress:
     Type: AWS::EC2::SecurityGroupIngress
