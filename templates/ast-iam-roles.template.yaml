@@ -238,13 +238,15 @@ Resources:
                   - arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}*
                   - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
                 Effect: Allow
-  CognitoInspectRole:
+  CognitoAdminRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${ProjectName}-CognitoInspectRole
+      RoleName: !Sub ${ProjectName}-CognitoAdminRole
       AssumeRolePolicyDocument:
         Statement:
-          - Action: sts:AssumeRole
+          - Action:
+              - cognito-idp:DescribeUserPoolClient
+              - cognito-idp:AdminCreateUser
             Effect: Allow
             Principal:
               Service: lambda.amazonaws.com
@@ -444,9 +446,12 @@ Outputs:
   LoggingLambdaRoleArn:
     Description: ARN of the LoggingLambdaRole created for AST deployment
     Value: !GetAtt LoggingLambdaRole.Arn
-  CognitoInspectRoleArn:
-    Description: ARN of the CognitoInspectRole created for AST deployment
-    Value: !GetAtt CognitoInspectRole.Arn
+  CognitoAdminRoleArn:
+    Description: ARN of the CognitoAdminRole created for AST deployment
+    Value: !GetAtt CognitoAdminRole.Arn
+  CognitoAdminRoleName:
+    Description: Name of the CognitoAdminRole created for AST deployment
+    Value: !Ref CognitoAdminRole
   AitServerRoleArn:
     Description: ARN of the AitServerRole created for AST deployment
     Value: !GetAtt AitServerRole.Arn
