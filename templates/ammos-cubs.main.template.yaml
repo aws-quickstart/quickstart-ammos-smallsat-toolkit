@@ -334,7 +334,7 @@ Resources:
         - !Sub ${ProjectName}-AitServerRole
         - !Sub ${ProjectName}-EditorServerRole
         - !Sub ${ProjectName}-LoggingLambdaRole
-        - !Sub ${ProjectName}-CognitoInspectRole
+        - !Sub ${ProjectName}-CognitoAdminRole
         - !Sub ${ProjectName}-BastionHostRole
   IamStack:
     Type: AWS::CloudFormation::Stack
@@ -409,7 +409,7 @@ Resources:
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         ProjectName: !Ref ProjectName
-        IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.CognitoInspectRoleArn, !GetAtt RoleArns.CognitoInspectRoleArn]
+        IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.CognitoAdminRoleArn, !GetAtt RoleArns.CognitoAdminRoleArn]
   AmmosCubsALBStack:
     # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
