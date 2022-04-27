@@ -185,8 +185,8 @@ Resources:
                   - s3:ListBucket
                 Effect: Allow
                 Resource:
-                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-ConfigBucket'
-                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-ConfigBucket/*'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-config'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-config/*'
               - Action:
                   - 's3:GetObject'
                   - s3:ListBucket
@@ -229,8 +229,8 @@ Resources:
                   - s3:ListBucket
                 Effect: Allow
                 Resource:
-                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-ConfigBucket'
-                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-ConfigBucket/*'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-config'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-config/*'
               - Action:
                   - 's3:GetObject'
                   - s3:ListBucket
@@ -418,7 +418,7 @@ Resources:
               - logs:DeleteDestination
               - logs:TestMetricFilter
               - logs:ListTagsLogGroup
-            Resource: !Sub arn:${AWS::Partition}:s3:::*
+            Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:*
           - Sid: S3Get
             Effect: Allow
             Action:

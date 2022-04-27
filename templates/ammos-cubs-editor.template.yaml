@@ -70,7 +70,6 @@ Mappings:
 Conditions:
   SshEnabled: !Not [!Equals ['', !Ref KeyPairName]]
   IsGovCloud: !Not [!Equals ['aws', !Ref AWS::Partition]]
-  UserProvidedConfigBucket: !Not [!Equals ['', !Ref ConfigBucketName]]
 Resources:
   AitEditorSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -91,7 +90,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       Port: 80
-      Protocol: HTTPS
+      Protocol: HTTP
       TargetType: instance
       Targets:
         - Id: !Ref Instance
@@ -159,126 +158,119 @@ Resources:
         - !GetAtt AitEditorSecurityGroup.GroupId
       SubnetId: !Select [0, !Ref PrivateSubnetIds]
       UserData:
-        Fn::Base64:
-          !Sub
-          - |
-            #!/bin/bash
-            exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-            echo "Starting user data"
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+          echo "Starting user data"
 
-            function exitTrap(){
-              exitCode=$?
-              /opt/aws/bin/cfn-signal \
-                --stack ${AWS::StackName} \
-                --resource Instance \
-                --region ${AWS::Region} -e $exitCode || echo 'Failed to send Cloudformation Signal'
-            }
-            trap exitTrap EXIT
-            CONFIG_BUCKET_NAME=${ConfigBucket}
+          function exitTrap(){
+            exitCode=$?
+            /opt/aws/bin/cfn-signal \
+              --stack ${AWS::StackName} \
+              --resource Instance \
+              --region ${AWS::Region} -e $exitCode || echo 'Failed to send Cloudformation Signal'
+          }
+          trap exitTrap EXIT
+          CONFIG_BUCKET_NAME=${ConfigBucketName}
 
-            yum install -y -q python3 wget unzip
-            mkdir -p /opt/aws/bin
-            wget -nv https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
-            pip3 install aws-cfn-bootstrap-py3-latest.tar.gz
-            ln -s /usr/local/bin/cfn-* /opt/aws/bin
-            wget -nv https://s3.amazonaws.com/amazoncloudwatch-agent/redhat/amd64/latest/amazon-cloudwatch-agent.rpm
-            rpm -U ./amazon-cloudwatch-agent.rpm
-            yum install -y -q https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+          yum install -y -q python3 wget unzip
+          mkdir -p /opt/aws/bin
+          wget -nv https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+          pip3 install aws-cfn-bootstrap-py3-latest.tar.gz
+          ln -s /usr/local/bin/cfn-* /opt/aws/bin
+          wget -nv https://s3.amazonaws.com/amazoncloudwatch-agent/redhat/amd64/latest/amazon-cloudwatch-agent.rpm
+          rpm -U ./amazon-cloudwatch-agent.rpm
+          yum install -y -q https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
 
-            # Set variables for system install
-            USER=ec2-user
-            PROJECT_HOME=/home/$USER
-            SETUP_DIR=$PROJECT_HOME/setup
-            AWS_REGION=${AWS::Region}
-            AWS_ACCOUNT_ID=${AWS::AccountId}
-            CODER_IMAGE_URI=codercom/code-server
-            CODER_IMAGE_TAG=3.11.0
-            AIT_EDITOR_VERSION=0.0.3
-            AIT_EDITOR_LINK=https://NASA-AMMOS.gallery.vsassets.io/_apis/public/gallery/publisher/NASA-AMMOS/extension/ait-editor/$AIT_EDITOR_VERSION/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage
-            PORT=80
+          # Set variables for system install
+          USER=ec2-user
+          PROJECT_HOME=/home/$USER
+          SETUP_DIR=$PROJECT_HOME/setup
+          AWS_REGION=${AWS::Region}
+          AWS_ACCOUNT_ID=${AWS::AccountId}
+          CODER_IMAGE_URI=codercom/code-server
+          CODER_IMAGE_TAG=3.11.0
+          AIT_EDITOR_VERSION=0.0.3
+          AIT_EDITOR_LINK=https://NASA-AMMOS.gallery.vsassets.io/_apis/public/gallery/publisher/NASA-AMMOS/extension/ait-editor/$AIT_EDITOR_VERSION/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage
+          PORT=80
 
-            # General tools
-            yum install -y -q yum-utils git vim
-            curl -SL https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 -o /usr/bin/jq
-            chmod +x /usr/bin/jq
+          # General tools
+          yum install -y -q yum-utils git vim
+          curl -SL https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 -o /usr/bin/jq
+          chmod +x /usr/bin/jq
 
-            # Install AWS CLI
-            echo "Installing AWS CLI"
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip -qq awscliv2.zip
-            ./aws/install
+          # Install AWS CLI
+          echo "Installing AWS CLI"
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip -qq awscliv2.zip
+          ./aws/install
 
-            # File Structure
-            mkdir -p $PROJECT_HOME/.ait-editor-config/code-server
-            mkdir -p $PROJECT_HOME/project/ait-config
-            mkdir -p $PROJECT_HOME/project/sequences
-            mkdir -p $PROJECT_HOME/extensions
-            mkdir -p $SETUP_DIR
+          # File Structure
+          mkdir -p $PROJECT_HOME/.ait-editor-config/code-server
+          mkdir -p $PROJECT_HOME/project/ait-config
+          mkdir -p $PROJECT_HOME/project/sequences
+          mkdir -p $PROJECT_HOME/extensions
+          mkdir -p $SETUP_DIR
 
-            cat > $PROJECT_HOME/project/sequences/example.ait << EOF
-            # comment
-            0 NO_OP
-            1 BAD_CMD
-            1 CORE_SET_OP_MODE 1
-            EOF
+          cat > $PROJECT_HOME/project/sequences/example.ait << EOF
+          # comment
+          0 NO_OP
+          1 BAD_CMD
+          1 CORE_SET_OP_MODE 1
+          EOF
 
-            echo "pulling config from $CONFIG_BUCKET_NAME"
-            # Pull assets, config, and secrets from s3/sm
-            /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 sync \
-              s3://$CONFIG_BUCKET_NAME/configs/ait/config \
-              $PROJECT_HOME/project/ait-config
+          echo "pulling config from $CONFIG_BUCKET_NAME"
+          # Pull assets, config, and secrets from s3/sm
+          /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 sync \
+            s3://$CONFIG_BUCKET_NAME/configs/ait/config \
+            $PROJECT_HOME/project/ait-config
 
-            # Pull assets, config, and secrets from s3/sm
-            /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 cp \
-              s3://$CONFIG_BUCKET_NAME/configs/editor/cloudwatch-agent-editor.json \
-              $SETUP_DIR/cloudwatch-agent-editor.json
+          # Pull assets, config, and secrets from s3/sm
+          /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 cp \
+            s3://$CONFIG_BUCKET_NAME/configs/editor/cloudwatch-agent-editor.json \
+            $SETUP_DIR/cloudwatch-agent-editor.json
 
-            # Inject ProjectName from Cloudformation into cloudwatch agent files
-            mv $SETUP_DIR/cloudwatch-agent-editor.json{,.bak}
-            sed 's/<PROJECT_NAME>/${ProjectName}/g' $SETUP_DIR/cloudwatch-agent-editor.json.bak > $SETUP_DIR/cloudwatch-agent-editor.json
-            rm $SETUP_DIR/cloudwatch-agent-editor.json.bak
-            mv $SETUP_DIR/cloudwatch-agent-editor.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+          # Inject ProjectName from Cloudformation into cloudwatch agent files
+          mv $SETUP_DIR/cloudwatch-agent-editor.json{,.bak}
+          sed 's/<PROJECT_NAME>/${ProjectName}/g' $SETUP_DIR/cloudwatch-agent-editor.json.bak > $SETUP_DIR/cloudwatch-agent-editor.json
+          rm $SETUP_DIR/cloudwatch-agent-editor.json.bak
+          mv $SETUP_DIR/cloudwatch-agent-editor.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
-            # Docker + Docker-Compose
-            echo "Installing Docker components"
-            yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-            yum install -y -q docker-ce docker-ce-cli containerd.io
-            groupadd docker
-            usermod -aG docker $USER
-            systemctl enable docker
-            systemctl start docker
+          # Docker + Docker-Compose
+          echo "Installing Docker components"
+          yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+          yum install -y -q docker-ce docker-ce-cli containerd.io
+          groupadd docker
+          usermod -aG docker $USER
+          systemctl enable docker
+          systemctl start docker
 
-            # AIT Editor Config
-            wget -nv $AIT_EDITOR_LINK -O $PROJECT_HOME/extensions/ait-editor-$AIT_EDITOR_VERSION.vsix
+          # AIT Editor Config
+          wget -nv $AIT_EDITOR_LINK -O $PROJECT_HOME/extensions/ait-editor-$AIT_EDITOR_VERSION.vsix
 
-            tee $PROJECT_HOME/.ait-editor-config/code-server/config.yaml << EOF
-            auth: none
-            bind-addr: 127.0.0.1:8080
-            cert: false
-            disable-telemetry: true
-            disable-update-check: true
-            extra-extensions-dir: ['/home/coder/extra-extensions']
-            EOF
-            chown -R $USER: $PROJECT_HOME
+          tee $PROJECT_HOME/.ait-editor-config/code-server/config.yaml << EOF
+          auth: none
+          bind-addr: 127.0.0.1:8080
+          cert: false
+          disable-telemetry: true
+          disable-update-check: true
+          extra-extensions-dir: ['/home/coder/extra-extensions']
+          EOF
+          chown -R $USER: $PROJECT_HOME
 
-            # AIT Editor startup
-            docker run --name ait-editor-$USER -d -p $PORT:8080 \
-              -v $PROJECT_HOME/.ait-editor-config:/home/coder/.config \
-              -v $PROJECT_HOME/project:/home/coder/project \
-              -v $PROJECT_HOME/extensions:/home/coder/extra-extensions \
-              -u $(id -u):$(id -g) \
-              -e AIT_CONFIG=/home/coder/project/ait-config/config.yaml \
-              $CODER_IMAGE_URI:$CODER_IMAGE_TAG;
+          # AIT Editor startup
+          docker run --name ait-editor-$USER -d -p $PORT:8080 \
+            -v $PROJECT_HOME/.ait-editor-config:/home/coder/.config \
+            -v $PROJECT_HOME/project:/home/coder/project \
+            -v $PROJECT_HOME/extensions:/home/coder/extra-extensions \
+            -u $(id -u $USER):$(id -g $USER) \
+            -e AIT_CONFIG=/home/coder/project/ait-config/config.yaml \
+            $CODER_IMAGE_URI:$CODER_IMAGE_TAG;
 
-            docker exec ait-editor-$USER code-server --install-extension ./extra-extensions/ait-editor-$AIT_EDITOR_VERSION.vsix
+          docker exec ait-editor-$USER code-server --install-extension ./extra-extensions/ait-editor-$AIT_EDITOR_VERSION.vsix
 
-            /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
-                -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
-          - ConfigBucket: !If
-            - UserProvidedConfigBucket
-            - !Ref ConfigBucketName
-            - Fn::ImportValue:
-                Fn::Sub: "${ProjectName}-ConfigBucketName"
+          /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+              -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
   InstanceOneInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:

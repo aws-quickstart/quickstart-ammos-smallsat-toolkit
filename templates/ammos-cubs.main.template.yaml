@@ -69,7 +69,7 @@ Metadata:
       RolePath:
         default: Role path
       DeployIam:
-        default: Flag to control IAM Resource deployment
+        default: Deploy IAM Roles on my behalf
       SSLCertificateArn:
         default: SSL certificate ARN
       VPCCIDR:
@@ -99,11 +99,11 @@ Metadata:
       PublicSubnet2ID:
         default: ID for public subnet 2 in an existing VPC
       PrivateSubnet1AID:
-        default: ID for private subnet 1A in an existing VPC
+        default: ID for private subnet 1 in an existing VPC
       PrivateSubnet2AID:
-        default: ID for private subnet 2A in an existing VPC
+        default: ID for private subnet 2 in an existing VPC
       PrivateSubnet3AID:
-        default: ID for private subnet 3A in an existing VPC
+        default: ID for private subnet 3 in an existing VPC
       AccessSgID:
         default: ID of preconfigured security group in an existing VPC
 Parameters:
@@ -228,8 +228,10 @@ Parameters:
     Type: String
     Default: ''
   ProjectName:
-    Description: Name of your project.
+    Description: Name of your project. Please use lowercase alphanumeric characters and hypens (-) only.
     Type: String
+    AllowedPattern: ^[0-9a-z-]*$
+    ConstraintDescription: The ProjectName can include numbers, lowercase letters, and hyphens (-).
   VpcId:
     Description: (Optional) If you're deploying into an existing VPC, fill in the VPC ID.
     Type: String
@@ -384,6 +386,7 @@ Resources:
       Parameters:
         BastionAMIOS: 'Amazon-Linux2-HVM'
         KeyPairName: !Ref 'KeyPairName'
+        BastionHostName: !Sub "${ProjectName}/LinuxBastion"
         PublicSubnet1ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PublicSubnet1ID, !Ref PublicSubnet1ID]
         PublicSubnet2ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PublicSubnet2ID, !Ref PublicSubnet2ID]
         QSS3BucketName: !Ref QSS3BucketName
@@ -456,6 +459,10 @@ Resources:
         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
+        ProjectName: !Ref ProjectName
+        ConfigBucketName:
+          Fn::ImportValue:
+            !Sub "${ProjectName}-ConfigBucketName"
         ALBHttpsListenerArn: !GetAtt AmmosCubsALBStack.Outputs.HttpsListenerArn
         ALBSecurityGroupID: !GetAtt AmmosCubsALBStack.Outputs.AlbSecurityGroupId
         CognitoClientID: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientId
@@ -469,7 +476,6 @@ Resources:
             - ','
             - - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
               - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
-        ProjectName: !Ref ProjectName
         IamRoleName: !If [DeployIam, !GetAtt IamStack.Outputs.EditorServerRoleName, !GetAtt RoleArns.EditorServerRoleName]
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
   AmmosCubsAITStack:

@@ -158,7 +158,7 @@ Resources:
           # install python 3.7
           yum install -y -q @development gcc openssl-devel bzip2-devel libffi-devel sqlite-devel httpd mod_ssl vim policycoreutils-python-utils
           cd /opt
-          wget https://www.python.org/ftp/python/3.7.9/Python-3.7.9.tgz
+          wget -nv https://www.python.org/ftp/python/3.7.9/Python-3.7.9.tgz
           tar xzf Python-3.7.9.tgz
           cd Python-3.7.9
           ./configure --enable-optimizations --enable-loadable-sqlite-extensions > /dev/null && echo "Configured Python 3.7"
