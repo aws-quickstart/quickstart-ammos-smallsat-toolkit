@@ -432,24 +432,24 @@ Resources:
         CognitoInspectFunctionArn: !GetAtt AmmosCognitoStack.Outputs.CognitoInspectFunctionArn
         CognitoUserPoolID: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolId
         AccessSgID: !If [DeployVpc, '', !Ref AccessSgID]
-  AmmosCubsLoggingStack:
-    # DependsOn: CFNEndpoint
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub
-        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ammos-cubs-logging.template.yaml'
-        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-      Parameters:
-        ProjectName: !Ref ProjectName
-        CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
-        IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.LoggingLambdaRoleArn, !GetAtt RoleArns.LoggingLambdaRoleArn]
-        VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
-        PrivateSubnet1ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
-        PrivateSubnet2ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
-        PrivateSubnet3ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet3AID, !Ref PrivateSubnet3AID]
-        QSS3BucketName: !Ref QSS3BucketName
-        QSS3KeyPrefix: !Ref QSS3KeyPrefix
+  # AmmosCubsLoggingStack:
+  #   # DependsOn: CFNEndpoint
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: !Sub
+  #       - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ammos-cubs-logging.template.yaml'
+  #       - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+  #         S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+  #     Parameters:
+  #       ProjectName: !Ref ProjectName
+  #       CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
+  #       IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.LoggingLambdaRoleArn, !GetAtt RoleArns.LoggingLambdaRoleArn]
+  #       VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
+  #       PrivateSubnet1ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
+  #       PrivateSubnet2ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
+  #       PrivateSubnet3ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet3AID, !Ref PrivateSubnet3AID]
+  #       QSS3BucketName: !Ref QSS3BucketName
+  #       QSS3KeyPrefix: !Ref QSS3KeyPrefix
   AmmosCubsEditorStack:
     # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack

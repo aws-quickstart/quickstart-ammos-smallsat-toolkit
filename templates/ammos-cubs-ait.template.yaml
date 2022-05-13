@@ -73,6 +73,53 @@ Mappings:
       RHELHA84HVM: ami-0cca63ccd9a87f1b2
 
 Resources:
+  EfsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId:
+        Ref: VPCID
+      GroupDescription: "EFS Security Group"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 2049
+          ToPort: 2049
+          CidrIp: 0.0.0.0/0
+
+  FileSystem:
+    Type: AWS::EFS::FileSystem
+    Properties:
+      Encrypted: true
+      PerformanceMode: generalPurpose
+      BackupPolicy:
+        Status: DISABLED
+      FileSystemTags:
+      - Key: Name
+        Value: ait-efs
+
+  MountTargetPublicA:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId:
+        Ref: FileSystem
+      SubnetId:
+        Ref: !Select [ 0, !Ref 'PrivateSubnetIds']
+      SecurityGroups:
+      - Ref: EfsSecurityGroup
+  RootAccessPoint:
+    Type: AWS::EFS::AccessPoint
+    Properties:
+      FileSystemId:
+        Ref: FileSystem
+      PosixUser:
+        Uid: "1001"
+        Gid: "1001"
+      RootDirectory:
+        CreationInfo:
+          OwnerGid: "1001"
+          OwnerUid: "1001"
+          Permissions: "777"
+        Path: "/efs"
+
   AitServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -287,6 +334,19 @@ Resources:
           boostrap_aws_stuff
           bootstrap_ait
           install_ait_and_dependents
+
+          # Adding functionality to mount an EFS
+          yum update -y
+          yum install -y curl nfs-common amazon-efs-utils
+          pip3 install botocore
+          DIR_TGT=/mnt/efs/
+          EC2_REGION=${AWS::Region}
+          EFS_FILE_SYSTEM_ID=${FileSystem}
+          mkdir -p $DIR_TGT
+          DIR_SRC=$EFS_FILE_SYSTEM_ID.efs.$EC2_REGION.amazonaws.com
+          echo "Mounting $EFS_FILE_SYSTEM_ID via ${RootAccessPoint}"
+          mount -t efs -o tls,accesspoint=${RootAccessPoint} $EFS_FILE_SYSTEM_ID:/ $DIR_TGT
+
   AitWebTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
