@@ -551,3 +551,11 @@ Resources:
         - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet3AID, !Ref PrivateSubnet3AID]
       SecurityGroupIds:
         - !Ref CFNEndpointSG
+
+Outputs:
+  CognitoDefaultUserUsername:
+    Description: Username for the Cognito User created by CognitoDefaultUser
+    Value: !GetAtt AmmosCognitoStack.Outputs.CognitoDefaultUserUsername
+  CognitoDefaultUserTempPassword:
+    Description: Temporary Password for the Cognito User created by CognitoDefaultUser
+    Value: !GetAtt AmmosCognitoStack.Outputs.CognitoDefaultUserTempPassword
