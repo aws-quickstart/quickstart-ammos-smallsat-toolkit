@@ -183,6 +183,8 @@ Resources:
       Protocol: HTTP
 
 Outputs:
+  PublicSubnetId:
+    Value: !Select [0, !Ref PublicSubnetIds]
   AlbDnsName:
     Description: amazonaws.com DNS name of the deployed Load Balancer
     Value: !GetAtt ApplicationLoadBalancer.DNSName

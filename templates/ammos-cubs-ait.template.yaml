@@ -8,6 +8,9 @@ Parameters:
     Description: Name of the S3 bucket used to store project-specific configuration
       files.
     Type: String
+  AvailabilityZone:
+    Description: AvailabilityZone for the AWS Group
+    Type: AWS::EC2::AvailabilityZone::Name  
   FQDN:
     Description: Fully Qualified Domain Name to use for project resources root.
     Type: String
@@ -16,7 +19,7 @@ Parameters:
     Type: List<AWS::EC2::Subnet::Id>
   VPCID:
     Description: VPC ID for deploying project resources
-    Type: AWS::EC2::VPC::Id
+    Type: AWS::EC2::VPC::Id      
   InstanceType:
     Description: Instance type to be used for AIT Server instances; see deployment
       guide for recommendations
@@ -88,6 +91,7 @@ Resources:
   FileSystem:
     Type: AWS::EFS::FileSystem
     Properties:
+      AvailabilityZoneName: !Ref 'AvailabilityZone'    
       Encrypted: true
       PerformanceMode: generalPurpose
       BackupPolicy:
@@ -99,17 +103,16 @@ Resources:
   MountTargetPublicA:
     Type: AWS::EFS::MountTarget
     Properties:
-      FileSystemId:
-        Ref: FileSystem
-      SubnetId:
-        Ref: !Select [ 0, !Ref 'PrivateSubnetIds']
+      FileSystemId: !Ref FileSystem
+      SubnetId: 
+        - !Select [ 0, !Ref 'PrivateSubnetIds']
       SecurityGroups:
       - Ref: EfsSecurityGroup
+      
   RootAccessPoint:
     Type: AWS::EFS::AccessPoint
     Properties:
-      FileSystemId:
-        Ref: FileSystem
+      FileSystemId: !Ref FileSystem
       PosixUser:
         Uid: "1001"
         Gid: "1001"
