@@ -217,6 +217,16 @@ Resources:
           git checkout 2.3.1
           pip install .
 
+          git clone https://github.com/NASA-AMMOS/AIT-DSN.git $PROJECT_HOME/AIT-DSN
+          cd $PROJECT_HOME/AIT-DSN
+          git checkout 2.0.0
+          pip install .
+
+          cd $PROJECT_HOME
+
+          # Make necessary DSN plugin directories
+          mkdir -p $PROJECT_HOME/AIT-Core/ait/dsn/cfdp/datasink/{outgoing,incoming,tempfiles,pdusink}
+
           # Copy necessary apache configs
           cp $SETUP_DIR/httpd_proxy.conf /etc/httpd/conf.d/proxy.conf
 
