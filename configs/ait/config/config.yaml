@@ -29,6 +29,72 @@ default:
 
     emitdefaults:
         filename: emitdefaults.yaml
+    # Adding AIT-DSN Plugin
+    dsn:
+        sle:
+            initiator_id: LSE
+            # password only matters if we're doing auth and can stay as 'pw'
+            password: pw
+            responder_id: SSC
+            # peer password only matters if we're doing auth and can stay as 'pw'
+            peer_password: pw
+            downlink_frame_type: TMTransFrame
+            heartbeat: 25
+            deadfactor: 5
+            buffer_size: 256000
+            responder_port: 'default'
+            rcf:
+                inst_id: sagr=LSE-SSC.spack=Test.rsl-fg=1.rcf=onlc2
+                hostnames:
+                    - example.hostname.1
+                    - example.hostname.2
+                port: None
+                version: 4
+                spacecraft_id: 250
+                trans_frame_ver_num: 0
+                auth_level: 'none'
+            raf:
+                inst_id: sagr=LSE-SSC.spack=Test.rsl-fg=1.raf=onlc1
+                hostnames:
+                    - example.hostname.1
+                    - example.hostname.2
+                port: None
+                version: 4
+                auth_level: 'none'
+            fcltu:
+                inst_id: None
+                hostnames:
+                    - example.hostname.1
+                    - example.hostname.2
+                port: None
+                version: 4
+                auth_level: 'none'
+            aos:
+                frame_header_error_control_included: false
+                transfer_frame_insert_zone_len: 0
+                operational_control_field_included: false
+                frame_error_control_field_included: false
+                virtual_channels:
+                    1: "b_pdu"
+                    2: "m_pdu"
+                    3: "vca_sdu"
+                    4: "idle"
+
+        cfdp:
+            mib:
+                path: ./mib
+            datasink:
+                outgoing:
+                    path: ../ait/dsn/cfdp/datasink/outgoing
+                incoming:
+                    path: ../ait/dsn/cfdp/datasink/incoming
+                tempfiles:
+                    path: ../ait/dsn/cfdp/datasink/tempfiles
+                pdusink:
+                    path: ../ait/dsn/cfdp/datasink/pdusink
+            max_file_name_length: 64
+            max_entity_id_length: 8
+            max_transaction_id_length: 8
 
     server:
         plugins:
