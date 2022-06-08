@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: EFS and Lambda initialization for the Aerie deployment
+
+Parameters:
+  ProjectName:
+    Default: ammos-aerie
+    Description: Name of stack
+    Type: String
+  QSS3BucketName:
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
+    ConstraintDescription: Quick Start bucket name can include numbers, lowercase
+      letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
+      (-).
+    Default: aws-quickstart
+    Description: S3 bucket name for the Quick Start assets. This string can include
+      numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start
+      or end with a hyphen (-).
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: ^[0-9a-zA-Z-/]*$
+    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slash (/).
+    Default: quickstart-ammos-smallsat-toolkit/
+    Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
+      can include numbers, lowercase letters, uppercase letters, hyphens (-), and
+      forward slash (/).
+    Type: String
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet::Id
+  EfsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+  IamRoleArn:
+    Type: String
+  EfsRootAccessPointArn:
+    Type: String
+
+Conditions:
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
+
+Resources:
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId:
+        Ref: VpcId
+      GroupDescription: "Lambda Security Group"
+
+  EfsFromLambdaIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow connection from Lambda to EFS Security Group
+      IpProtocol: tcp
+      FromPort: 2049
+      ToPort: 2049
+      SourceSecurityGroupId: !Ref LambdaSecurityGroup
+      GroupId: !Ref EfsSecurityGroup
+
+  CopyAerieDeploymentEFS:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: copy_aerie_deployment.handler
+      Code:
+        S3Bucket: !If
+          - UsingDefaultBucket
+          - !Sub '${QSS3BucketName}-${AWS::Region}'
+          - !Ref QSS3BucketName
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/AerieBootstrap/lambda.zip'
+      Description: Bootstrap an EFS Filesystem with the files needed for the Aerie Deployment
+      MemorySize: 128
+      Timeout: 180
+      Role: !Ref IamRoleArn
+      Runtime: python3.8
+      VpcConfig:
+        SecurityGroupIds:
+        - !Ref LambdaSecurityGroup
+        SubnetIds:
+        - Ref: PrivateSubnetA
+      FileSystemConfigs:
+      - Arn: !Ref EfsRootAccessPointArn
+        LocalMountPath: "/mnt/efs"
+  AerieEfsBootstrap:
+    Type: 'Custom::AerieBootstrap'
+    Properties:
+      ServiceToken: !GetAtt CopyAerieDeploymentEFS.Arn
+      Name: !Sub "EFS Bootstrap for ${ProjectName}"

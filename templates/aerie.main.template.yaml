@@ -1,0 +1,196 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: (qs-1s6abjf8q)
+Parameters:
+  ProjectName:
+    Type: String
+    Default: ammos-aerie
+
+  # ============== IAM ============== #
+  AerieBootstrapRoleArn:
+    Type: String
+  ECSTaskExecutionRoleArn:
+    Type: String
+  ECSTaskRoleArn:
+    Type: String
+  BastionRoleName:
+    Type: String
+
+  # =========== S3 Assets =========== #
+  QSS3BucketName:
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
+    ConstraintDescription: Quick Start bucket name can include numbers, lowercase
+      letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
+      (-).
+    Default: aws-quickstart
+    Description: Name of the S3 bucket for your copy of the Quick Start assets.
+      Keep the default name unless you are customizing the template.
+      Changing the name updates code references to point to a new Quick
+      Start location. This name can include numbers, lowercase letters,
+      uppercase letters, and hyphens, but do not start or end with a hyphen (-).
+      See https://aws-quickstart.github.io/option1.html.
+    Type: String
+  QSS3BucketRegion:
+    Default: 'us-east-1'
+    Description: 'AWS Region where the Quick Start S3 bucket (QSS3BucketName) is
+    hosted. Keep the default Region unless you are customizing the template.
+    Changing this Region updates code references to point to a new Quick Start location.
+    When using your own bucket, specify the Region.
+    See https://aws-quickstart.github.io/option1.html.'
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: ^[0-9a-zA-Z-/]*$
+    ConstraintDescription: The Quick Start S3 key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slashes (/). The prefix should
+      end with a forward slash (/).
+    Default: quickstart-ammos-aerie/
+    Description: S3 key prefix that is used to simulate a directory for your copy of the
+      Quick Start assets. Keep the default prefix unless you are customizing
+      the template. Changing this prefix updates code references to point to
+      a new Quick Start location. This prefix can include numbers, lowercase
+      letters, uppercase letters, hyphens (-), and forward slashes (/). End with
+      a forward slash. See https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html
+      and https://aws-quickstart.github.io/option1.html.
+    Type: String
+
+  # =========== Networking =========== #
+  FQDN: # Ex: aerie-demo.example.com
+    Description: URL to use for the project-resources root.
+    Type: String
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  PublicSubnet1ID:
+    Type: AWS::EC2::Subnet::Id
+  PublicSubnet2ID:
+    Type: AWS::EC2::Subnet::Id
+  PrivateSubnet1ID:
+    Type: AWS::EC2::Subnet::Id
+  PrivateSubnet2ID:
+    Type: AWS::EC2::Subnet::Id
+
+  # =========== Aerie Misc =========== #
+  BastionAmi:
+    Description: AMI ID for the Bastion Server
+    Type: AWS::EC2::Image::Id
+    Default: ami-01ee1e88c04465cc2
+  BastionKey:
+    Description: SSH Key for accessing the Bastion Server
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: ammos-cloud-aerie
+  SSLCertificateArn:
+    Description: ARN of the SSL Certificate in ACM for the Aerie ECS Load Balancer
+    Type: String
+  EnableEfsBackups:
+    Description: Will enable AWS Backups for EFS if "true" (default), or skip if "false"
+    Type: String
+    Default: "true"
+    AllowedValues: ["false", "true"]
+
+Conditions:
+  # DeployIam: !Equals [!Ref DeployIam, 'true']
+  # InspectIam: !Not [Condition: DeployIam]
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
+  # DeployVpc: !Equals [!Ref VpcId, '']
+
+Resources:
+#   RoleChecker:
+#     Type: AWS::Lambda::Function
+#     Condition: InspectIam
+#     Properties:
+#       Description: Check the account for required IAM Roles so that they may be omitted from the QuickStart deployment if already present
+#       FunctionName: !Sub ${ProjectName}-RoleChecker
+#       Handler: role_checker.lambda_handler
+#       MemorySize: 128
+#       Role:
+#         Fn::ImportValue:
+#           !Sub ${ProjectName}-DeploymentHelperRoleArn
+#       Runtime: python3.8
+#       Code:
+#         S3Bucket: !If
+#           - UsingDefaultBucket
+#           - !Sub '${QSS3BucketName}-${AWS::Region}'
+#           - !Ref QSS3BucketName
+#         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/RoleChecker/lambda.zip'
+#   RoleArns:
+#     Type: AWS::CloudFormation::CustomResource
+#     Condition: InspectIam
+#     Properties:
+#       ServiceToken: !GetAtt RoleChecker.Arn
+#       RoleNames:
+#         - !Sub ${ProjectName}-AitServerRole
+#         - !Sub ${ProjectName}-EditorServerRole
+#         - !Sub ${ProjectName}-LoggingLambdaRole
+#         - !Sub ${ProjectName}-CognitoInspectRole
+#         - !Sub ${ProjectName}-BastionHostRole
+#   IamStack:
+#     Type: AWS::CloudFormation::Stack
+#     Condition: DeployIam
+#     Properties:
+#       TemplateURL: !Sub
+#         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ast-iam-roles.template.yaml'
+#         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+#           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+#       Parameters:
+#         ProjectName: !Ref ProjectName
+#         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
+#         RolePath: !Ref RolePath
+#         QSS3BucketName: !Ref QSS3BucketName
+#         QSS3KeyPrefix: !Ref QSS3KeyPrefix
+  AerieDataStack:
+    # DependsOn: CFNEndpoint
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/aerie-data.template.yaml'
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Parameters:
+        ProjectName: !Ref ProjectName
+        VpcId: !Ref VpcId
+        PublicSubnetIdA: !Ref PublicSubnet1ID
+        Ami: !Ref BastionAmi
+        SshKey: !Ref BastionKey
+        IamRoleName: !Ref BastionRoleName
+        EnableBackups: !Ref EnableEfsBackups
+  AerieBootstrapStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/aerie-bootstrap.template.yaml'
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Parameters:
+        ProjectName: !Ref ProjectName
+        QSS3BucketName: !Ref QSS3BucketName
+        QSS3KeyPrefix: !Ref QSS3KeyPrefix
+        VpcId: !Ref VpcId
+        PrivateSubnetA: !Ref PrivateSubnet1ID
+        EfsSecurityGroup: !GetAtt AerieDataStack.Outputs.EfsSecurityGroup
+        IamRoleArn: !Ref AerieBootstrapRoleArn
+        EfsRootAccessPointArn: !GetAtt AerieDataStack.Outputs.EfsRootAccessPointArn
+  AerieEcsStack:
+    # DependsOn: CFNEndpoint
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/aerie-ecs.template.yaml'
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Parameters:
+        ProjectName: !Ref ProjectName
+        VpcId: !Ref VpcId
+        PublicSubnetIds:
+          Fn::Join:
+            - ','
+            - - !Ref PublicSubnet1ID
+              - !Ref PublicSubnet2ID
+        PrivateSubnetIds:
+          Fn::Join:
+            - ','
+            - - !Ref PrivateSubnet1ID
+              - !Ref PrivateSubnet2ID
+        SSLCertificateArn: !Ref SSLCertificateArn
+        PrivateNamespaceUrl: !Sub aerie-services.${FQDN}
+        EfsSecurityGroup: !GetAtt AerieDataStack.Outputs.EfsSecurityGroup
+        ECSTaskExecutionRoleArn: !Ref ECSTaskExecutionRoleArn
+        ECSTaskRoleArn: !Ref ECSTaskRoleArn
