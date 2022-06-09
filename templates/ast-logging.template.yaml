@@ -50,7 +50,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       VpcId: !Ref VPCID
-      GroupDescription: Security group for access to AMMOS Cubs Elasticsearch domain.
+      GroupDescription: Security group for access to AST Elasticsearch domain.
 
   ElasticsearchSecurityGroupIngress:
     Type: AWS::EC2::SecurityGroupIngress
