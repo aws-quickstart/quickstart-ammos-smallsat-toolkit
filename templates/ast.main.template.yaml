@@ -7,7 +7,7 @@ Metadata:
   'AWS::CloudFormation::Interface':
     ParameterGroups:
       - Label:
-          default: AIT configuration
+          default: AIT Core configuration
         Parameters:
           - ProjectName
           - FQDN
@@ -47,6 +47,10 @@ Metadata:
           - QSS3BucketName
           - QSS3KeyPrefix
           - QSS3BucketRegion
+      - Label:
+          default: Aerie configuration
+        Parameters:
+          - EnableEfsBackups
     ParameterLabels:
       AITInstanceType:
         default: AIT instance type
@@ -70,6 +74,8 @@ Metadata:
         default: Role path
       DeployIam:
         default: Deploy IAM Roles on my behalf
+      EnableEfsBackups:
+        default: Enable EFS Backups
       SSLCertificateArn:
         default: SSL certificate ARN
       VPCCIDR:
@@ -268,6 +274,12 @@ Parameters:
     AllowedValues:
       - 'true'
       - 'false'
+  EnableEfsBackups:
+    Description: Will enable AWS Backups for EFS if "true" (default), or skip if "false"
+    Type: String
+    Default: "true"
+    AllowedValues: ["false", "true"]
+
 Rules:
   DomainNamePresentWithHostedID:
     Assertions:
@@ -336,6 +348,9 @@ Resources:
         - !Sub ${ProjectName}-LoggingLambdaRole
         - !Sub ${ProjectName}-CognitoInspectRole
         - !Sub ${ProjectName}-BastionHostRole
+        - !Sub ${ProjectName}-ECSTaskExecutionRole
+        - !Sub ${ProjectName}-EcsTaskRole
+        - !Sub ${ProjectName}-LambdaEfsRole
   IamStack:
     Type: AWS::CloudFormation::Stack
     Condition: DeployIam
@@ -410,6 +425,34 @@ Resources:
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         ProjectName: !Ref ProjectName
         IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.CognitoInspectRoleArn, !GetAtt RoleArns.CognitoInspectRoleArn]
+
+  #======================= Aerie ========================#
+  AerieMainStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/aerie.main.template.yaml'
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Parameters:
+        ProjectName: !Ref ProjectName
+        AerieBootstrapRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.AerieBootstrapRoleArn, !GetAtt RoleArns.AerieBootstrapRoleArn]
+        ECSTaskExecutionRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.ECSTaskExecutionRoleArn, !GetAtt RoleArns.ECSTaskExecutionRoleArn]
+        ECSTaskRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.ECSTaskRoleArn, !GetAtt RoleArns.ECSTaskRoleArn]
+        BastionRoleName: !If [DeployIam, !GetAtt IamStack.Outputs.BastionRoleName, !GetAtt RoleArns.BastionRoleName]
+        QSS3BucketName: !Ref QSS3BucketName
+        QSS3BucketRegion: !Ref QSS3BucketRegion
+        QSS3KeyPrefix: !Ref QSS3KeyPrefix
+        FQDN: !Ref FQDN
+        VpcId: !Ref VpcId
+        PublicSubnet1ID: !Ref PublicSubnet1ID
+        PublicSubnet2ID: !Ref PublicSubnet2ID
+        PrivateSubnet1ID: !Ref PrivateSubnet1AID
+        PrivateSubnet2ID: !Ref PrivateSubnet2AID
+        SSLCertificateArn: !Ref SSLCertificateArn
+        EnableEfsBackups: !Ref EnableEfsBackups
+
+  #====================== AST CORE ======================#
   AstALBStack:
     # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
@@ -511,6 +554,7 @@ Resources:
           - !GetAtt ConfigureSSLStack.Outputs.ACMCertificate
           - !Ref SSLCertificateArn
         ALBArn: !GetAtt AstALBStack.Outputs.AlbArn
+
   ConfigureSSLStack:
     # DependsOn: CFNEndpoint
     Condition: GenerateSSL

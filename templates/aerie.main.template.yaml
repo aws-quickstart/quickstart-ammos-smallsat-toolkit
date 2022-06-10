@@ -69,6 +69,11 @@ Parameters:
     Type: AWS::EC2::Subnet::Id
 
   # =========== Aerie Misc =========== #
+  # TODO: Deal with this...
+  #  Options:
+  #     - actually clean up the bastion creation and add AMI map
+  #     - scrap it; we already have a bastion deployed in ast-main (submodule)
+  #     - replace it with one of the other methods for managing EFS content
   BastionAmi:
     Description: AMI ID for the Bastion Server
     Type: AWS::EC2::Image::Id
@@ -93,51 +98,8 @@ Conditions:
   # DeployVpc: !Equals [!Ref VpcId, '']
 
 Resources:
-#   RoleChecker:
-#     Type: AWS::Lambda::Function
-#     Condition: InspectIam
-#     Properties:
-#       Description: Check the account for required IAM Roles so that they may be omitted from the QuickStart deployment if already present
-#       FunctionName: !Sub ${ProjectName}-RoleChecker
-#       Handler: role_checker.lambda_handler
-#       MemorySize: 128
-#       Role:
-#         Fn::ImportValue:
-#           !Sub ${ProjectName}-DeploymentHelperRoleArn
-#       Runtime: python3.8
-#       Code:
-#         S3Bucket: !If
-#           - UsingDefaultBucket
-#           - !Sub '${QSS3BucketName}-${AWS::Region}'
-#           - !Ref QSS3BucketName
-#         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/RoleChecker/lambda.zip'
-#   RoleArns:
-#     Type: AWS::CloudFormation::CustomResource
-#     Condition: InspectIam
-#     Properties:
-#       ServiceToken: !GetAtt RoleChecker.Arn
-#       RoleNames:
-#         - !Sub ${ProjectName}-AitServerRole
-#         - !Sub ${ProjectName}-EditorServerRole
-#         - !Sub ${ProjectName}-LoggingLambdaRole
-#         - !Sub ${ProjectName}-CognitoInspectRole
-#         - !Sub ${ProjectName}-BastionHostRole
-#   IamStack:
-#     Type: AWS::CloudFormation::Stack
-#     Condition: DeployIam
-#     Properties:
-#       TemplateURL: !Sub
-#         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ast-iam-roles.template.yaml'
-#         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-#           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-#       Parameters:
-#         ProjectName: !Ref ProjectName
-#         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
-#         RolePath: !Ref RolePath
-#         QSS3BucketName: !Ref QSS3BucketName
-#         QSS3KeyPrefix: !Ref QSS3KeyPrefix
+  # TODO: This will move to ast.main once we incorporate AST persistance
   AerieDataStack:
-    # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -169,7 +131,6 @@ Resources:
         IamRoleArn: !Ref AerieBootstrapRoleArn
         EfsRootAccessPointArn: !GetAtt AerieDataStack.Outputs.EfsRootAccessPointArn
   AerieEcsStack:
-    # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub

@@ -44,6 +44,7 @@ Conditions:
   PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
 Resources:
+  #====================== AST CORE ======================#
   LoggingLambdaRole:
     Metadata:
       cfn-lint:
@@ -435,6 +436,128 @@ Resources:
             - arn:${AWS::Partition}:s3:::${DestBucket}/*
             - DestBucket: !Sub ${ProjectName}-config
 
+  #======================= Aerie ========================#
+  ECSTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: !Sub IAM Role for ECS Task execution - ${ProjectName}
+      RoleName: !Sub ${ProjectName}-ECSTaskExecutionRole
+      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [
+          PermissionsBoundaryProvided,
+          !Ref PermissionsBoundaryArn,
+          !Ref AWS::NoValue,
+        ]
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+  EcsTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: !Sub IAM Role for ECS Task Runtime - ${ProjectName}
+      RoleName: !Sub ${ProjectName}-EcsTaskRole
+      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [
+          PermissionsBoundaryProvided,
+          !Ref PermissionsBoundaryArn,
+          !Ref AWS::NoValue,
+        ]
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: EnableEcsExecSsmPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ssmmessages:CreateControlChannel
+                  - ssmmessages:CreateDataChannel
+                  - ssmmessages:OpenControlChannel
+                  - ssmmessages:OpenDataChannel
+                Resource: "*"
+        - PolicyName: SecretsManagerReadAccess
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*
+                Condition:
+                  StringLikeIfExists:
+                    secretsmanager:Name: "*AerieDb"
+        # TODO: Lock down the fs and fsap resources if we move to creating the EFS resources *before* IAM
+        - PolicyName: AerieFilesystemMountPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Condition:
+                  StringEquals:
+                    elasticfilesystem:AccessPointArn:
+                      - !Sub "arn:${AWS::Partition}:elasticfilesystem:${AWS::Region}:${AWS::AccountId}:access-point/*"
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:elasticfilesystem:${AWS::Region}:${AWS::AccountId}:file-system/*"
+  LambdaEfsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: !Sub IAM Role for Lambda execution - ${ProjectName}
+      RoleName: !Sub ${ProjectName}-LambdaEfsRole
+      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [
+          PermissionsBoundaryProvided,
+          !Ref PermissionsBoundaryArn,
+          !Ref AWS::NoValue,
+        ]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonElasticFileSystemClientFullAccess"
+      Policies:
+        - PolicyName: AerieFilesystemMountPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Condition:
+                  StringEquals:
+                    elasticfilesystem:AccessPointArn:
+                      - !Sub "arn:${AWS::Partition}:elasticfilesystem:${AWS::Region}:${AWS::AccountId}:access-point/*"
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:elasticfilesystem:${AWS::Region}:${AWS::AccountId}:file-system/*"
+
 Outputs:
   DeploymentHelperRoleArn:
     Export:
@@ -471,3 +594,13 @@ Outputs:
   CopyZipsRoleName:
     Description: Name of the CopyZipsRole created for AST deployment
     Value: !Ref CopyZipsRole
+
+  ECSTaskExecutionRoleArn:
+    Description: "Default Execution Role for ECS Tasks - uses managed policy for task execution"
+    Value: !GetAtt ECSTaskExecutionRole.Arn
+  ECSTaskRoleArn:
+    Description: "Default Task Role for ECS Tasks - uses managed policy for task execution"
+    Value: !GetAtt EcsTaskRole.Arn
+  LambdaEfsRoleArn:
+    Description: "Default Role for Lambda - uses managed policy for function execution"
+    Value: !GetAtt LambdaEfsRole.Arn
