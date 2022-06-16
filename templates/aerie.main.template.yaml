@@ -63,9 +63,11 @@ Parameters:
     Type: AWS::EC2::Subnet::Id
   PublicSubnet2ID:
     Type: AWS::EC2::Subnet::Id
-  PrivateSubnet1ID:
+  PrivateSubnet1AID:
     Type: AWS::EC2::Subnet::Id
-  PrivateSubnet2ID:
+  PrivateSubnet1BID:
+    Type: AWS::EC2::Subnet::Id
+  PrivateSubnet1CID:
     Type: AWS::EC2::Subnet::Id
 
   # =========== Aerie Misc =========== #
@@ -109,11 +111,14 @@ Resources:
       Parameters:
         ProjectName: !Ref ProjectName
         VpcId: !Ref VpcId
-        PublicSubnetIdA: !Ref PublicSubnet1ID
+        PublicSubnet1ID: !Ref PublicSubnet1ID
         Ami: !Ref BastionAmi
         SshKey: !Ref BastionKey
         IamRoleName: !Ref BastionRoleName
         EnableBackups: !Ref EnableEfsBackups
+        PrivateSubnet1AID: !Ref PrivateSubnet1AID
+        PrivateSubnet1BID: !Ref PrivateSubnet1BID
+        PrivateSubnet1CID: !Ref PrivateSubnet1CID
   AerieBootstrapStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -126,7 +131,7 @@ Resources:
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         VpcId: !Ref VpcId
-        PrivateSubnetA: !Ref PrivateSubnet1ID
+        PrivateSubnet1AID: !Ref PrivateSubnet1AID
         EfsSecurityGroup: !GetAtt AerieDataStack.Outputs.EfsSecurityGroup
         IamRoleArn: !Ref AerieBootstrapRoleArn
         EfsRootAccessPointArn: !GetAtt AerieDataStack.Outputs.EfsRootAccessPointArn
@@ -148,8 +153,8 @@ Resources:
         PrivateSubnetIds:
           Fn::Join:
             - ','
-            - - !Ref PrivateSubnet1ID
-              - !Ref PrivateSubnet2ID
+            - - !Ref PrivateSubnet1AID
+              - !Ref PrivateSubnet1BID
         SSLCertificateArn: !Ref SSLCertificateArn
         PrivateNamespaceUrl: !Sub aerie-services.${FQDN}
         EfsSecurityGroup: !GetAtt AerieDataStack.Outputs.EfsSecurityGroup

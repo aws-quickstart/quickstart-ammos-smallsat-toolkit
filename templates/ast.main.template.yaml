@@ -38,8 +38,8 @@ Metadata:
           - PublicSubnet1ID
           - PublicSubnet2ID
           - PrivateSubnet1AID
-          - PrivateSubnet2AID
-          - PrivateSubnet3AID
+          - PrivateSubnet1BID
+          - PrivateSubnet1CID
           - AccessSgID
       - Label:
           default: AWS Quick Start configuration
@@ -106,9 +106,9 @@ Metadata:
         default: ID for public subnet 2 in an existing VPC
       PrivateSubnet1AID:
         default: ID for private subnet 1 in an existing VPC
-      PrivateSubnet2AID:
+      PrivateSubnet1BID:
         default: ID for private subnet 2 in an existing VPC
-      PrivateSubnet3AID:
+      PrivateSubnet1CID:
         default: ID for private subnet 3 in an existing VPC
       AccessSgID:
         default: ID of preconfigured security group in an existing VPC
@@ -254,11 +254,11 @@ Parameters:
     Description: (Optional) If you're deploying into an existing VPC, fill in the ID of the private subnet in Availability Zone 1.
     Type: String
     Default: ''
-  PrivateSubnet2AID:
+  PrivateSubnet1BID:
     Description: (Optional) If you're deploying into an existing VPC, fill in the ID of the private subnet in Availability Zone 2.
     Type: String
     Default: ''
-  PrivateSubnet3AID:
+  PrivateSubnet1CID:
     Description: (Optional) If you're deploying into an existing VPC, fill in the ID of the private subnet in Availability Zone 3.
     Type: String
     Default: ''
@@ -447,8 +447,9 @@ Resources:
         VpcId: !Ref VpcId
         PublicSubnet1ID: !Ref PublicSubnet1ID
         PublicSubnet2ID: !Ref PublicSubnet2ID
-        PrivateSubnet1ID: !Ref PrivateSubnet1AID
-        PrivateSubnet2ID: !Ref PrivateSubnet2AID
+        PrivateSubnet1AID: !Ref PrivateSubnet1AID
+        PrivateSubnet1BID: !Ref PrivateSubnet1BID
+        PrivateSubnet1CID: !Ref PrivateSubnet1CID
         SSLCertificateArn: !Ref SSLCertificateArn
         EnableEfsBackups: !Ref EnableEfsBackups
 
@@ -488,9 +489,9 @@ Resources:
         CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
         IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.LoggingLambdaRoleArn, !GetAtt RoleArns.LoggingLambdaRoleArn]
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
-        PrivateSubnet1ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
-        PrivateSubnet2ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
-        PrivateSubnet3ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet3AID, !Ref PrivateSubnet3AID]
+        PrivateSubnet1AID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
+        PrivateSubnet1BID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1BID, !Ref PrivateSubnet1BID]
+        PrivateSubnet1CID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1CID, !Ref PrivateSubnet1CID]
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
   AstEditorStack:
@@ -518,7 +519,7 @@ Resources:
           Fn::Join:
             - ','
             - - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
-              - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
+              - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1BID, !Ref PrivateSubnet1BID]
         IamRoleName: !If [DeployIam, !GetAtt IamStack.Outputs.EditorServerRoleName, !GetAtt RoleArns.EditorServerRoleName]
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
   AstAITStack:
@@ -538,7 +539,7 @@ Resources:
           Fn::Join:
             - ','
             - - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
-              - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
+              - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1BID, !Ref PrivateSubnet1BID]
         VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
         InstanceType: !Ref AITInstanceType
         KeyPairName: !Ref KeyPairName
@@ -591,7 +592,7 @@ Resources:
       PrivateDnsEnabled: true
       SubnetIds:
         - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
-        - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
-        - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet3AID, !Ref PrivateSubnet3AID]
+        - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1BID, !Ref PrivateSubnet1BID]
+        - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1CID, !Ref PrivateSubnet1CID]
       SecurityGroupIds:
         - !Ref CFNEndpointSG

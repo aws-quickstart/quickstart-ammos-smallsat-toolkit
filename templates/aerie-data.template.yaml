@@ -9,7 +9,13 @@ Parameters:
     Type: String
   VpcId:
     Type: AWS::EC2::VPC::Id
-  PublicSubnetIdA:
+  PrivateSubnet1AID:
+    Type: AWS::EC2::Subnet::Id
+  PrivateSubnet1BID:
+    Type: AWS::EC2::Subnet::Id
+  PrivateSubnet1CID:
+    Type: AWS::EC2::Subnet::Id
+  PublicSubnet1ID:
     Type: AWS::EC2::Subnet::Id
   SshKey:
     Description: SSH Key for accessing the Bastion Server
@@ -155,12 +161,21 @@ Resources:
   MountTargetPrivateA:
     Type: AWS::EFS::MountTarget
     Properties:
-      FileSystemId:
-        Ref: FileSystem
-      SubnetId:
-        Ref: PublicSubnetIdA
-      SecurityGroups:
-        - Ref: EfsSecurityGroup
+      FileSystemId: !Ref FileSystem
+      SubnetId: !Ref PrivateSubnet1AID
+      SecurityGroups: [!Ref EfsSecurityGroup]
+  MountTargetPrivateB:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref FileSystem
+      SubnetId: !Ref PrivateSubnet1BID
+      SecurityGroups: [!Ref EfsSecurityGroup]
+  MountTargetPrivateC:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref FileSystem
+      SubnetId: !Ref PrivateSubnet1CID
+      SecurityGroups: [!Ref EfsSecurityGroup]
 
   RootAccessPoint:
     Type: AWS::EFS::AccessPoint
@@ -237,7 +252,7 @@ Resources:
       IamInstanceProfile: !Ref BastionProfile
       SecurityGroupIds:
         - !Ref BastionSecurityGroup
-      SubnetId: !Ref PublicSubnetIdA
+      SubnetId: !Ref PublicSubnet1ID
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash -ex
