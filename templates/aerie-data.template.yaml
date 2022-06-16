@@ -44,7 +44,7 @@ Parameters:
     Default: 120
   MoveToColdStorageAfterDays:
     Type: Number
-    Default: 60
+    Default: 30
   DeleteAfterDays:
     Type: Number
     Default: 120
