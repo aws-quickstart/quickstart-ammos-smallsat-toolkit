@@ -458,13 +458,24 @@ Resources:
                 - ecs-tasks.amazonaws.com
             Action:
               - sts:AssumeRole
+      Policies:
+        - PolicyName: SecretsManagerReadAccess
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*
+                Condition:
+                  StringLikeIfExists:
+                    secretsmanager:Name: "*AerieDb*"
       ManagedPolicyArns:
         - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-  EcsTaskRole:
+  ECSTaskRole:
     Type: AWS::IAM::Role
     Properties:
       Description: !Sub IAM Role for ECS Task Runtime - ${ProjectName}
-      RoleName: !Sub ${ProjectName}-EcsTaskRole
+      RoleName: !Sub ${ProjectName}-ECSTaskRole
       Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
       PermissionsBoundary:
         !If [
@@ -501,7 +512,7 @@ Resources:
                 Resource: !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*
                 Condition:
                   StringLikeIfExists:
-                    secretsmanager:Name: "*AerieDb"
+                    secretsmanager:Name: "*AerieDb*"
         # TODO: Lock down the fs and fsap resources if we move to creating the EFS resources *before* IAM
         - PolicyName: AerieFilesystemMountPolicy
           PolicyDocument:
@@ -600,7 +611,7 @@ Outputs:
     Value: !GetAtt ECSTaskExecutionRole.Arn
   ECSTaskRoleArn:
     Description: "Default Task Role for ECS Tasks - uses managed policy for task execution"
-    Value: !GetAtt EcsTaskRole.Arn
+    Value: !GetAtt ECSTaskRole.Arn
   LambdaEfsRoleArn:
     Description: "Default Role for Lambda - uses managed policy for function execution"
     Value: !GetAtt LambdaEfsRole.Arn

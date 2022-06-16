@@ -349,7 +349,7 @@ Resources:
         - !Sub ${ProjectName}-CognitoInspectRole
         - !Sub ${ProjectName}-BastionHostRole
         - !Sub ${ProjectName}-ECSTaskExecutionRole
-        - !Sub ${ProjectName}-EcsTaskRole
+        - !Sub ${ProjectName}-ECSTaskRole
         - !Sub ${ProjectName}-LambdaEfsRole
   IamStack:
     Type: AWS::CloudFormation::Stack
@@ -436,10 +436,10 @@ Resources:
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         ProjectName: !Ref ProjectName
-        AerieBootstrapRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.AerieBootstrapRoleArn, !GetAtt RoleArns.AerieBootstrapRoleArn]
+        AerieBootstrapRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.LambdaEfsRoleArn, !GetAtt RoleArns.LambdaEfsRoleArn]
         ECSTaskExecutionRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.ECSTaskExecutionRoleArn, !GetAtt RoleArns.ECSTaskExecutionRoleArn]
         ECSTaskRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.ECSTaskRoleArn, !GetAtt RoleArns.ECSTaskRoleArn]
-        BastionRoleName: !If [DeployIam, !GetAtt IamStack.Outputs.BastionRoleName, !GetAtt RoleArns.BastionRoleName]
+        BastionRoleName: !If [DeployIam, !GetAtt IamStack.Outputs.BastionHostRoleName, !GetAtt RoleArns.BastionHostRoleName]
         QSS3BucketName: !Ref QSS3BucketName
         QSS3BucketRegion: !Ref QSS3BucketRegion
         QSS3KeyPrefix: !Ref QSS3KeyPrefix

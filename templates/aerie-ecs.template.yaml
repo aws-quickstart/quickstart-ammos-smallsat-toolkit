@@ -82,7 +82,7 @@ Resources:
   RootUserDbSecret:
     Type: "AWS::SecretsManager::Secret"
     Properties:
-      Name: RootUserDbSecretAerieDb
+      Name: !Sub ${ProjectName}-RootUserDbSecretAerieDb
       Description: Superuser credentials for Aerie database.
       GenerateSecretString:
         SecretStringTemplate: '{"username": "postgres"}'
@@ -92,7 +92,7 @@ Resources:
   AerieUserDbSecret:
     Type: "AWS::SecretsManager::Secret"
     Properties:
-      Name: AerieUserDbSecretAerieDb
+      Name: !Sub ${ProjectName}-AerieUserDbSecretAerieDb
       Description: Credentials for Aerie database.
       GenerateSecretString:
         SecretStringTemplate: '{"username": "aerie"}'
@@ -657,14 +657,14 @@ Resources:
             - Name: POSTGRES_DB
               Value: postgres
             - Name: POSTGRES_PASSWORD
-              Value: "{{resolve:secretsmanager:RootUserDbSecret:SecretString:password}}"
+              Value: !Sub "{{resolve:secretsmanager:${ProjectName}-RootUserDbSecretAerieDb:SecretString:password}}"
             - Name: POSTGRES_USER
-              Value: "{{resolve:secretsmanager:RootUserDbSecret:SecretString:username}}"
+              Value: !Sub "{{resolve:secretsmanager:${ProjectName}-RootUserDbSecretAerieDb:SecretString:username}}"
             - Name: HEALTHCHECK_DB
               Value: aerie_merlin
           Secrets:
             - Name: POSTGRES_Password
-              ValueFrom: $Ref RootUserDbSecret
+              ValueFrom: !Ref RootUserDbSecret
           LogConfiguration:
             LogDriver: awslogs
             Options:
