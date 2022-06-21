@@ -30,7 +30,7 @@ Parameters:
     Type: AWS::EC2::VPC::Id
   PrivateSubnetA:
     Type: AWS::EC2::Subnet::Id
-  EfsSecurityGroup:
+  EfsSecurityGroupId:
     Type: AWS::EC2::SecurityGroup::Id
   IamRoleArn:
     Type: String
@@ -56,7 +56,7 @@ Resources:
       FromPort: 2049
       ToPort: 2049
       SourceSecurityGroupId: !Ref LambdaSecurityGroup
-      GroupId: !Ref EfsSecurityGroup
+      GroupId: !Ref EfsSecurityGroupId
 
   CopyAerieDeploymentEFS:
     Type: AWS::Lambda::Function

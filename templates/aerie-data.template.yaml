@@ -303,18 +303,12 @@ Outputs:
   EfsLambdaMountTarget:
     Description: "Mount target for lambda function"
     Value: !Ref MountTargetPrivateA
-    Export:
-      Name: !Sub "${ProjectName}-EfsLambdaMountTarget"
-  EfsFilesystemId:
+  AerieFileSystemId:
     Description: "Filesystem-ID for EFS"
     Value: !GetAtt FileSystem.FileSystemId
-    Export:
-      Name: !Sub "${ProjectName}-AerieFileSystemId"
-  EfsFilesystemArn:
+  AerieFileSystemArn:
     Description: "ARN for EFS Filesystem"
     Value: !GetAtt FileSystem.Arn
-    Export:
-      Name: !Sub "${ProjectName}-AerieFileSystemArn"
 
   # ==================== EFS Acess Points ==================== #
   # Root
@@ -326,58 +320,38 @@ Outputs:
   EfsRootAccessPointId:
     Description: "Access Point for EFS Root Path (FS ID)"
     Value: !Ref RootAccessPoint
-    Export:
-      Name: !Sub "${ProjectName}-EfsRootAccessPointId"
   # Aerie Filestore
   AerieFilestoreAccessPointId:
     Description: Access Point for AerieFilestore AccessPoint
     Value: !Ref AerieFilestoreAccessPoint
-    Export:
-      Name: !Sub "${ProjectName}-AerieFilestoreAccessPointId"
   AerieFilestoreAccessPointArn:
     Description: Access Point for AerieFilestore AccessPoint
     Value: !GetAtt AerieFilestoreAccessPoint.Arn
-    Export:
-      Name: !Sub "${ProjectName}-AerieFilestoreAccessPointArn"
   # Postgres Data
   PostgresDataAccessPointId:
     Description: Access Point for PostgresData AccessPoint
     Value: !Ref PostgresDataAccessPoint
-    Export:
-      Name: !Sub "${ProjectName}-PostgresDataAccessPointId"
   PostgresDataAccessPointArn:
     Description: Access Point for PostgresData AccessPoint
     Value: !GetAtt PostgresDataAccessPoint.Arn
-    Export:
-      Name: !Sub "${ProjectName}-PostgresDataAccessPointArn"
   # Postgres Init
   PostgresInitAccessPointId:
     Description: Access Point for PostgresInit AccessPoint
     Value: !Ref PostgresInitAccessPoint
-    Export:
-      Name: !Sub "${ProjectName}-PostgresInitAccessPointId"
   PostgresInitAccessPointArn:
     Description: Access Point for PostgresInitAccessPoint
     Value: !GetAtt PostgresInitAccessPoint.Arn
-    Export:
-      Name: !Sub "${ProjectName}-PostgresInitAccessPointArn"
   # Hasura Init
   HasuraInitAccessPointId:
     Description: Access Point for HasuraInit AccessPoint
     Value: !Ref HasuraInitAccessPoint
-    Export:
-      Name: !Sub "${ProjectName}-HasuraInitAccessPointId"
   HasuraInitAccessPointArn:
     Description: Access Point for HasuraInit AccessPoint
     Value: !GetAtt HasuraInitAccessPoint.Arn
-    Export:
-      Name: !Sub "${ProjectName}-HasuraInitAccessPointArn"
 
-  EfsSecurityGroup:
+  EfsSecurityGroupId:
     Description: "Security group ID for lambda function"
     Value: !Ref EfsSecurityGroup
-    Export:
-      Name: !Sub "${ProjectName}-EfsSecurityGroup"
   EfsBastionId:
     Description: Instance ID of the EFS Bastion Server
     Value: !Ref BastionServer

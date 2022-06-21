@@ -132,14 +132,14 @@ Resources:
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         VpcId: !Ref VpcId
         PrivateSubnet1AID: !Ref PrivateSubnet1AID
-        EfsSecurityGroup: !GetAtt AerieDataStack.Outputs.EfsSecurityGroup
+        EfsSecurityGroupId: !GetAtt AerieDataStack.Outputs.EfsSecurityGroupId
         IamRoleArn: !Ref AerieBootstrapRoleArn
         EfsRootAccessPointArn: !GetAtt AerieDataStack.Outputs.EfsRootAccessPointArn
-  AerieEcsStack:
+  AerieAlbStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/aerie-ecs.template.yaml'
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/aerie-alb.template.yaml'
         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
@@ -150,6 +150,19 @@ Resources:
             - ','
             - - !Ref PublicSubnet1ID
               - !Ref PublicSubnet2ID
+  AerieEcsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/aerie-ecs.template.yaml'
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Parameters:
+        ProjectName: !Ref ProjectName
+        VpcId: !Ref VpcId
+        ALBArn: !GetAtt AerieAlbStack.Outputs.ApplicationLoadBalancerArn
+        ApplicationLoadBalancerDns: !GetAtt AerieAlbStack.Outputs.ApplicationLoadBalancerDns
+        ALBSecurityGroupID: !GetAtt AerieAlbStack.Outputs.ALBSecurityGroupID
         PrivateSubnetIds:
           Fn::Join:
             - ','
@@ -157,6 +170,11 @@ Resources:
               - !Ref PrivateSubnet1BID
         SSLCertificateArn: !Ref SSLCertificateArn
         PrivateNamespaceUrl: !Sub aerie-services.${FQDN}
-        EfsSecurityGroup: !GetAtt AerieDataStack.Outputs.EfsSecurityGroup
+        EfsSecurityGroupId: !GetAtt AerieDataStack.Outputs.EfsSecurityGroupId
         ECSTaskExecutionRoleArn: !Ref ECSTaskExecutionRoleArn
         ECSTaskRoleArn: !Ref ECSTaskRoleArn
+        AerieFileSystemId: !GetAtt AerieDataStack.Outputs.AerieFileSystemId
+        AerieFilestoreAccessPointId: !GetAtt AerieDataStack.Outputs.AerieFilestoreAccessPointId
+        PostgresDataAccessPointId: !GetAtt AerieDataStack.Outputs.PostgresDataAccessPointId
+        PostgresInitAccessPointId: !GetAtt AerieDataStack.Outputs.PostgresInitAccessPointId
+        HasuraInitAccessPointId: !GetAtt AerieDataStack.Outputs.HasuraInitAccessPointId
