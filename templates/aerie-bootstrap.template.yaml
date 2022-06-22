@@ -28,7 +28,7 @@ Parameters:
     Type: String
   VpcId:
     Type: AWS::EC2::VPC::Id
-  PrivateSubnetA:
+  PrivateSubnet1AID:
     Type: AWS::EC2::Subnet::Id
   EfsSecurityGroupId:
     Type: AWS::EC2::SecurityGroup::Id
@@ -77,7 +77,7 @@ Resources:
         SecurityGroupIds:
         - !Ref LambdaSecurityGroup
         SubnetIds:
-        - Ref: PrivateSubnetA
+        - Ref: PrivateSubnet1AID
       FileSystemConfigs:
       - Arn: !Ref EfsRootAccessPointArn
         LocalMountPath: "/mnt/efs"
