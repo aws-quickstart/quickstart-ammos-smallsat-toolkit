@@ -11,7 +11,7 @@ Parameters:
     Type: String
   ApplicationLoadBalancerDns:
     Type: String
-  ALBSecurityGroupID:
+  AlbSecurityGroupId:
     Type: String
   PrivateSubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
@@ -73,19 +73,19 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          SourceSecurityGroupId: !Ref ALBSecurityGroupID
+          SourceSecurityGroupId: !Ref AlbSecurityGroupId
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
-          SourceSecurityGroupId: !Ref ALBSecurityGroupID
+          SourceSecurityGroupId: !Ref AlbSecurityGroupId
         - IpProtocol: tcp
           FromPort: 9000
           ToPort: 9000
-          SourceSecurityGroupId: !Ref ALBSecurityGroupID
+          SourceSecurityGroupId: !Ref AlbSecurityGroupId
         - IpProtocol: tcp
           FromPort: 8080
           ToPort: 8080
-          SourceSecurityGroupId: !Ref ALBSecurityGroupID
+          SourceSecurityGroupId: !Ref AlbSecurityGroupId
 
   EcsInternalSecurityGroup:
     Type: AWS::EC2::SecurityGroup

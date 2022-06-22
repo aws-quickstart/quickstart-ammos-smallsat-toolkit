@@ -37,7 +37,7 @@ Parameters:
     Type: String
   CognitoDomainName:
     Type: String
-  ALBSecurityGroupID:
+  AlbSecurityGroupId:
     Type: String
   CognitoClientID:
     Type: String
@@ -87,11 +87,11 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          SourceSecurityGroupId: !Ref ALBSecurityGroupID
+          SourceSecurityGroupId: !Ref AlbSecurityGroupId
         - IpProtocol: tcp
           FromPort: 8082
           ToPort: 8082
-          SourceSecurityGroupId: !Ref ALBSecurityGroupID
+          SourceSecurityGroupId: !Ref AlbSecurityGroupId
   AitAutoScalingGroupInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:

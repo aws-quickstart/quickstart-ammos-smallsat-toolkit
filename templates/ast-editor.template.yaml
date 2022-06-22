@@ -33,7 +33,7 @@ Parameters:
   IamRoleName:
     Description: Name of the pre-deployed IAM Role to use with the Editor Server
     Type: String
-  ALBSecurityGroupID:
+  AlbSecurityGroupId:
     Description: ID of Pre-configured Security Group attached to the ALB
     Type: String
   CognitoClientID:
@@ -84,7 +84,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          SourceSecurityGroupId: !Ref ALBSecurityGroupID
+          SourceSecurityGroupId: !Ref AlbSecurityGroupId
       VpcId: !Ref VPCID
   EditorTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup

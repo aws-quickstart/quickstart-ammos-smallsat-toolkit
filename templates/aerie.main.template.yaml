@@ -162,7 +162,7 @@ Resources:
         VpcId: !Ref VpcId
         ALBArn: !GetAtt AerieAlbStack.Outputs.ApplicationLoadBalancerArn
         ApplicationLoadBalancerDns: !GetAtt AerieAlbStack.Outputs.ApplicationLoadBalancerDns
-        ALBSecurityGroupID: !GetAtt AerieAlbStack.Outputs.ALBSecurityGroupID
+        AlbSecurityGroupId: !GetAtt AerieAlbStack.Outputs.AlbSecurityGroupId
         PrivateSubnetIds:
           Fn::Join:
             - ','

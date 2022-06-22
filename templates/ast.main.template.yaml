@@ -526,7 +526,7 @@ Resources:
           Fn::ImportValue:
             !Sub "${ProjectName}-ConfigBucketName"
         ALBHttpsListenerArn: !GetAtt AstALBStack.Outputs.HttpsListenerArn
-        ALBSecurityGroupID: !GetAtt AstALBStack.Outputs.AlbSecurityGroupId
+        AlbSecurityGroupId: !GetAtt AstALBStack.Outputs.AlbSecurityGroupId
         CognitoClientID: !GetAtt AstALBStack.Outputs.CognitoClientId
         CognitoClientSecret: !GetAtt AstALBStack.Outputs.CognitoClientSecret
         CognitoDomainName: !GetAtt AmmosCognitoStack.Outputs.CognitoDomainName
@@ -563,7 +563,7 @@ Resources:
         KeyPairName: !Ref KeyPairName
         IamRoleName: !If [DeployIam, !GetAtt IamStack.Outputs.AitServerRoleName, !GetAtt RoleArns.AitServerRoleName]
         CognitoDomainName: !GetAtt AmmosCognitoStack.Outputs.CognitoDomainName
-        ALBSecurityGroupID: !GetAtt AstALBStack.Outputs.AlbSecurityGroupId
+        AlbSecurityGroupId: !GetAtt AstALBStack.Outputs.AlbSecurityGroupId
         CognitoClientID: !GetAtt AstALBStack.Outputs.CognitoClientId
         CognitoClientSecret: !GetAtt AstALBStack.Outputs.CognitoClientSecret
         CognitoProviderUrl: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolProviderUrl
