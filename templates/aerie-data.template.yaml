@@ -199,7 +199,7 @@ Resources:
         CreationInfo:
           OwnerUid: "1001"
           OwnerGid: "1001"
-          Permissions: "664"
+          Permissions: "777"
         Path: /efs/aerie
       FileSystemId: !Ref FileSystem
 
@@ -210,7 +210,7 @@ Resources:
         CreationInfo:
           OwnerUid: "1001"
           OwnerGid: "1001"
-          Permissions: "664"
+          Permissions: "777"
         Path: /efs/init_postgres
       FileSystemId: !Ref FileSystem
 
@@ -221,7 +221,7 @@ Resources:
         CreationInfo:
           OwnerUid: "1001"
           OwnerGid: "1001"
-          Permissions: "664"
+          Permissions: "777"
         Path: /efs/init_hasura
       FileSystemId: !Ref FileSystem
 
@@ -232,8 +232,19 @@ Resources:
         CreationInfo:
           OwnerUid: "1001"
           OwnerGid: "1001"
-          Permissions: "664"
+          Permissions: "777"
         Path: /efs/postgres
+      FileSystemId: !Ref FileSystem
+
+  CommandingInitAccessPoint:
+    Type: AWS::EFS::AccessPoint
+    Properties:
+      RootDirectory:
+        CreationInfo:
+          OwnerUid: "1001"
+          OwnerGid: "1001"
+          Permissions: "777"
+        Path: /efs/init_commanding
       FileSystemId: !Ref FileSystem
 
   BastionProfile:
@@ -348,6 +359,14 @@ Outputs:
   HasuraInitAccessPointArn:
     Description: Access Point for HasuraInit AccessPoint
     Value: !GetAtt HasuraInitAccessPoint.Arn
+
+  # Commanding Init
+  CommandingInitAccessPointId:
+    Description: Access Point for CommandingInit AccessPoint
+    Value: !Ref CommandingInitAccessPoint
+  CommandingInitAccessPointArn:
+    Description: Access Point for CommandingInit AccessPoint
+    Value: !GetAtt CommandingInitAccessPoint.Arn
 
   EfsSecurityGroupId:
     Description: "Security group ID for lambda function"

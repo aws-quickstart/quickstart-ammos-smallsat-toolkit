@@ -36,6 +36,8 @@ Parameters:
     Type: String
   HasuraInitAccessPointId:
     Type: String
+  CommandingInitAccessPointId:
+    Type: String
 
 Resources:
   RootUserDbSecret:
@@ -436,6 +438,61 @@ Resources:
       RequiresCompatibilities:
         - FARGATE
 
+  CommandingTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Name: aerie-commanding
+          Image: 016915823617.dkr.ecr.us-gov-west-1.amazonaws.com/aerie-commanding:latest
+          PortMappings:
+            - ContainerPort: 27184
+          Environment:
+            - Name: LOG_FILE
+              Value: console
+            - Name: LOG_LEVEL
+              Value: warn
+            - Name: MERLIN_GRAPHQL_URL
+              Value: !Sub http://hasura.${PrivateNamespaceUrl}:8080/v1/graphql
+            - Name: COMMANDING_SERVER_PORT
+              Value: 27184
+            - Name: COMMANDING_DB
+              Value: aerie_commanding
+            - Name: COMMANDING_DB_PASSWORD
+              Value: aerie
+            - Name: COMMANDING_DB_PORT
+              Value: 5432
+            - Name: COMMANDING_DB_SERVER
+              Value: !Sub postgres.${PrivateNamespaceUrl}
+            - Name: COMMANDING_DB_USER
+              Value: aerie
+            - Name: COMMANDING_LOCAL_STORE
+              Value: /usr/src/app/commanding_file_store
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: aerie-commanding
+          MountPoints:
+            - ContainerPath: /commanding-metadata
+              SourceVolume: init_commanding
+          Essential: True
+      Cpu: "2048"
+      Memory: "4096"
+      Volumes:
+        - Name: init_commanding
+          EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId: !Ref CommandingInitAccessPointId
+              IAM: ENABLED
+            FilesystemId: !Ref AerieFileSystemId
+            TransitEncryption: ENABLED
+      ExecutionRoleArn: !Ref ECSTaskExecutionRoleArn
+      TaskRoleArn: !Ref ECSTaskRoleArn
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+
   HasuraTask:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -577,6 +634,43 @@ Resources:
         FailureThreshold: 1
       Name: aerie-gateway
       NamespaceId: !Ref PrivateNamespace
+
+  CommandingDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Description: Discovery Service for Aerie Commanding
+      DnsConfig:
+        RoutingPolicy: MULTIVALUE
+        DnsRecords:
+          - TTL: 60
+            Type: A
+          - TTL: 60
+            Type: SRV
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: aerie-commanding
+      NamespaceId: !Ref PrivateNamespace
+
+  CommandingService:
+    Type: AWS::ECS::Service
+    DependsOn: PostgresService
+    Properties:
+      LaunchType: FARGATE
+      Cluster: !Ref FargateCluster
+      ServiceName: aerie-commanding
+      DesiredCount: 1
+      TaskDefinition: !Ref CommandingTask
+      EnableExecuteCommand: true
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: !Ref PrivateSubnetIds
+          SecurityGroups:
+            - !Ref EcsInternalSecurityGroup
+            - !Ref EcsSecurityGroup
+      ServiceRegistries:
+        - RegistryArn: !GetAtt CommandingDiscoveryService.Arn
+          Port: 27184
 
   GatewayService:
     Type: AWS::ECS::Service

@@ -178,3 +178,4 @@ Resources:
         PostgresDataAccessPointId: !GetAtt AerieDataStack.Outputs.PostgresDataAccessPointId
         PostgresInitAccessPointId: !GetAtt AerieDataStack.Outputs.PostgresInitAccessPointId
         HasuraInitAccessPointId: !GetAtt AerieDataStack.Outputs.HasuraInitAccessPointId
+        CommandingInitAccessPointId: !GetAtt AerieDataStack.Outputs.CommandingInitAccessPointId

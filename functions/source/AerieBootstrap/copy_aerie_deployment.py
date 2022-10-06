@@ -7,6 +7,7 @@ import urllib.request
 import zipfile
 import tarfile
 from crhelper import CfnResource
+from io import BytesIO
 
 helper = CfnResource()
 
@@ -31,12 +32,12 @@ def clone_deployment(event, _):
         # Extract all the contents of zip file in different directory
         zipObj.extractall('/tmp')
 
-
     pathlib.Path("/mnt/efs/aerie").mkdir(parents=True, exist_ok=True)
     pathlib.Path("/mnt/efs/postgres").mkdir(parents=True, exist_ok=True)
     pathlib.Path("/mnt/efs/deployment").mkdir(parents=True, exist_ok=True)
     pathlib.Path("/mnt/efs/init_postgres").mkdir(parents=True, exist_ok=True)
     pathlib.Path("/mnt/efs/init_hasura").mkdir(parents=True, exist_ok=True)
+    pathlib.Path("/mnt/efs/init_commanding").mkdir(parents=True, exist_ok=True)
 
     shutil.copytree("/tmp/deployment", "/mnt/efs/deployment", dirs_exist_ok=True)
     shutil.copytree("/tmp/deployment/postgres-init-db", "/mnt/efs/init_postgres", dirs_exist_ok=True)
