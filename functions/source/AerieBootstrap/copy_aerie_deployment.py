@@ -1,4 +1,5 @@
 import os
+import io
 import shutil
 import subprocess
 import pathlib
@@ -24,11 +25,12 @@ def clone_deployment(event, _):
             except Exception as e:
                 print('Failed to delete %s. Reason: %s' % (file_path, e))
 
-    url = 'https://github.com/NASA-AMMOS/aerie/releases/latest/download/Deployment.tar.gz'
+    url = 'https://github.com/NASA-AMMOS/aerie/releases/download/v0.12.3/deployment.zip'
     filehandle = urllib.request.urlopen(url)
-    tar = tarfile.open(fileobj=filehandle, mode="r|gz")
-    tar.extractall("/tmp")
-    tar.close()
+    with zipfile.ZipFile(io.BytesIO(filehandle.read())) as zipObj:
+        # Extract all the contents of zip file in different directory
+        zipObj.extractall('/tmp')
+
 
     pathlib.Path("/mnt/efs/aerie").mkdir(parents=True, exist_ok=True)
     pathlib.Path("/mnt/efs/postgres").mkdir(parents=True, exist_ok=True)
