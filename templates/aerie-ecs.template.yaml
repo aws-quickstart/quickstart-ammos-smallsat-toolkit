@@ -209,7 +209,7 @@ Resources:
     Properties:
       ContainerDefinitions:
         - Name: aerie-gateway
-          Image: ghcr.io/nasa-ammos/aerie-gateway:latest
+          Image: ghcr.io/nasa-ammos/aerie-gateway:v0.12.3
           PortMappings:
             - ContainerPort: 9000
           Environment:
@@ -274,7 +274,7 @@ Resources:
     Properties:
       ContainerDefinitions:
         - Name: aerie-merlin
-          Image: ghcr.io/nasa-ammos/aerie-merlin:latest
+          Image: ghcr.io/nasa-ammos/aerie-merlin:v0.12.3
           PortMappings:
             - ContainerPort: 27183
           Environment:
@@ -331,7 +331,7 @@ Resources:
     Properties:
       ContainerDefinitions:
         - Name: aerie-scheduler
-          Image: ghcr.io/nasa-ammos/aerie-scheduler:latest
+          Image: ghcr.io/nasa-ammos/aerie-scheduler:v0.12.3
           PortMappings:
             - ContainerPort: 27193
           Environment:
@@ -396,7 +396,7 @@ Resources:
     Properties:
       ContainerDefinitions:
         - Name: aerie-ui
-          Image: 016915823617.dkr.ecr.us-gov-west-1.amazonaws.com/aerie-ui:latest
+          Image: 016915823617.dkr.ecr.us-gov-west-1.amazonaws.com/aerie-ui:v0.12.3
           PortMappings:
             - ContainerPort: 80
           Environment:
@@ -504,9 +504,11 @@ Resources:
             - Name: POSTGRES_DB
               Value: postgres
             - Name: POSTGRES_PASSWORD
-              Value: !Sub "{{resolve:secretsmanager:${ProjectName}-RootUserDbSecretAerieDb:SecretString:password}}"
+              Value: aerie
+              # Value: !Sub "{{resolve:secretsmanager:${ProjectName}-RootUserDbSecretAerieDb:SecretString:password}}"
             - Name: POSTGRES_USER
-              Value: !Sub "{{resolve:secretsmanager:${ProjectName}-RootUserDbSecretAerieDb:SecretString:username}}"
+              Value: aerie
+              # Value: !Sub "{{resolve:secretsmanager:${ProjectName}-RootUserDbSecretAerieDb:SecretString:username}}"
             - Name: HEALTHCHECK_DB
               Value: aerie_merlin
           Secrets:
