@@ -113,7 +113,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       HealthCheckIntervalSeconds: 30
-      HealthCheckPath: /
+      HealthCheckPath: /health
       HealthCheckTimeoutSeconds: 5
       UnhealthyThresholdCount: 2
       HealthyThresholdCount: 2
@@ -129,7 +129,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       HealthCheckIntervalSeconds: 30
-      HealthCheckPath: /
+      HealthCheckPath: /health
       HealthCheckTimeoutSeconds: 5
       UnhealthyThresholdCount: 2
       HealthyThresholdCount: 2
@@ -143,7 +143,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       HealthCheckIntervalSeconds: 30
-      HealthCheckPath: /v1/graphql
+      HealthCheckPath: /healthz
       HealthCheckTimeoutSeconds: 5
       UnhealthyThresholdCount: 2
       HealthyThresholdCount: 2
@@ -300,6 +300,8 @@ Resources:
               Value: "-Dorg.slf4j.simpleLogger.defaultLogLevel=WARN -Dorg.slf4j.simpleLogger.logFile=System.out"
             - Name: MERLIN_DB_TYPE
               Value: !Sub postgres.${PrivateNamespaceUrl}
+            - Name: UNTRUE_PLAN_START
+              Value: "2022-09-15T06:30:00Z"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -398,7 +400,7 @@ Resources:
     Properties:
       ContainerDefinitions:
         - Name: aerie-ui
-          Image: 016915823617.dkr.ecr.us-gov-west-1.amazonaws.com/aerie-ui:v0.12.3
+          Image: ghcr.io/nasa-ammos/aerie-ui:v0.12.3
           PortMappings:
             - ContainerPort: 80
           Environment:
@@ -502,6 +504,8 @@ Resources:
           PortMappings:
             - ContainerPort: 8080
           Environment:
+            - Name: AERIE_COMMANDING_DATABASE_URL
+              Value: !Sub postgres://aerie:aerie@postgres.${PrivateNamespaceUrl}:5432/aerie_commanding
             - Name: AERIE_MERLIN_DATABASE_URL
               Value: !Sub postgres://aerie:aerie@postgres.${PrivateNamespaceUrl}:5432/aerie_merlin
             - Name: AERIE_SCHEDULER_DATABASE_URL
@@ -520,6 +524,8 @@ Resources:
               Value: !Sub postgres://aerie:aerie@postgres.${PrivateNamespaceUrl}:5432/aerie_hasura
             - Name: HASURA_GRAPHQL_METADATA_DIR
               Value: /hasura-metadata
+            - Name: HASURA_GRAPHQL_CORS_DOMAIN
+              Value: "*"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -561,16 +567,18 @@ Resources:
             - Name: POSTGRES_DB
               Value: postgres
             - Name: POSTGRES_PASSWORD
-              Value: aerie
-              # Value: !Sub "{{resolve:secretsmanager:${ProjectName}-RootUserDbSecretAerieDb:SecretString:password}}"
+              # Value: aerie
+              Value: !Sub "{{resolve:secretsmanager:${ProjectName}-RootUserDbSecretAerieDb:SecretString:password}}"
             - Name: POSTGRES_USER
-              Value: aerie
-              # Value: !Sub "{{resolve:secretsmanager:${ProjectName}-RootUserDbSecretAerieDb:SecretString:username}}"
+              # Value: aerie
+              Value: !Sub "{{resolve:secretsmanager:${ProjectName}-RootUserDbSecretAerieDb:SecretString:username}}"
             - Name: HEALTHCHECK_DB
               Value: aerie_merlin
-          Secrets:
-            - Name: POSTGRES_Password
-              ValueFrom: !Ref RootUserDbSecret
+          # Secrets:
+          #   - Name: POSTGRES_PASSWORD_S
+          #     ValueFrom: !Sub "${RootUserDbSecret}:password::"
+          #   - Name: POSTGRES_USER_S
+          #     ValueFrom: !Sub "${RootUserDbSecret}:username::"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -617,7 +625,7 @@ Resources:
   LogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /ecs/aerie-ui
+      LogGroupName: !Sub /ecs/${ProjectName}/aerie-ecs
 
   GatewayDiscoveryService:
     Type: AWS::ServiceDiscovery::Service
