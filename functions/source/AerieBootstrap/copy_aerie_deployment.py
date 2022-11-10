@@ -44,9 +44,10 @@ def clone_deployment(event, _):
     shutil.copytree("/tmp/deployment/hasura/metadata", "/mnt/efs/init_hasura", dirs_exist_ok=True)
 
     helper.Data['message'] = str(os.listdir("/mnt/efs/"))
+
 @helper.delete
 def no_op(_, __):
-    pass
+    return None
 
 def handler(event, context):
     helper(event, context)

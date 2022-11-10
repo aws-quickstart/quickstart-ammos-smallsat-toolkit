@@ -160,6 +160,7 @@ Resources:
                     <p><a href="https://ait.${FQDN}">AIT</a></p>
                     <p><a href="https://mct.${FQDN}">OpenMCT</a></p>
                     <p><a href="https://editor.${FQDN}">Editor</a></p>
+                    <p><a href="https://aerie.${FQDN}">Aerie</a></p>
                 </body>
                 </html>
 

@@ -231,8 +231,6 @@ Resources:
               Value: aerie_merlin
             - Name: POSTGRES_AERIE_SCHEDULER_DB
               Value: aerie_scheduler
-            - Name: POSTGRES_AERIE_UI_DB
-              Value: aerie_ui
             - Name: POSTGRES_HOST
               Value: !Sub postgres.${PrivateNamespaceUrl}
             - Name: POSTGRES_PASSWORD
@@ -241,8 +239,6 @@ Resources:
               Value: "5432"
             - Name: POSTGRES_USER
               Value: aerie
-            - Name: POSTGRES_TYPE
-              Value: !Sub postgres.${PrivateNamespaceUrl}
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -300,8 +296,6 @@ Resources:
               Value: "-Dorg.slf4j.simpleLogger.defaultLogLevel=WARN -Dorg.slf4j.simpleLogger.logFile=System.out"
             - Name: MERLIN_DB_TYPE
               Value: !Sub postgres.${PrivateNamespaceUrl}
-            - Name: UNTRUE_PLAN_START
-              Value: "2022-09-15T06:30:00Z"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -355,8 +349,6 @@ Resources:
               Value: "aerie"
             - Name: SCHEDULER_LOCAL_STORE
               Value: /usr/src/app/scheduler_file_store
-            - Name: SCHEDULER_LOGGING
-              Value: "true"
             - Name: SCHEDULER_OUTPUT_MODE
               Value: UpdateInputPlanWithNewActivities
             - Name: SCHEDULER_PORT
@@ -365,8 +357,6 @@ Resources:
               Value: /usr/src/app/merlin_file_store/scheduler_rules.jar
             - Name: JAVA_OPTS
               Value: "-Dorg.slf4j.simpleLogger.defaultLogLevel=WARN -Dorg.slf4j.simpleLogger.logFile=System.out"
-            - Name: SCHEDULER_DB_TYPE
-              Value: !Sub postgres.${PrivateNamespaceUrl}
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -415,16 +405,24 @@ Resources:
               Value: !Sub http://aerie-gateway.${PrivateNamespaceUrl}:9000
             - Name: HASURA_CLIENT_URL
               Value: !Sub
-                - "http://${DomainName}:8080/v1/graphql"
+                - "http://${DomainName}:8080"
                 - DomainName: !Ref ApplicationLoadBalancerDns
             - Name: HASURA_SERVER_URL
               Value: !Sub http://hasura.${PrivateNamespaceUrl}:8080/v1/graphql
+            - Name: HASURA_WEB_SOCKET_URL
+              Value: !Sub
+                - "ws://${DomainName}:8080/v1/graphql"
+                - DomainName: !Ref ApplicationLoadBalancerDns
             - Name: NODE_TLS_REJECT_UNAUTHORIZED
               Value: "0"
-            - Name: SCHEDULER_CLIENT_URL
-              Value: !Sub http://aerie-scheduler.${PrivateNamespaceUrl}:27193
-            - Name: SCHEDULER_SERVER_URL
-              Value: !Sub http://aerie-scheduler.${PrivateNamespaceUrl}:27193
+            - Name: ORIGIN
+              Value: !Sub
+                - "http://${DomainName}"
+                - DomainName: !Ref ApplicationLoadBalancerDns
+            # - Name: SCHEDULER_CLIENT_URL
+            #   Value: !Sub http://aerie-scheduler.${PrivateNamespaceUrl}:27193
+            # - Name: SCHEDULER_SERVER_URL
+            #   Value: !Sub http://aerie-scheduler.${PrivateNamespaceUrl}:27193
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -445,7 +443,7 @@ Resources:
     Properties:
       ContainerDefinitions:
         - Name: aerie-commanding
-          Image: 016915823617.dkr.ecr.us-gov-west-1.amazonaws.com/aerie-commanding:latest
+          Image: ghcr.io/nasa-ammos/aerie-commanding:v0.12.3
           PortMappings:
             - ContainerPort: 27184
           Environment:
@@ -500,7 +498,7 @@ Resources:
     Properties:
       ContainerDefinitions:
         - Name: hasura
-          Image: 016915823617.dkr.ecr.us-gov-west-1.amazonaws.com/hasura/graphql-engine:v2.2.0.cli-migrations-v3
+          Image: hasura/graphql-engine:v2.8.4.cli-migrations-v3
           PortMappings:
             - ContainerPort: 8080
           Environment:
@@ -560,7 +558,7 @@ Resources:
     Properties:
       ContainerDefinitions:
         - Name: postgres
-          Image: 016915823617.dkr.ecr.us-gov-west-1.amazonaws.com/postgres:14.1
+          Image: postgres:14.1
           PortMappings:
             - ContainerPort: 5432
           Environment:
@@ -805,7 +803,8 @@ Resources:
 
   MerlinService:
     Type: AWS::ECS::Service
-    DependsOn: PostgresService
+    DependsOn:
+      - PostgresService
     Properties:
       LaunchType: FARGATE
       Cluster: !Ref FargateCluster
