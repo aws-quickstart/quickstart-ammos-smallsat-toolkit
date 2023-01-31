@@ -362,11 +362,12 @@ Resources:
         - !Sub ${ProjectName}-AitServerRole
         - !Sub ${ProjectName}-EditorServerRole
         - !Sub ${ProjectName}-LoggingLambdaRole
-        - !Sub ${ProjectName}-CognitoInspectRole
+        - !Sub ${ProjectName}-CognitoAdminRole
         - !Sub ${ProjectName}-BastionHostRole
         - !Sub ${ProjectName}-ECSTaskExecutionRole
         - !Sub ${ProjectName}-ECSTaskRole
-        - !Sub ${ProjectName}-LambdaEfsRole
+        - !Sub ${ProjectName}-BootstrapEfsRole
+        - !Sub ${ProjectName}-BackupEfsRole
   IamStack:
     Type: AWS::CloudFormation::Stack
     Condition: DeployIam
@@ -441,8 +442,33 @@ Resources:
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         ProjectName: !Ref ProjectName
-        IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.CognitoInspectRoleArn, !GetAtt RoleArns.CognitoInspectRoleArn]
-
+        IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.CognitoAdminRoleArn, !GetAtt RoleArns.CognitoAdminRoleArn]
+  AstDataStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ast-data.template.yaml'
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Parameters:
+        ProjectName: !Ref ProjectName
+        ConfigBucketName:
+          Fn::ImportValue:
+            !Sub "${ProjectName}-ConfigBucketName"
+        QSS3BucketName: !Ref QSS3BucketName
+        QSS3KeyPrefix: !Ref QSS3KeyPrefix
+        VpcId: !Ref VpcId
+        PrivateSubnet1AID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet1AID]
+        PrivateSubnet1BID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
+        PrivateSubnet1CID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet3AID]
+        BootstrapRoleArn:  !If [DeployIam, !GetAtt IamStack.Outputs.BootstrapEfsRoleArn, !GetAtt RoleArns.BootstrapEfsRoleArn]
+        EnableBackups: "false"
+        # BackupRoleArn: !Ref BackupRoleArn
+        # ScheduleExpression: !Ref ScheduleExpression
+        # StartWindowMinutes: !Ref StartWindowMinutes
+        # CompletionWindowMinutes: !Ref CompletionWindowMinutes
+        # MoveToColdStorageAfterDays: !Ref MoveToColdStorageAfterDays
+        # DeleteAfterDays: !Ref DeleteAfterDays
   #======================= Aerie ========================#
   AerieMainStack:
     Type: AWS::CloudFormation::Stack
@@ -573,7 +599,9 @@ Resources:
           - !GetAtt ConfigureSSLStack.Outputs.ACMCertificate
           - !Ref SSLCertificateArn
         ALBArn: !GetAtt AstALBStack.Outputs.AlbArn
-
+        EfsSecurityGroupID: !GetAtt AstDataStack.Outputs.EfsSecurityGroupId
+        EfsFileSystemID: !GetAtt AstDataStack.Outputs.EfsFileSystemId
+        EfsAitAccessPointID: !GetAtt AstDataStack.Outputs.EfsFileSystemId
   ConfigureSSLStack:
     # DependsOn: CFNEndpoint
     Condition: GenerateSSL
@@ -614,3 +642,11 @@ Resources:
         - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1CID, !Ref PrivateSubnet1CID]
       SecurityGroupIds:
         - !Ref CFNEndpointSG
+
+Outputs:
+  CognitoDefaultUserUsername:
+    Description: Username for the Cognito User created by CognitoDefaultUser
+    Value: !GetAtt AmmosCognitoStack.Outputs.CognitoDefaultUserUsername
+  CognitoDefaultUserTempPassword:
+    Description: Temporary Password for the Cognito User created by CognitoDefaultUser
+    Value: !GetAtt AmmosCognitoStack.Outputs.CognitoDefaultUserTempPassword

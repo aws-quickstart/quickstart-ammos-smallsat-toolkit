@@ -279,7 +279,7 @@ Resources:
       Description: An Amazon Kinesis Firehose stream processor that extracts individual log events from records sent by Cloudwatch Logs subscription filters.
       Handler: index.handler
       Role: !Ref IamRoleArn
-      Runtime: nodejs12.x
+      Runtime: nodejs16.x
       Timeout: 60
       VpcConfig:
         SecurityGroupIds:

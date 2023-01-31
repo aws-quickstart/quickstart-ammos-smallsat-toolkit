@@ -166,6 +166,7 @@ Resources:
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy'
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonElasticFileSystemClientFullAccess"        
       Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
       PermissionsBoundary:
         !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
@@ -195,6 +196,15 @@ Resources:
                   - arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}*
                   - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
                 Effect: Allow
+        - PolicyName: AitServerFilesystemMountPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Resource: !Sub 'arn:${AWS::Partition}:elasticfilesystem:${AWS::Region}:${AWS::AccountId}:file-system/*'
   EditorServerRole:
     Type: AWS::IAM::Role
     Properties:
@@ -239,10 +249,69 @@ Resources:
                   - arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}*
                   - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
                 Effect: Allow
-  CognitoInspectRole:
+  BootstrapEfsRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub ${ProjectName}-BootstrapEfsRole
+      Description: Used by the Lambda Function which copies required files from S3 to EFS
+      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonElasticFileSystemClientFullAccess"
+      Policies:
+        - PolicyName: AITServerFilesystemMountPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Resource: !Sub 'arn:${AWS::Partition}:elasticfilesystem:${AWS::Region}:${AWS::AccountId}:file-system/*'
+        - PolicyName: ConfigBucketReadPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetObject*
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-config'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-config/*'
+  BackupEfsRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub ${ProjectName}-BackupEfsRole
+      Description: Enables backup for the EFS Filesystem
+      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "backup.amazonaws.com"
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup"
+  CognitoAdminRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${ProjectName}-CognitoInspectRole
+      RoleName: !Sub ${ProjectName}-CognitoAdminRole
       AssumeRolePolicyDocument:
         Statement:
           - Action: sts:AssumeRole
@@ -257,7 +326,9 @@ Resources:
       Policies:
         - PolicyDocument:
             Statement:
-              - Action: cognito-idp:DescribeUserPoolClient
+              - Action:
+                  - cognito-idp:DescribeUserPoolClient
+                  - cognito-idp:AdminCreateUser
                 Effect: Allow
                 Resource: !Sub arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*
             Version: "2012-10-17"
@@ -578,9 +649,12 @@ Outputs:
   LoggingLambdaRoleArn:
     Description: ARN of the LoggingLambdaRole created for AST deployment
     Value: !GetAtt LoggingLambdaRole.Arn
-  CognitoInspectRoleArn:
-    Description: ARN of the CognitoInspectRole created for AST deployment
-    Value: !GetAtt CognitoInspectRole.Arn
+  CognitoAdminRoleArn:
+    Description: ARN of the CognitoAdminRole created for AST deployment
+    Value: !GetAtt CognitoAdminRole.Arn
+  CognitoAdminRoleName:
+    Description: Name of the CognitoAdminRole created for AST deployment
+    Value: !Ref CognitoAdminRole
   AitServerRoleArn:
     Description: ARN of the AitServerRole created for AST deployment
     Value: !GetAtt AitServerRole.Arn
@@ -593,6 +667,18 @@ Outputs:
   EditorServerRoleName:
     Description: Name of the EditorServerRole created for AST deployment
     Value: !Ref EditorServerRole
+  BootstrapEfsRoleArn:
+    Description: ARN of the BootstrapEfsRole created for AST deployment
+    Value: !GetAtt BootstrapEfsRole.Arn
+  BootstrapEfsRoleName:
+    Description: Name of the BootstrapEfsRole created for AST deployment
+    Value: !Ref BootstrapEfsRole
+  BackupEfsRoleArn:
+    Description: ARN of the BackupEfsRole created for AST deployment
+    Value: !GetAtt BackupEfsRole.Arn
+  BackupEfsRoleName:
+    Description: Name of the BackupEfsRole created for AST deployment
+    Value: !Ref BackupEfsRole
   BastionHostRoleArn:
     Description: ARN of the BastionHostRole created for AST deployment
     Value: !GetAtt BastionHostRole.Arn
