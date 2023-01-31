@@ -336,6 +336,8 @@ Resources:
         - !Sub ${ProjectName}-LoggingLambdaRole
         - !Sub ${ProjectName}-CognitoAdminRole
         - !Sub ${ProjectName}-BastionHostRole
+        - !Sub ${ProjectName}-BootstrapEfsRole
+        - !Sub ${ProjectName}-BackupEfsRole
   IamStack:
     Type: AWS::CloudFormation::Stack
     Condition: DeployIam
@@ -375,28 +377,28 @@ Resources:
         PublicSubnet1CIDR: !Ref PublicSubnet1CIDR
         PublicSubnet2CIDR: !Ref PublicSubnet2CIDR
         PublicSubnet3CIDR: !Ref PublicSubnet3CIDR
-  BastionStack:
-    # DependsOn: CFNEndpoint
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub
-        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template'
-        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-      Parameters:
-        BastionAMIOS: 'Amazon-Linux2-HVM'
-        KeyPairName: !Ref 'KeyPairName'
-        BastionHostName: !Sub "${ProjectName}/LinuxBastion"
-        PublicSubnet1ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PublicSubnet1ID, !Ref PublicSubnet1ID]
-        PublicSubnet2ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PublicSubnet2ID, !Ref PublicSubnet2ID]
-        QSS3BucketName: !Ref QSS3BucketName
-        QSS3KeyPrefix: !Sub "${QSS3KeyPrefix}submodules/quickstart-linux-bastion/"
-        QSS3BucketRegion: !Ref QSS3BucketRegion
-        RemoteAccessCIDR: !Ref RemoteAccessCIDR
-        VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
-        AlternativeIAMRole: !If [DeployIam, !GetAtt IamStack.Outputs.BastionHostRoleName, !GetAtt RoleArns.BastionHostRoleName]
-        PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
-        RolePath: !Ref RolePath
+  # BastionStack:
+  #   # DependsOn: CFNEndpoint
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: !Sub
+  #       - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template'
+  #       - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+  #         S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+  #     Parameters:
+  #       BastionAMIOS: 'Amazon-Linux2-HVM'
+  #       KeyPairName: !Ref 'KeyPairName'
+  #       BastionHostName: !Sub "${ProjectName}/LinuxBastion"
+  #       PublicSubnet1ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PublicSubnet1ID, !Ref PublicSubnet1ID]
+  #       PublicSubnet2ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PublicSubnet2ID, !Ref PublicSubnet2ID]
+  #       QSS3BucketName: !Ref QSS3BucketName
+  #       QSS3KeyPrefix: !Sub "${QSS3KeyPrefix}submodules/quickstart-linux-bastion/"
+  #       QSS3BucketRegion: !Ref QSS3BucketRegion
+  #       RemoteAccessCIDR: !Ref RemoteAccessCIDR
+  #       VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
+  #       AlternativeIAMRole: !If [DeployIam, !GetAtt IamStack.Outputs.BastionHostRoleName, !GetAtt RoleArns.BastionHostRoleName]
+  #       PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
+  #       RolePath: !Ref RolePath
   AmmosCognitoStack:
     # DependsOn: CFNEndpoint
     Type: AWS::CloudFormation::Stack
@@ -432,30 +434,57 @@ Resources:
         CognitoInspectFunctionArn: !GetAtt AmmosCognitoStack.Outputs.CognitoInspectFunctionArn
         CognitoUserPoolID: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolId
         AccessSgID: !If [DeployVpc, '', !Ref AccessSgID]
-  AmmosCubsLoggingStack:
-    # DependsOn: CFNEndpoint
+  # AmmosCubsLoggingStack:
+  #   # DependsOn: CFNEndpoint
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: !Sub
+  #       - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ammos-cubs-logging.template.yaml'
+  #       - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+  #         S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+  #     Parameters:
+  #       ProjectName: !Ref ProjectName
+  #       CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
+  #       IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.LoggingLambdaRoleArn, !GetAtt RoleArns.LoggingLambdaRoleArn]
+  #       VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
+  #       PrivateSubnet1ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
+  #       PrivateSubnet2ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
+  #       PrivateSubnet3ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet3AID, !Ref PrivateSubnet3AID]
+  #       QSS3BucketName: !Ref QSS3BucketName
+  #       QSS3KeyPrefix: !Ref QSS3KeyPrefix
+  # AmmosCubsEditorStack:
+  #   # DependsOn: CFNEndpoint
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: !Sub
+  #       - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ammos-cubs-editor.template.yaml'
+  #       - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+  #         S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+  #     Parameters:
+  #       ProjectName: !Ref ProjectName
+  #       ConfigBucketName:
+  #         Fn::ImportValue:
+  #           !Sub "${ProjectName}-ConfigBucketName"
+  #       ALBHttpsListenerArn: !GetAtt AmmosCubsALBStack.Outputs.HttpsListenerArn
+  #       ALBSecurityGroupID: !GetAtt AmmosCubsALBStack.Outputs.AlbSecurityGroupId
+  #       CognitoClientID: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientId
+  #       CognitoClientSecret: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientSecret
+  #       CognitoDomainName: !GetAtt AmmosCognitoStack.Outputs.CognitoDomainName
+  #       CognitoProviderUrl: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolProviderUrl
+  #       FQDN: !Ref FQDN
+  #       KeyPairName: !Ref KeyPairName
+  #       PrivateSubnetIds:
+  #         Fn::Join:
+  #           - ','
+  #           - - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
+  #             - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
+  #       IamRoleName: !If [DeployIam, !GetAtt IamStack.Outputs.EditorServerRoleName, !GetAtt RoleArns.EditorServerRoleName]
+  #       VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
+  AstDataStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ammos-cubs-logging.template.yaml'
-        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-      Parameters:
-        ProjectName: !Ref ProjectName
-        CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
-        IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.LoggingLambdaRoleArn, !GetAtt RoleArns.LoggingLambdaRoleArn]
-        VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
-        PrivateSubnet1ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
-        PrivateSubnet2ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
-        PrivateSubnet3ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet3AID, !Ref PrivateSubnet3AID]
-        QSS3BucketName: !Ref QSS3BucketName
-        QSS3KeyPrefix: !Ref QSS3KeyPrefix
-  AmmosCubsEditorStack:
-    # DependsOn: CFNEndpoint
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub
-        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ammos-cubs-editor.template.yaml'
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ast-data.template.yaml'
         - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
@@ -463,21 +492,20 @@ Resources:
         ConfigBucketName:
           Fn::ImportValue:
             !Sub "${ProjectName}-ConfigBucketName"
-        ALBHttpsListenerArn: !GetAtt AmmosCubsALBStack.Outputs.HttpsListenerArn
-        ALBSecurityGroupID: !GetAtt AmmosCubsALBStack.Outputs.AlbSecurityGroupId
-        CognitoClientID: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientId
-        CognitoClientSecret: !GetAtt AmmosCubsALBStack.Outputs.CognitoClientSecret
-        CognitoDomainName: !GetAtt AmmosCognitoStack.Outputs.CognitoDomainName
-        CognitoProviderUrl: !GetAtt AmmosCognitoStack.Outputs.CognitoUserPoolProviderUrl
-        FQDN: !Ref FQDN
-        KeyPairName: !Ref KeyPairName
-        PrivateSubnetIds:
-          Fn::Join:
-            - ','
-            - - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
-              - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
-        IamRoleName: !If [DeployIam, !GetAtt IamStack.Outputs.EditorServerRoleName, !GetAtt RoleArns.EditorServerRoleName]
-        VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
+        QSS3BucketName: !Ref QSS3BucketName
+        QSS3KeyPrefix: !Ref QSS3KeyPrefix
+        VpcId: !Ref VpcId
+        PrivateSubnet1AID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet1AID]
+        PrivateSubnet1BID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
+        PrivateSubnet1CID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet3AID]
+        BootstrapRoleArn:  !If [DeployIam, !GetAtt IamStack.Outputs.BootstrapEfsRoleArn, !GetAtt RoleArns.BootstrapEfsRoleArn]
+        EnableBackups: "false"
+        # BackupRoleArn: !Ref BackupRoleArn
+        # ScheduleExpression: !Ref ScheduleExpression
+        # StartWindowMinutes: !Ref StartWindowMinutes
+        # CompletionWindowMinutes: !Ref CompletionWindowMinutes
+        # MoveToColdStorageAfterDays: !Ref MoveToColdStorageAfterDays
+        # DeleteAfterDays: !Ref DeleteAfterDays
   AmmosCubsAITStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -511,6 +539,9 @@ Resources:
           - !GetAtt ConfigureSSLStack.Outputs.ACMCertificate
           - !Ref SSLCertificateArn
         ALBArn: !GetAtt AmmosCubsALBStack.Outputs.AlbArn
+        EfsSecurityGroupID: !GetAtt AstDataStack.Outputs.EfsSecurityGroupId
+        EfsFileSystemID: !GetAtt AstDataStack.Outputs.EfsFileSystemId
+        EfsAitAccessPointID: !GetAtt AstDataStack.Outputs.EfsFileSystemId
   ConfigureSSLStack:
     # DependsOn: CFNEndpoint
     Condition: GenerateSSL

@@ -43,7 +43,7 @@ def lambda_handler(event, context):
         result = cfnresponse.FAILED
 
     logger.info(
-        "Returning response of: {}, with result of: {}".format(result, responseData)
+        "Returning response of: %s, with result of: %s", result, responseData
     )
     sys.stdout.flush()
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-lambda-function-code-cfnresponsemodule.html

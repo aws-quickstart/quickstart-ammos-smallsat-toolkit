@@ -1,6 +1,7 @@
 import logging
 import secrets
 import string
+import random
 
 import boto3
 import botocore
@@ -24,6 +25,7 @@ def make_password(length: int) -> str:
     password += rand_seq(string.ascii_uppercase, 3, 9)
     n = length - len(password)
     password += rand_seq(string.ascii_lowercase, n, n)
+    random.shuffle(password)
     return "".join(password)
 
 

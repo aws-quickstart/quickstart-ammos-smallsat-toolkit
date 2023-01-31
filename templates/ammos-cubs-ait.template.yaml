@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: '2010-09-09'
 Description: (qs-1s6abjf4a)
 Parameters:
   ProjectName:
@@ -29,7 +29,7 @@ Parameters:
   SessionTimeout:
     Description: The maximum duration of the authentication session, in seconds.
     Type: Number
-    Default: 604800  # One day
+    Default: 604800 # One day
     MinValue: 60
     MaxValue: 604800
   IamRoleName:
@@ -50,6 +50,12 @@ Parameters:
   ListenerCertificateArn:
     Type: String
   ALBArn:
+    Type: String
+  EfsSecurityGroupID:
+    Type: String
+  EfsFileSystemID:
+    Type: String
+  EfsAitAccessPointID:
     Type: String
 Conditions:
   SshEnabled: !Not
@@ -92,6 +98,15 @@ Resources:
           FromPort: 8082
           ToPort: 8082
           SourceSecurityGroupId: !Ref ALBSecurityGroupID
+  AitEfsIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref EfsSecurityGroupID
+      IpProtocol: tcp
+      FromPort: 2049
+      ToPort: 2049
+      SourceSecurityGroupId: !Ref AitServerSecurityGroup
+
   AitAutoScalingGroupInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -169,10 +184,43 @@ Resources:
           chmod +x /usr/bin/jq
           }
 
+          function bootstrap_data(){
+          # Adding functionality to mount an EFS
+          echo "Bootstrapping EFS and Mounting it"
+          sudo yum -y update
+          sudo yum -y install nfs-utils
+
+          # Installing EFS Amazon Utils
+          echo "Downloading and installing Amazon EFS Utils"
+          sudo yum -y install git rpm-build make
+          sudo git clone https://github.com/aws/efs-utils
+          cd efs-utils
+          sudo make rpm
+          sudo yum -y install build/amazon-efs-utils*rpm
+          # cd back to root dir
+          cd /
+
+          # Install botocore libraries
+          pip3 install botocore
+          # Define mount location and efs id
+          DIR_TGT=/mnt/efs/ait/
+          EFS_FILE_SYSTEM_ID=${EfsFileSystemID}
+          AIT_EFS_ACCESSPOINT_ID=${EfsAitAccessPointID}
+          mkdir -p $DIR_TGT
+          echo "Mounting for  Access Point $AIT_EFS_ACCESSPOINT_ID from filesystem: $EFS_FILE_SYSTEM_ID to $DIR_TGT"
+          sudo mount -t efs -o tls,accesspoint=$AIT_EFS_ACCESSPOINT_ID $EFS_FILE_SYSTEM_ID $DIR_TGT
+          tee -a /root/.efs-mount-info << EOM
+          EFS_FILE_SYSTEM_ID=$EFS_FILE_SYSTEM_ID
+          AIT_EFS_ACCESSPOINT_ID=$AIT_EFS_ACCESSPOINT_ID
+          DIR_TGT=$DIR_TGT
+          EOM
+          }
+
           function install_ait_and_dependents(){
           # Set variables for system install
           PROJECT_HOME=/home/ec2-user
-          SETUP_DIR=/home/ec2-user/setup
+          SETUP_DIR=/mnt/efs/ait/setup
+          AIT_DEPENDENTS_DIR=/mnt/efs/ait
           USER=ec2-user
           GROUP=ec2-user
           AWS_REGION=${AWS::Region}
@@ -192,43 +240,28 @@ Resources:
 
           tee -a > $PROJECT_HOME/.virtualenvs/postactivate << EOM
           if [ \$VIRTUAL_ENV ==  "$PROJECT_HOME/.virtualenvs/ait" ]; then
-          export AIT_ROOT=$PROJECT_HOME/AIT-Core
-          export AIT_CONFIG=$PROJECT_HOME/AIT-Core/config/config.yaml
+          export AIT_ROOT=$AIT_DEPENDENTS_DIR/AIT-Core
+          export AIT_CONFIG=$AIT_DEPENDENTS_DIR/AIT-Core/config/config.yaml
           fi
           EOM
 
           mkvirtualenv ait
           workon ait
 
-          # Pull assets, config, and secrets from s3/sm
-          mkdir -p $SETUP_DIR
-          /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 sync s3://$CONFIG_BUCKET_NAME/configs/ait/ $SETUP_DIR/
-          /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 cp s3://"$CONFIG_BUCKET_NAME"/configs/modules/openmct-static.tgz - | tar -xz -C /var/www/html
-
           # Install open-source AIT components
-          git clone https://github.com/NASA-AMMOS/AIT-Core.git $PROJECT_HOME/AIT-Core
-          cd $PROJECT_HOME/AIT-Core/
-          git checkout 2.3.5
-          pip install .
-          /usr/bin/cp -r $SETUP_DIR/config $PROJECT_HOME/AIT-Core
-
-          git clone https://github.com/NASA-AMMOS/AIT-GUI.git $PROJECT_HOME/AIT-GUI
-          cd $PROJECT_HOME/AIT-GUI/
-          git checkout 2.3.1
+          cd $AIT_DEPENDENTS_DIR/AIT-Core/
           pip install .
 
-          git clone https://github.com/NASA-AMMOS/AIT-DSN.git $PROJECT_HOME/AIT-DSN
-          cd $PROJECT_HOME/AIT-DSN
-          git checkout 2.0.0
+          cd $AIT_DEPENDENTS_DIR/AIT-GUI/
+          pip install .
+
+          cd $AIT_DEPENDENTS_DIR/AIT-DSN
           pip install .
 
           cd $PROJECT_HOME
 
-          # Make necessary DSN plugin directories
-          mkdir -p $PROJECT_HOME/AIT-Core/ait/dsn/cfdp/datasink/{outgoing,incoming,tempfiles,pdusink}
-
           # Copy necessary apache configs
-          cp $SETUP_DIR/httpd_proxy.conf /etc/httpd/conf.d/proxy.conf
+          cp $SETUP_DIR/configs/httpd_proxy.conf /etc/httpd/conf.d/proxy.conf
 
           # Inject FQDN from Cloudformation for proper virtual host configuration
           mv /etc/httpd/conf.d/proxy.conf{,.bak}
@@ -236,13 +269,13 @@ Resources:
           rm /etc/httpd/conf.d/proxy.conf.bak
 
           # Inject FQDN from Cloudformation into OpenMCT file
-          mv /var/www/html/openmct/index.html{,.bak}
-          sed 's/<CFN_FQDN>/${FQDN}/g' /var/www/html/openmct/index.html.bak > /var/www/html/openmct/index.html
-          rm /var/www/html/openmct/index.html.bak
+          mv /mnt/efs/ait/openmct/index.html{,.bak}
+          sed 's/<CFN_FQDN>/${FQDN}/g' /mnt/efs/ait/openmct/index.html.bak > /mnt/efs/ait/openmct/index.html
+          rm /mnt/efs/ait/openmct/index.html.bak
 
           # Install InfluxDB and data plugin
-          curl https://repos.influxdata.com/rhel/6/amd64/stable/influxdb-1.2.4.x86_64.rpm -o $SETUP_DIR/influxdb-1.2.4.x86_64.rpm
-          yum localinstall -y $SETUP_DIR/influxdb-1.2.4.x86_64.rpm
+          curl https://repos.influxdata.com/rhel/6/amd64/stable/influxdb-1.2.4.x86_64.rpm -o /tmp/influxdb-1.2.4.x86_64.rpm
+          yum localinstall -y /tmp/influxdb-1.2.4.x86_64.rpm
 
           pip install influxdb
           systemctl enable influxdb
@@ -257,8 +290,8 @@ Resources:
           [Service]
           Type=simple
           User=root
-          Environment=AIT_ROOT=$PROJECT_HOME/AIT-Core
-          Environment=AIT_CONFIG=$PROJECT_HOME/AIT-Core/config/config.yaml
+          Environment=AIT_ROOT=$AIT_DEPENDENTS_DIR/AIT-Core
+          Environment=AIT_CONFIG=$AIT_DEPENDENTS_DIR/AIT-Core/config/config.yaml
           ExecStart=/home/ec2-user/.virtualenvs/ait/bin/ait-server
 
           [Install]
@@ -295,8 +328,10 @@ Resources:
           }
 
           boostrap_aws_stuff
+          bootstrap_data
           bootstrap_ait
           install_ait_and_dependents
+
   AitWebTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -324,7 +359,7 @@ Resources:
       Tags:
         - Key: Name
           PropagateAtLaunch: true
-          Value: !Sub "${ProjectName}/AitAutoScalingGroup"
+          Value: !Sub '${ProjectName}/AitAutoScalingGroup'
       TargetGroupARNs:
         - !Ref 'AitWebTargetGroup'
         - !Ref 'AitMctTargetGroup'
@@ -345,22 +380,22 @@ Resources:
             UserInfoEndpoint:
               Fn::Sub:
                 - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/userInfo
-                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
+                - AuthSuffix: !If [IsGovCloud, 'auth-fips', 'auth']
             AuthorizationEndpoint:
               Fn::Sub:
                 - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/authorize
-                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
+                - AuthSuffix: !If [IsGovCloud, 'auth-fips', 'auth']
             TokenEndpoint:
               Fn::Sub:
                 - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/token
-                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
+                - AuthSuffix: !If [IsGovCloud, 'auth-fips', 'auth']
             OnUnauthenticatedRequest: authenticate
             Scope: openid
             SessionTimeout: !Ref SessionTimeout
         - Type: forward
           Order: 2
           TargetGroupArn: !Ref 'AitWebTargetGroup'
-      Conditions:  # One day
+      Conditions: # One day
         - Field: host-header
           HostHeaderConfig:
             Values:
@@ -380,15 +415,15 @@ Resources:
             UserInfoEndpoint:
               Fn::Sub:
                 - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/userInfo
-                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
+                - AuthSuffix: !If [IsGovCloud, 'auth-fips', 'auth']
             AuthorizationEndpoint:
               Fn::Sub:
                 - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/authorize
-                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
+                - AuthSuffix: !If [IsGovCloud, 'auth-fips', 'auth']
             TokenEndpoint:
               Fn::Sub:
                 - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/token
-                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
+                - AuthSuffix: !If [IsGovCloud, 'auth-fips', 'auth']
             OnUnauthenticatedRequest: authenticate
             Scope: openid
             SessionTimeout: !Ref SessionTimeout
@@ -419,6 +454,6 @@ Resources:
       SslPolicy: ELBSecurityPolicy-FS-1-2-2019-08
 Outputs:
   GovCloudCondition:
-    Value: !If [IsGovCloud, "yes", "no"]
+    Value: !If [IsGovCloud, 'yes', 'no']
   AitSecurityGroupId:
     Value: !GetAtt 'AitServerSecurityGroup.GroupId'
