@@ -24,7 +24,7 @@ Parameters:
     Description: Name of your project
     Type: String
   IamRoleArn:
-    Description: ARN of the pre-deployed IAM Role to use with the AIT Server
+    Description: ARN of the pre-deployed IAM Role with Cognito Admin permissions
     Type: String
     Default: ''
 

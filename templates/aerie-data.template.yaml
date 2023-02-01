@@ -192,61 +192,6 @@ Resources:
           Permissions: "777"
         Path: "/efs"
 
-  AerieFilestoreAccessPoint:
-    Type: AWS::EFS::AccessPoint
-    Properties:
-      RootDirectory:
-        CreationInfo:
-          OwnerUid: "1001"
-          OwnerGid: "1001"
-          Permissions: "777"
-        Path: /efs/aerie
-      FileSystemId: !Ref FileSystem
-
-  PostgresInitAccessPoint:
-    Type: AWS::EFS::AccessPoint
-    Properties:
-      RootDirectory:
-        CreationInfo:
-          OwnerUid: "1001"
-          OwnerGid: "1001"
-          Permissions: "777"
-        Path: /efs/init_postgres
-      FileSystemId: !Ref FileSystem
-
-  HasuraInitAccessPoint:
-    Type: AWS::EFS::AccessPoint
-    Properties:
-      RootDirectory:
-        CreationInfo:
-          OwnerUid: "1001"
-          OwnerGid: "1001"
-          Permissions: "777"
-        Path: /efs/init_hasura
-      FileSystemId: !Ref FileSystem
-
-  PostgresDataAccessPoint:
-    Type: AWS::EFS::AccessPoint
-    Properties:
-      RootDirectory:
-        CreationInfo:
-          OwnerUid: "1001"
-          OwnerGid: "1001"
-          Permissions: "777"
-        Path: /efs/postgres
-      FileSystemId: !Ref FileSystem
-
-  CommandingInitAccessPoint:
-    Type: AWS::EFS::AccessPoint
-    Properties:
-      RootDirectory:
-        CreationInfo:
-          OwnerUid: "1001"
-          OwnerGid: "1001"
-          Permissions: "777"
-        Path: /efs/init_commanding
-      FileSystemId: !Ref FileSystem
-
   BastionProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -321,7 +266,7 @@ Outputs:
     Description: "ARN for EFS Filesystem"
     Value: !GetAtt FileSystem.Arn
 
-  # ==================== EFS Acess Points ==================== #
+  # ==================== EFS Access Points ==================== #
   # Root
   EfsRootAccessPointArn:
     Description: "Access Point for EFS Root Path (ARN)"
@@ -331,43 +276,6 @@ Outputs:
   EfsRootAccessPointId:
     Description: "Access Point for EFS Root Path (FS ID)"
     Value: !Ref RootAccessPoint
-  # Aerie Filestore
-  AerieFilestoreAccessPointId:
-    Description: Access Point for AerieFilestore AccessPoint
-    Value: !Ref AerieFilestoreAccessPoint
-  AerieFilestoreAccessPointArn:
-    Description: Access Point for AerieFilestore AccessPoint
-    Value: !GetAtt AerieFilestoreAccessPoint.Arn
-  # Postgres Data
-  PostgresDataAccessPointId:
-    Description: Access Point for PostgresData AccessPoint
-    Value: !Ref PostgresDataAccessPoint
-  PostgresDataAccessPointArn:
-    Description: Access Point for PostgresData AccessPoint
-    Value: !GetAtt PostgresDataAccessPoint.Arn
-  # Postgres Init
-  PostgresInitAccessPointId:
-    Description: Access Point for PostgresInit AccessPoint
-    Value: !Ref PostgresInitAccessPoint
-  PostgresInitAccessPointArn:
-    Description: Access Point for PostgresInitAccessPoint
-    Value: !GetAtt PostgresInitAccessPoint.Arn
-  # Hasura Init
-  HasuraInitAccessPointId:
-    Description: Access Point for HasuraInit AccessPoint
-    Value: !Ref HasuraInitAccessPoint
-  HasuraInitAccessPointArn:
-    Description: Access Point for HasuraInit AccessPoint
-    Value: !GetAtt HasuraInitAccessPoint.Arn
-
-  # Commanding Init
-  CommandingInitAccessPointId:
-    Description: Access Point for CommandingInit AccessPoint
-    Value: !Ref CommandingInitAccessPoint
-  CommandingInitAccessPointArn:
-    Description: Access Point for CommandingInit AccessPoint
-    Value: !GetAtt CommandingInitAccessPoint.Arn
-
   EfsSecurityGroupId:
     Description: "Security group ID for lambda function"
     Value: !Ref EfsSecurityGroup

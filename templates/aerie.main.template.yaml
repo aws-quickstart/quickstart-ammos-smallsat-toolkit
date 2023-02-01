@@ -1,4 +1,3 @@
----
 AWSTemplateFormatVersion: "2010-09-09"
 Description: (qs-1s6abjf8q)
 Parameters:
@@ -12,8 +11,6 @@ Parameters:
   ECSTaskExecutionRoleArn:
     Type: String
   ECSTaskRoleArn:
-    Type: String
-  BastionRoleName:
     Type: String
 
   # =========== S3 Assets =========== #
@@ -67,58 +64,82 @@ Parameters:
     Type: AWS::EC2::Subnet::Id
   PrivateSubnet1BID:
     Type: AWS::EC2::Subnet::Id
-  PrivateSubnet1CID:
-    Type: AWS::EC2::Subnet::Id
+
+  # =========== EFS References =========== #
+  EfsSecurityGroupId:
+    Type: String
+    Description: ""
+  EfsRootAccessPointArn:
+    Type: String
+    Description: ""
+  EfsFileSystemId:
+    Type: String
+    Description: ""
 
   # =========== Aerie Misc =========== #
-  # TODO: Deal with this...
-  #  Options:
-  #     - actually clean up the bastion creation and add AMI map
-  #     - scrap it; we already have a bastion deployed in ast-main (submodule)
-  #     - replace it with one of the other methods for managing EFS content
-  BastionAmi:
-    Description: AMI ID for the Bastion Server
-    Type: AWS::EC2::Image::Id
-    Default: ami-01ee1e88c04465cc2
-  BastionKey:
-    Description: SSH Key for accessing the Bastion Server
-    Type: AWS::EC2::KeyPair::KeyName
-    Default: ammos-cloud-aerie
   SSLCertificateArn:
     Description: ARN of the SSL Certificate in ACM for the Aerie ECS Load Balancer
     Type: String
-  EnableEfsBackups:
-    Description: Will enable AWS Backups for EFS if "true" (default), or skip if "false"
-    Type: String
-    Default: "true"
-    AllowedValues: ["false", "true"]
 
 Conditions:
-  # DeployIam: !Equals [!Ref DeployIam, 'true']
-  # InspectIam: !Not [Condition: DeployIam]
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
-  # DeployVpc: !Equals [!Ref VpcId, '']
 
 Resources:
-  # TODO: This will move to ast.main once we incorporate AST persistance
-  AerieDataStack:
-    Type: AWS::CloudFormation::Stack
+  AerieFilestoreAccessPoint:
+    Type: AWS::EFS::AccessPoint
     Properties:
-      TemplateURL: !Sub
-        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/aerie-data.template.yaml'
-        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-      Parameters:
-        ProjectName: !Ref ProjectName
-        VpcId: !Ref VpcId
-        PublicSubnet1ID: !Ref PublicSubnet1ID
-        Ami: !Ref BastionAmi
-        SshKey: !Ref BastionKey
-        IamRoleName: !Ref BastionRoleName
-        EnableBackups: !Ref EnableEfsBackups
-        PrivateSubnet1AID: !Ref PrivateSubnet1AID
-        PrivateSubnet1BID: !Ref PrivateSubnet1BID
-        PrivateSubnet1CID: !Ref PrivateSubnet1CID
+      RootDirectory:
+        CreationInfo:
+          OwnerUid: "1001"
+          OwnerGid: "1001"
+          Permissions: "777"
+        Path: /efs/aerie
+      FileSystemId: !Ref EfsFileSystemId
+
+  PostgresInitAccessPoint:
+    Type: AWS::EFS::AccessPoint
+    Properties:
+      RootDirectory:
+        CreationInfo:
+          OwnerUid: "1001"
+          OwnerGid: "1001"
+          Permissions: "777"
+        Path: /efs/init_postgres
+      FileSystemId: !Ref EfsFileSystemId
+
+  HasuraInitAccessPoint:
+    Type: AWS::EFS::AccessPoint
+    Properties:
+      RootDirectory:
+        CreationInfo:
+          OwnerUid: "1001"
+          OwnerGid: "1001"
+          Permissions: "777"
+        Path: /efs/init_hasura
+      FileSystemId: !Ref EfsFileSystemId
+
+  PostgresDataAccessPoint:
+    Type: AWS::EFS::AccessPoint
+    Properties:
+      RootDirectory:
+        CreationInfo:
+          OwnerUid: "1001"
+          OwnerGid: "1001"
+          Permissions: "777"
+        Path: /efs/postgres
+      FileSystemId: !Ref EfsFileSystemId
+
+  CommandingInitAccessPoint:
+    Type: AWS::EFS::AccessPoint
+    Properties:
+      RootDirectory:
+        CreationInfo:
+          OwnerUid: "1001"
+          OwnerGid: "1001"
+          Permissions: "777"
+        Path: /efs/init_commanding
+      FileSystemId: !Ref EfsFileSystemId
+
   AerieBootstrapStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -132,9 +153,10 @@ Resources:
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         VpcId: !Ref VpcId
         PrivateSubnet1AID: !Ref PrivateSubnet1AID
-        EfsSecurityGroupId: !GetAtt AerieDataStack.Outputs.EfsSecurityGroupId
+        EfsSecurityGroupId: !Ref EfsSecurityGroupId
         IamRoleArn: !Ref AerieBootstrapRoleArn
-        EfsRootAccessPointArn: !GetAtt AerieDataStack.Outputs.EfsRootAccessPointArn
+        EfsRootAccessPointArn: !Ref EfsRootAccessPointArn
+  # TODO: Refactor to use main AST ALB
   AerieAlbStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -172,12 +194,12 @@ Resources:
               - !Ref PrivateSubnet1BID
         SSLCertificateArn: !Ref SSLCertificateArn
         PrivateNamespaceUrl: !Sub aerie-services.${FQDN}
-        EfsSecurityGroupId: !GetAtt AerieDataStack.Outputs.EfsSecurityGroupId
+        EfsSecurityGroupId: !Ref EfsSecurityGroupId
         ECSTaskExecutionRoleArn: !Ref ECSTaskExecutionRoleArn
         ECSTaskRoleArn: !Ref ECSTaskRoleArn
-        AerieFileSystemId: !GetAtt AerieDataStack.Outputs.AerieFileSystemId
-        AerieFilestoreAccessPointId: !GetAtt AerieDataStack.Outputs.AerieFilestoreAccessPointId
-        PostgresDataAccessPointId: !GetAtt AerieDataStack.Outputs.PostgresDataAccessPointId
-        PostgresInitAccessPointId: !GetAtt AerieDataStack.Outputs.PostgresInitAccessPointId
-        HasuraInitAccessPointId: !GetAtt AerieDataStack.Outputs.HasuraInitAccessPointId
-        CommandingInitAccessPointId: !GetAtt AerieDataStack.Outputs.CommandingInitAccessPointId
+        AerieFileSystemId: !Ref EfsFileSystemId
+        AerieFilestoreAccessPointId: !Ref AerieFilestoreAccessPoint
+        PostgresDataAccessPointId: !Ref PostgresDataAccessPoint
+        PostgresInitAccessPointId: !Ref PostgresInitAccessPoint
+        HasuraInitAccessPointId: !Ref HasuraInitAccessPoint
+        CommandingInitAccessPointId: !Ref CommandingInitAccessPoint
