@@ -78,7 +78,6 @@ Resources:
             ConditionKey: backupplan
             ConditionValue: efs-backup-plan
 
-
   EfsSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:

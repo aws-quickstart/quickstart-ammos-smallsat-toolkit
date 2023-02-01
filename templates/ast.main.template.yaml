@@ -468,7 +468,7 @@ Resources:
         PrivateSubnet1BID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet1BID]
         PrivateSubnet1CID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet1CID]
         BootstrapRoleArn:  !If [DeployIam, !GetAtt IamStack.Outputs.BootstrapEfsRoleArn, !GetAtt RoleArns.BootstrapEfsRoleArn]
-        EnableBackups: "false"
+        EnableBackups: !Ref EnableEfsBackups
 
   #======================= Aerie ========================#
   AerieMainStack:

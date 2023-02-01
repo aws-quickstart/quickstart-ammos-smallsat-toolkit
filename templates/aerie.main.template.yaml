@@ -85,6 +85,7 @@ Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
 
 Resources:
+  # ==================== Aerie EFS Access Points ==================== #
   AerieFilestoreAccessPoint:
     Type: AWS::EFS::AccessPoint
     Properties:
@@ -95,7 +96,6 @@ Resources:
           Permissions: "777"
         Path: /efs/aerie
       FileSystemId: !Ref EfsFileSystemId
-
   PostgresInitAccessPoint:
     Type: AWS::EFS::AccessPoint
     Properties:
@@ -106,7 +106,6 @@ Resources:
           Permissions: "777"
         Path: /efs/init_postgres
       FileSystemId: !Ref EfsFileSystemId
-
   HasuraInitAccessPoint:
     Type: AWS::EFS::AccessPoint
     Properties:
@@ -117,7 +116,6 @@ Resources:
           Permissions: "777"
         Path: /efs/init_hasura
       FileSystemId: !Ref EfsFileSystemId
-
   PostgresDataAccessPoint:
     Type: AWS::EFS::AccessPoint
     Properties:
@@ -128,7 +126,6 @@ Resources:
           Permissions: "777"
         Path: /efs/postgres
       FileSystemId: !Ref EfsFileSystemId
-
   CommandingInitAccessPoint:
     Type: AWS::EFS::AccessPoint
     Properties:
@@ -140,6 +137,7 @@ Resources:
         Path: /efs/init_commanding
       FileSystemId: !Ref EfsFileSystemId
 
+  # ==================== Aerie EFS Bootstrap ==================== #
   AerieBootstrapStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -156,6 +154,8 @@ Resources:
         EfsSecurityGroupId: !Ref EfsSecurityGroupId
         IamRoleArn: !Ref AerieBootstrapRoleArn
         EfsRootAccessPointArn: !Ref EfsRootAccessPointArn
+
+  # ==================== Aerie Services ==================== #
   # TODO: Refactor to use main AST ALB
   AerieAlbStack:
     Type: AWS::CloudFormation::Stack
