@@ -124,18 +124,19 @@ Resources:
   BootstrapEfsIngress:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      GroupId: !Ref EfsSecurityGroupID
+      Description: Allow connection from Lambda to EFS Security Group
       IpProtocol: tcp
       FromPort: 2049
       ToPort: 2049
       SourceSecurityGroupId: !Ref BootstrapLambdaSecurityGroup
+      GroupId: !Ref EfsSecurityGroupID
   BootstrapEfsFunction:
     Type: AWS::Lambda::Function
     Properties:
-      Handler: bootstrap_efs.handler
+      Handler: bootstrap_ait.handler
       Code:
         S3Bucket: !Ref QSS3BucketName
-        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/BootstrapEfs/lambda.zip'
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/BootstrapAit/lambda.zip'
       Description: Bootstrap an EFS Filesystem with the files needed for the Aerie Deployment
       MemorySize: 512
       Timeout: 600

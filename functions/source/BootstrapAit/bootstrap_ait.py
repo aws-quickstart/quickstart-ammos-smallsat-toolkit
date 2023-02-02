@@ -161,5 +161,12 @@ def bootstrap(event, context):
 
     helper.Data.update(responseData)
 
+
+@helper.delete
+@helper.update
+def no_op(_, __):
+    return None
+
+
 def handler(event, context):
     helper(event, context)

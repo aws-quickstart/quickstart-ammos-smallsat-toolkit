@@ -50,7 +50,7 @@ Parameters:
       and https://aws-quickstart.github.io/option1.html.
     Type: String
 
-  # =========== Networking =========== #
+  # =============== Networking =============== #
   FQDN: # Ex: aerie-demo.example.com
     Description: URL to use for the project-resources root.
     Type: String
@@ -65,7 +65,7 @@ Parameters:
   PrivateSubnet1BID:
     Type: AWS::EC2::Subnet::Id
 
-  # =========== EFS References =========== #
+  # ============= EFS References ============= #
   EfsSecurityGroupId:
     Type: String
     Description: ""
@@ -76,7 +76,7 @@ Parameters:
     Type: String
     Description: ""
 
-  # =========== Aerie Misc =========== #
+  # =============== Aerie Misc =============== #
   SSLCertificateArn:
     Description: ARN of the SSL Certificate in ACM for the Aerie ECS Load Balancer
     Type: String
@@ -137,25 +137,49 @@ Resources:
         Path: /efs/init_commanding
       FileSystemId: !Ref EfsFileSystemId
 
-  # ==================== Aerie EFS Bootstrap ==================== #
-  AerieBootstrapStack:
-    Type: AWS::CloudFormation::Stack
+  # ====================== Aerie EFS Bootstrap ====================== #
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
     Properties:
-      TemplateURL: !Sub
-        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/aerie-bootstrap.template.yaml'
-        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
-          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-      Parameters:
-        ProjectName: !Ref ProjectName
-        QSS3BucketName: !Ref QSS3BucketName
-        QSS3KeyPrefix: !Ref QSS3KeyPrefix
-        VpcId: !Ref VpcId
-        PrivateSubnet1AID: !Ref PrivateSubnet1AID
-        EfsSecurityGroupId: !Ref EfsSecurityGroupId
-        IamRoleArn: !Ref AerieBootstrapRoleArn
-        EfsRootAccessPointArn: !Ref EfsRootAccessPointArn
+      VpcId:
+        Ref: VpcId
+      GroupDescription: "Bootstrap Lambda Security Group"
+  BootstrapEfsIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow connection from Lambda to EFS Security Group
+      IpProtocol: tcp
+      FromPort: 2049
+      ToPort: 2049
+      SourceSecurityGroupId: !Ref LambdaSecurityGroup
+      GroupId: !Ref EfsSecurityGroupId
+  BootstrapEfsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: bootstrap_aerie.handler
+      Code:
+        S3Bucket: !Ref QSS3BucketName
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/BootstrapAerie/lambda.zip'
+      Description: Bootstrap an EFS Filesystem with the files needed for the Aerie Deployment
+      MemorySize: 128
+      Timeout: 180
+      Role: !Ref AerieBootstrapRoleArn
+      Runtime: python3.8
+      VpcConfig:
+        SecurityGroupIds:
+        - !Ref LambdaSecurityGroup
+        SubnetIds:
+        - Ref: PrivateSubnet1AID
+      FileSystemConfigs:
+      - Arn: !Ref EfsRootAccessPointArn
+        LocalMountPath: "/mnt/efs"
+  EfsBootstrap:
+    Type: 'Custom::AerieBootstrap'
+    Properties:
+      ServiceToken: !GetAtt BootstrapEfsFunction.Arn
+      Name: !Sub "EFS Bootstrap for ${ProjectName}"
 
-  # ==================== Aerie Services ==================== #
+  # ======================== Aerie Services ======================== #
   # TODO: Refactor to use main AST ALB
   AerieAlbStack:
     Type: AWS::CloudFormation::Stack
@@ -175,7 +199,7 @@ Resources:
   AerieEcsStack:
     Type: AWS::CloudFormation::Stack
     DependsOn:
-      - AerieBootstrapStack
+      - EfsBootstrap
     Properties:
       TemplateURL: !Sub
         - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/aerie-ecs.template.yaml'
