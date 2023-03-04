@@ -10,7 +10,7 @@ Parameters:
   SSLCertificateArn:
     Description: ARN to Certifictate in ACM valid for specified FQDN and relevant subdomains
     Type: String
-  VPCID:
+  VpcId:
     Description: VPC ID for deploying project resources
     Type: AWS::EC2::VPC::Id
   PublicSubnetIds:
@@ -43,7 +43,7 @@ Resources:
         - CidrIp: 0.0.0.0/0
           Description: Allow all outbound traffic by default
           IpProtocol: "-1"
-      VpcId: !Ref VPCID
+      VpcId: !Ref VpcId
 
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer

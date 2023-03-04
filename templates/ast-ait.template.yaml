@@ -33,7 +33,7 @@ Parameters:
   PrivateSubnetIds:
     Description: List of Private Subnet IDs for deploying the AIT Autoscaling Group
     Type: List<AWS::EC2::Subnet::Id>
-  VPCID:
+  VpcId:
     Description: VPC ID for deploying project resources
     Type: AWS::EC2::VPC::Id
   InstanceType:
@@ -74,10 +74,10 @@ Parameters:
     Type: String
   EfsFileSystemID:
     Type: String
+  EfsRootAccessPointArn:
+    Type: String
   BootstrapRoleArn:
     Description: ARN of the IAM Role created for bootstrapping the EFS FileSystem
-    Type: String
-  EfsRootAccessPointArn:
     Type: String
 
 Conditions:
@@ -119,7 +119,7 @@ Resources:
   BootstrapLambdaSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      VpcId: !Ref VPCID
+      VpcId: !Ref VpcId
       GroupDescription: "Bootstrap Lambda Security Group"
   BootstrapEfsIngress:
     Type: AWS::EC2::SecurityGroupIngress
@@ -161,7 +161,7 @@ Resources:
   AitServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      VpcId: !Ref VPCID
+      VpcId: !Ref VpcId
       GroupDescription: Security group to manage connections to ammos-ait-asg-deploy
         AIT Server
       SecurityGroupEgress:
@@ -418,14 +418,14 @@ Resources:
       Port: 80
       Protocol: HTTP
       TargetType: instance
-      VpcId: !Ref VPCID
+      VpcId: !Ref VpcId
   AitMctTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       Port: 8082
       Protocol: HTTP
       TargetType: instance
-      VpcId: !Ref VPCID
+      VpcId: !Ref VpcId
   AitAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     CreationPolicy:

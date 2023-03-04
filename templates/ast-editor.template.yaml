@@ -14,7 +14,7 @@ Parameters:
   PrivateSubnetIds:
     Description: Private Subnet IDs for deploying application server Instances
     Type: List<AWS::EC2::Subnet::Id>
-  VPCID:
+  VpcId:
     Description: VPC ID for deploying project resources
     Type: AWS::EC2::VPC::Id
   InstanceType:
@@ -85,7 +85,7 @@ Resources:
           FromPort: 80
           ToPort: 80
           SourceSecurityGroupId: !Ref AlbSecurityGroupId
-      VpcId: !Ref VPCID
+      VpcId: !Ref VpcId
   EditorTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -95,7 +95,7 @@ Resources:
       Targets:
         - Id: !Ref Instance
           Port: 80
-      VpcId: !Ref VPCID
+      VpcId: !Ref VpcId
   EditorListenerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:

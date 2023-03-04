@@ -388,7 +388,7 @@ Resources:
         QSS3KeyPrefix: !Sub "${QSS3KeyPrefix}submodules/quickstart-linux-bastion/"
         QSS3BucketRegion: !Ref QSS3BucketRegion
         RemoteAccessCIDR: !Ref RemoteAccessCIDR
-        VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
+        VpcId: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
         AlternativeIAMRole: !If [DeployIam, !GetAtt IamStack.Outputs.BastionHostRoleName, !GetAtt RoleArns.BastionHostRoleName]
         PermissionsBoundaryArn: !Ref PermissionsBoundaryArn
         RolePath: !Ref RolePath
@@ -415,7 +415,7 @@ Resources:
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         ProjectName: !Ref ProjectName
-        VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
+        VpcId: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
         PublicSubnetIds:
           Fn::Join:
             - ','
@@ -439,7 +439,7 @@ Resources:
         ProjectName: !Ref ProjectName
         CloudWatchLogsRetentionPeriod: !Ref CloudWatchLogsRetentionPeriod
         IamRoleArn: !If [DeployIam, !GetAtt IamStack.Outputs.LoggingLambdaRoleArn, !GetAtt RoleArns.LoggingLambdaRoleArn]
-        VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
+        VpcId: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
         PrivateSubnet1ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
         PrivateSubnet2ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
         PrivateSubnet3ID: !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet3AID, !Ref PrivateSubnet3AID]
@@ -469,7 +469,7 @@ Resources:
               - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
         ProjectName: !Ref ProjectName
         IamRoleName: !If [DeployIam, !GetAtt IamStack.Outputs.EditorServerRoleName, !GetAtt RoleArns.EditorServerRoleName]
-        VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
+        VpcId: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
   AstAITStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -486,7 +486,7 @@ Resources:
             - ','
             - - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet1AID, !Ref PrivateSubnet1AID]
               - !If [DeployVpc, !GetAtt VPCStack.Outputs.PrivateSubnet2AID, !Ref PrivateSubnet2AID]
-        VPCID: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
+        VpcId: !If [DeployVpc, !GetAtt VPCStack.Outputs.VPCID, !Ref VpcId]
         InstanceType: !Ref AITInstanceType
         KeyPairName: !Ref KeyPairName
         IamRoleName: !If [DeployIam, !GetAtt IamStack.Outputs.AitServerRoleName, !GetAtt RoleArns.AitServerRoleName]
