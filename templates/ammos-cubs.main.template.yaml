@@ -541,7 +541,7 @@ Resources:
         ALBArn: !GetAtt AmmosCubsALBStack.Outputs.AlbArn
         EfsSecurityGroupID: !GetAtt AstDataStack.Outputs.EfsSecurityGroupId
         EfsFileSystemID: !GetAtt AstDataStack.Outputs.EfsFileSystemId
-        EfsAitAccessPointID: !GetAtt AstDataStack.Outputs.EfsFileSystemId
+        EfsAitAccessPointID: !GetAtt AstDataStack.Outputs.AitAccessPointId
   ConfigureSSLStack:
     # DependsOn: CFNEndpoint
     Condition: GenerateSSL
