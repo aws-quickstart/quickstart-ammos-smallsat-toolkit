@@ -147,7 +147,7 @@ Resources:
         SecurityGroupIds:
           - !Ref BootstrapLambdaSecurityGroup
         SubnetIds:
-          - !Select ["0", !Split [",", !Ref PrivateSubnetIds]]
+          - !Select ["0", !Ref PrivateSubnetIds]
       FileSystemConfigs:
         - Arn: !Ref EfsRootAccessPointArn
           LocalMountPath: '/mnt/efs'
