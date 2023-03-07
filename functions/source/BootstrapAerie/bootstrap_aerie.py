@@ -1,11 +1,13 @@
-import os
 import io
-import shutil
+import os
 import pathlib
+import shutil
+import tarfile
 import urllib.request
 import zipfile
-from crhelper import CfnResource
 from pathlib import Path
+
+from crhelper import CfnResource
 
 helper = CfnResource()
 
@@ -42,6 +44,9 @@ def clone_deployment(event, _):
     with zipfile.ZipFile(io.BytesIO(filehandle.read())) as zipObj:
         # Extract all the contents of zip file in different directory
         zipObj.extractall("/tmp")
+
+    with tarfile.open("/tmp/deployment.tar") as tar:
+        tar.extractall("/tmp")
 
     # Create the required directory structure (one directory for each access point)
     EFS.aerie_filestore.mkdir(parents=True, exist_ok=True)
