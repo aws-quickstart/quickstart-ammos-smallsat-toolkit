@@ -353,7 +353,9 @@ Resources:
         Count: 1
         Timeout: PT30M
     Properties:
-      LaunchConfigurationName: !Ref 'AitAutoScalingGroupLaunchConfig'
+      LaunchTemplate:
+        LaunchTemplateId: !Ref AitAutoScalingGroupLaunchTemplate
+        Version: !GetAtt AitAutoScalingGroupLaunchTemplate.LatestVersionNumber
       MaxSize: '1'
       MinSize: '1'
       Tags:
