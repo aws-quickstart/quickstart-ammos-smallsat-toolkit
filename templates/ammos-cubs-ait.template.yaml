@@ -123,6 +123,8 @@ Resources:
             Ebs:
               DeleteOnTermination: true
               VolumeSize: 64
+        IamInstanceProfile:
+          Name: !Ref IamRoleName
         ImageId: !FindInMap
           - AWSAMIRegionMap
           - !Ref AWS::Region
