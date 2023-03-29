@@ -124,7 +124,7 @@ Resources:
               DeleteOnTermination: true
               VolumeSize: 64
         IamInstanceProfile:
-          Name: !Ref IamRoleName
+          Arn: !GetAtt AitAutoScalingGroupInstanceProfile.Arn
         ImageId: !FindInMap
           - AWSAMIRegionMap
           - !Ref AWS::Region
@@ -134,7 +134,7 @@ Resources:
           - SshEnabled
           - !Ref 'KeyPairName'
           - !Ref 'AWS::NoValue'
-        SecurityGroups:
+        SecurityGroupIds:
           - !GetAtt 'AitServerSecurityGroup.GroupId'
         UserData:
           Fn::Base64: !Sub |
