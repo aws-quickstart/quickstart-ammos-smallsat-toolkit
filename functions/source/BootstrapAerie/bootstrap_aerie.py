@@ -38,7 +38,7 @@ def clone_deployment(event, _):
     #         except Exception as e:
     #             print("Failed to delete %s. Reason: %s" % (file_path, e))
 
-    url = f"https://github.com/NASA-AMMOS/aerie/releases/download/{aerie_version}/deployment.zip"
+    url = f"https://github.com/NASA-AMMOS/aerie/releases/download/{aerie_version}/Deployment.zip"
     filehandle = urllib.request.urlopen(url)
     with zipfile.ZipFile(io.BytesIO(filehandle.read())) as zipObj:
         # Extract all the contents of zip file in different directory
