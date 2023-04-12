@@ -36,8 +36,6 @@ Parameters:
     Type: String
   HasuraInitAccessPointId:
     Type: String
-  CommandingInitAccessPointId:
-    Type: String
 
 Resources:
   RootUserDbSecret:
@@ -211,14 +209,12 @@ Resources:
     Properties:
       ContainerDefinitions:
         - Name: aerie-gateway
-          Image: ghcr.io/nasa-ammos/aerie-gateway:v0.12.3
+          Image: ghcr.io/nasa-ammos/aerie-gateway:v1.4.0
           PortMappings:
             - ContainerPort: 9000
           Environment:
             - Name: AUTH_TYPE
               Value: None
-            - Name: AUTH_URL
-              Value: ""
             - Name: GQL_API_URL
               Value: !Sub http://${PrivateNamespaceUrl}:8080/v1/graphql
             - Name: LOG_FILE
@@ -229,8 +225,6 @@ Resources:
               Value: "9000"
             - Name: POSTGRES_AERIE_MERLIN_DB
               Value: aerie_merlin
-            - Name: POSTGRES_AERIE_SCHEDULER_DB
-              Value: aerie_scheduler
             - Name: POSTGRES_HOST
               Value: !Sub postgres.${PrivateNamespaceUrl}
             - Name: POSTGRES_PASSWORD
@@ -272,7 +266,7 @@ Resources:
     Properties:
       ContainerDefinitions:
         - Name: aerie-merlin
-          Image: ghcr.io/nasa-ammos/aerie-merlin:v0.12.3
+          Image: ghcr.io/nasa-ammos/aerie-merlin:v1.4.0
           PortMappings:
             - ContainerPort: 27183
           Environment:
@@ -288,14 +282,14 @@ Resources:
               Value: "aerie"
             - Name: MERLIN_LOCAL_STORE
               Value: /usr/src/app/merlin_file_store
-            - Name: MERLIN_LOGGING
-              Value: "true"
             - Name: MERLIN_PORT
               Value: "27183"
             - Name: JAVA_OPTS
-              Value: "-Dorg.slf4j.simpleLogger.defaultLogLevel=WARN -Dorg.slf4j.simpleLogger.logFile=System.out"
-            - Name: MERLIN_DB_TYPE
-              Value: !Sub postgres.${PrivateNamespaceUrl}
+              Value: >
+                -Dorg.slf4j.simpleLogger.defaultLogLevel=WARN
+                -Dorg.slf4j.simpleLogger.logFile=System.err
+            - Name: UNTRUE_PLAN_START
+              Value: "2000-01-01T11:58:55.816Z"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -329,16 +323,12 @@ Resources:
     Properties:
       ContainerDefinitions:
         - Name: aerie-scheduler
-          Image: ghcr.io/nasa-ammos/aerie-scheduler:v0.12.3
+          Image: ghcr.io/nasa-ammos/aerie-scheduler:v1.4.0
           PortMappings:
             - ContainerPort: 27193
           Environment:
             - Name: MERLIN_GRAPHQL_URL
               Value: !Sub http://hasura.${PrivateNamespaceUrl}:8080/v1/graphql
-            - Name: MERLIN_LOCAL_STORE
-              Value: /usr/src/app/merlin_file_store
-            - Name: SCHEDULER_DB
-              Value: "aerie_scheduler"
             - Name: SCHEDULER_DB_PASSWORD
               Value: "aerie"
             - Name: SCHEDULER_DB_PORT
@@ -347,16 +337,10 @@ Resources:
               Value: !Sub postgres.${PrivateNamespaceUrl}
             - Name: SCHEDULER_DB_USER
               Value: "aerie"
-            - Name: SCHEDULER_LOCAL_STORE
-              Value: /usr/src/app/scheduler_file_store
-            - Name: SCHEDULER_OUTPUT_MODE
-              Value: UpdateInputPlanWithNewActivities
+            - Name: SCHEDULER_DB
+              Value: "aerie_scheduler"
             - Name: SCHEDULER_PORT
-              Value: "27193"
-            - Name: SCHEDULER_RULES_JAR
-              Value: /usr/src/app/merlin_file_store/scheduler_rules.jar
-            - Name: JAVA_OPTS
-              Value: "-Dorg.slf4j.simpleLogger.defaultLogLevel=WARN -Dorg.slf4j.simpleLogger.logFile=System.out"
+              Value: "27185"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -385,40 +369,96 @@ Resources:
       RequiresCompatibilities:
         - FARGATE
 
+  SequencingTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Name: aerie-sequencing
+          Image: ghcr.io/nasa-ammos/aerie-sequencing:v1.4.0
+          PortMappings:
+            - ContainerPort: 27184
+          Environment:
+            - Name: LOG_FILE
+              Value: console
+            - Name: LOG_LEVEL
+              Value: warn
+            - Name: MERLIN_GRAPHQL_URL
+              Value: !Sub http://hasura.${PrivateNamespaceUrl}:8080/v1/graphql
+            - Name: SEQUENCING_SERVER_PORT
+              Value: "27184"
+            - Name: SEQUENCING_DB
+              Value: aerie_sequencing
+            - Name: SEQUENCING_DB_PASSWORD
+              Value: "aerie"
+            - Name: SEQUENCING_DB_PORT
+              Value: "5432"
+            - Name: SEQUENCING_DB_SERVER
+              Value: !Sub postgres.${PrivateNamespaceUrl}
+            - Name: SEQUENCING_DB_USER
+              Value: "aerie"
+            - Name: SEQUENCING_LOCAL_STORE
+              Value: /usr/src/app/sequencing_file_store
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: aerie-sequencing
+          MountPoints:
+            - ContainerPath: /usr/src/app/sequencing_file_store
+              SourceVolume: aerie_file_store
+          Essential: True
+      Cpu: "2048"
+      Memory: "4096"
+      Volumes:
+        - Name: aerie_file_store
+          EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId:
+                !Ref AerieFilestoreAccessPointId
+              IAM: ENABLED
+            FilesystemId:
+              !Ref AerieFileSystemId
+            TransitEncryption: ENABLED
+      ExecutionRoleArn: !Ref ECSTaskExecutionRoleArn
+      TaskRoleArn: !Ref ECSTaskRoleArn
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
   AerieUiTask:
     Type: AWS::ECS::TaskDefinition
     Properties:
       ContainerDefinitions:
         - Name: aerie-ui
-          Image: ghcr.io/nasa-ammos/aerie-ui:v0.12.3
+          Image: ghcr.io/nasa-ammos/aerie-ui:v1.4.0
           PortMappings:
             - ContainerPort: 80
           Environment:
-            - Name: AUTH_TYPE
+            - Name: PUBLIC_AUTH_TYPE
               Value: none
-            - Name: GATEWAY_CLIENT_URL
+            - Name: PUBLIC_GATEWAY_CLIENT_URL
               Value: !Sub
                 - "http://${DomainName}:${GtwyPort}"
                 - DomainName: !Ref ApplicationLoadBalancerDns
-                  GtwyPort: 9000
-            - Name: GATEWAY_SERVER_URL
+                  GtwyPort: "9000"
+            - Name: PUBLIC_GATEWAY_SERVER_URL
               Value: !Sub http://aerie-gateway.${PrivateNamespaceUrl}:9000
-            - Name: HASURA_CLIENT_URL
+            - Name: PUBLIC_HASURA_CLIENT_URL
               Value: !Sub
                 - "http://${DomainName}:8080"
                 - DomainName: !Ref ApplicationLoadBalancerDns
-            - Name: HASURA_SERVER_URL
+            - Name: PUBLIC_HASURA_SERVER_URL
               Value: !Sub http://hasura.${PrivateNamespaceUrl}:8080/v1/graphql
-            - Name: HASURA_WEB_SOCKET_URL
+            - Name: PUBLIC_HASURA_WEB_SOCKET_URL
               Value: !Sub
                 - "ws://${DomainName}:8080/v1/graphql"
                 - DomainName: !Ref ApplicationLoadBalancerDns
-            - Name: NODE_TLS_REJECT_UNAUTHORIZED
-              Value: "0"
             - Name: ORIGIN
               Value: !Sub
                 - "http://${DomainName}"
                 - DomainName: !Ref ApplicationLoadBalancerDns
+            # - Name: PUBLIC_NODE_TLS_REJECT_UNAUTHORIZED
+            #   Value: "0"
             # - Name: SCHEDULER_CLIENT_URL
             #   Value: !Sub http://aerie-scheduler.${PrivateNamespaceUrl}:27193
             # - Name: SCHEDULER_SERVER_URL
@@ -438,76 +478,21 @@ Resources:
       RequiresCompatibilities:
         - FARGATE
 
-  CommandingTask:
-    Type: AWS::ECS::TaskDefinition
-    Properties:
-      ContainerDefinitions:
-        - Name: aerie-commanding
-          Image: ghcr.io/nasa-ammos/aerie-commanding:v0.12.3
-          PortMappings:
-            - ContainerPort: 27184
-          Environment:
-            - Name: LOG_FILE
-              Value: console
-            - Name: LOG_LEVEL
-              Value: warn
-            - Name: MERLIN_GRAPHQL_URL
-              Value: !Sub http://hasura.${PrivateNamespaceUrl}:8080/v1/graphql
-            - Name: COMMANDING_SERVER_PORT
-              Value: 27184
-            - Name: COMMANDING_DB
-              Value: aerie_commanding
-            - Name: COMMANDING_DB_PASSWORD
-              Value: aerie
-            - Name: COMMANDING_DB_PORT
-              Value: 5432
-            - Name: COMMANDING_DB_SERVER
-              Value: !Sub postgres.${PrivateNamespaceUrl}
-            - Name: COMMANDING_DB_USER
-              Value: aerie
-            - Name: COMMANDING_LOCAL_STORE
-              Value: /usr/src/app/commanding_file_store
-          LogConfiguration:
-            LogDriver: awslogs
-            Options:
-              awslogs-region: !Ref AWS::Region
-              awslogs-group: !Ref LogGroup
-              awslogs-stream-prefix: aerie-commanding
-          MountPoints:
-            - ContainerPath: /commanding-metadata
-              SourceVolume: init_commanding
-          Essential: True
-      Cpu: "2048"
-      Memory: "4096"
-      Volumes:
-        - Name: init_commanding
-          EFSVolumeConfiguration:
-            AuthorizationConfig:
-              AccessPointId: !Ref CommandingInitAccessPointId
-              IAM: ENABLED
-            FilesystemId: !Ref AerieFileSystemId
-            TransitEncryption: ENABLED
-      ExecutionRoleArn: !Ref ECSTaskExecutionRoleArn
-      TaskRoleArn: !Ref ECSTaskRoleArn
-      NetworkMode: awsvpc
-      RequiresCompatibilities:
-        - FARGATE
-
   HasuraTask:
     Type: AWS::ECS::TaskDefinition
     Properties:
       ContainerDefinitions:
         - Name: hasura
-          Image: hasura/graphql-engine:v2.8.4.cli-migrations-v3
+          Image: hasura/graphql-engine:v2.12.1.cli-migrations-v3
           PortMappings:
             - ContainerPort: 8080
           Environment:
-            - Name: AERIE_COMMANDING_DATABASE_URL
-              Value: !Sub postgres://aerie:aerie@postgres.${PrivateNamespaceUrl}:5432/aerie_commanding
             - Name: AERIE_MERLIN_DATABASE_URL
               Value: !Sub postgres://aerie:aerie@postgres.${PrivateNamespaceUrl}:5432/aerie_merlin
             - Name: AERIE_SCHEDULER_DATABASE_URL
               Value: !Sub postgres://aerie:aerie@postgres.${PrivateNamespaceUrl}:5432/aerie_scheduler
+            - Name: AERIE_SEQUENCING_DATABASE_URL
+              Value: !Sub postgres://aerie:aerie@postgres.${PrivateNamespaceUrl}:5432/aerie_sequencing
             - Name: AERIE_UI_DATABASE_URL
               Value: !Sub postgres://aerie:aerie@postgres.${PrivateNamespaceUrl}:5432/aerie_ui
             - Name: HASURA_GRAPHQL_DEV_MODE
@@ -565,11 +550,13 @@ Resources:
             - Name: POSTGRES_DB
               Value: postgres
             - Name: POSTGRES_PASSWORD
-              # Value: aerie
               Value: !Sub "{{resolve:secretsmanager:${ProjectName}-RootUserDbSecretAerieDb:SecretString:password}}"
             - Name: POSTGRES_USER
-              # Value: aerie
               Value: !Sub "{{resolve:secretsmanager:${ProjectName}-RootUserDbSecretAerieDb:SecretString:username}}"
+            - Name: AERIE_USERNAME
+              Value: aerie
+            - Name: AERIE_PASSSWORD
+              Value: aerie
             - Name: HEALTHCHECK_DB
               Value: aerie_merlin
           # Secrets:
@@ -595,7 +582,6 @@ Resources:
             - ContainerPath: /docker-entrypoint-initdb.d
               SourceVolume: init_postgres
           Essential: True
-
       Cpu: "2048"
       Memory: "4096"
       Volumes:
@@ -641,10 +627,10 @@ Resources:
       Name: aerie-gateway
       NamespaceId: !Ref PrivateNamespace
 
-  CommandingDiscoveryService:
+  SequencingDiscoveryService:
     Type: AWS::ServiceDiscovery::Service
     Properties:
-      Description: Discovery Service for Aerie Commanding
+      Description: Discovery Service for Aerie Sequencing
       DnsConfig:
         RoutingPolicy: MULTIVALUE
         DnsRecords:
@@ -654,18 +640,18 @@ Resources:
             Type: SRV
       HealthCheckCustomConfig:
         FailureThreshold: 1
-      Name: aerie-commanding
+      Name: aerie-sequencing
       NamespaceId: !Ref PrivateNamespace
 
-  CommandingService:
+  SequencingService:
     Type: AWS::ECS::Service
     DependsOn: PostgresService
     Properties:
       LaunchType: FARGATE
       Cluster: !Ref FargateCluster
-      ServiceName: aerie-commanding
+      ServiceName: aerie-sequencing
       DesiredCount: 1
-      TaskDefinition: !Ref CommandingTask
+      TaskDefinition: !Ref SequencingTask
       EnableExecuteCommand: true
       NetworkConfiguration:
         AwsvpcConfiguration:
@@ -675,7 +661,7 @@ Resources:
             - !Ref EcsInternalSecurityGroup
             - !Ref EcsSecurityGroup
       ServiceRegistries:
-        - RegistryArn: !GetAtt CommandingDiscoveryService.Arn
+        - RegistryArn: !GetAtt SequencingDiscoveryService.Arn
           Port: 27184
 
   GatewayService:

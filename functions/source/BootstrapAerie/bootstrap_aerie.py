@@ -1,6 +1,5 @@
 import io
 import os
-import pathlib
 import shutil
 import tarfile
 import urllib.request
@@ -11,21 +10,21 @@ from crhelper import CfnResource
 
 helper = CfnResource()
 
-AERIE_VERSION = "v1.0.1"
+AERIE_VERSION = "v1.4.0"
 
 
 class EFS:
-    aerie = Path("/mnt/efs/ait")
-    aerie_filestore = aerie / "aerie"
+    aerie = Path("/mnt/efs/aerie")
+    aerie_filestore = aerie / "filestore"
     postgres = aerie / "postgres"
     deployment = aerie / "deployment"
     init_postgres = aerie / "init_postgres"
     init_hasura = aerie / "init_hasura"
-    init_commanding = aerie / "init_commanding"
 
 
 @helper.create
 def clone_deployment(event, _):
+    aerie_version = event["ResourceProperties"].get("AerieVersion", AERIE_VERSION)
     # Unsure why this is here - don't think we need to clean out /tmp on every invocation
     # if os.listdir("/tmp"):
     #     folder = "/tmp"
@@ -39,7 +38,7 @@ def clone_deployment(event, _):
     #         except Exception as e:
     #             print("Failed to delete %s. Reason: %s" % (file_path, e))
 
-    url = f"https://github.com/NASA-AMMOS/aerie/releases/download/{AERIE_VERSION}/deployment.zip"
+    url = f"https://github.com/NASA-AMMOS/aerie/releases/download/{aerie_version}/deployment.zip"
     filehandle = urllib.request.urlopen(url)
     with zipfile.ZipFile(io.BytesIO(filehandle.read())) as zipObj:
         # Extract all the contents of zip file in different directory
@@ -54,7 +53,6 @@ def clone_deployment(event, _):
     EFS.deployment.mkdir(parents=True, exist_ok=True)
     EFS.init_postgres.mkdir(parents=True, exist_ok=True)
     EFS.init_hasura.mkdir(parents=True, exist_ok=True)
-    EFS.init_commanding.mkdir(parents=True, exist_ok=True)
 
     # Copy relevant seed files into the appropriate directories for the
     #   ECS Tasks which will use them as a mounted volume

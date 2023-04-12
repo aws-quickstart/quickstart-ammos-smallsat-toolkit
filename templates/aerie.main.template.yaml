@@ -94,7 +94,7 @@ Resources:
           OwnerUid: "1001"
           OwnerGid: "1001"
           Permissions: "777"
-        Path: /efs/aerie
+        Path: /efs/aerie/filestore
       FileSystemId: !Ref EfsFileSystemId
   PostgresInitAccessPoint:
     Type: AWS::EFS::AccessPoint
@@ -104,7 +104,7 @@ Resources:
           OwnerUid: "1001"
           OwnerGid: "1001"
           Permissions: "777"
-        Path: /efs/init_postgres
+        Path: /efs/aerie/init_postgres
       FileSystemId: !Ref EfsFileSystemId
   HasuraInitAccessPoint:
     Type: AWS::EFS::AccessPoint
@@ -114,7 +114,7 @@ Resources:
           OwnerUid: "1001"
           OwnerGid: "1001"
           Permissions: "777"
-        Path: /efs/init_hasura
+        Path: /efs/aerie/init_hasura
       FileSystemId: !Ref EfsFileSystemId
   PostgresDataAccessPoint:
     Type: AWS::EFS::AccessPoint
@@ -124,17 +124,7 @@ Resources:
           OwnerUid: "1001"
           OwnerGid: "1001"
           Permissions: "777"
-        Path: /efs/postgres
-      FileSystemId: !Ref EfsFileSystemId
-  CommandingInitAccessPoint:
-    Type: AWS::EFS::AccessPoint
-    Properties:
-      RootDirectory:
-        CreationInfo:
-          OwnerUid: "1001"
-          OwnerGid: "1001"
-          Permissions: "777"
-        Path: /efs/init_commanding
+        Path: /efs/aerie/postgres
       FileSystemId: !Ref EfsFileSystemId
 
   # ====================== Aerie EFS Bootstrap ====================== #
@@ -178,6 +168,7 @@ Resources:
     Properties:
       ServiceToken: !GetAtt BootstrapEfsFunction.Arn
       Name: !Sub "EFS Bootstrap for ${ProjectName}"
+      AerieVersion: "1.4.0"
 
   # ======================== Aerie Services ======================== #
   # TODO: Refactor to use main AST ALB
@@ -226,4 +217,3 @@ Resources:
         PostgresDataAccessPointId: !Ref PostgresDataAccessPoint
         PostgresInitAccessPointId: !Ref PostgresInitAccessPoint
         HasuraInitAccessPointId: !Ref HasuraInitAccessPoint
-        CommandingInitAccessPointId: !Ref CommandingInitAccessPoint
