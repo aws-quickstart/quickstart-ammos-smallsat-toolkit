@@ -106,6 +106,9 @@ Resources:
   AitEfsAccessPoint:
     Type: AWS::EFS::AccessPoint
     Properties:
+      AccessPointTags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-Ait
       FileSystemId: !Ref EfsFileSystemID
       PosixUser:
         Uid: '1001'

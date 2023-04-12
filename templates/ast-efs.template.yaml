@@ -119,6 +119,9 @@ Resources:
   RootAccessPoint:
     Type: AWS::EFS::AccessPoint
     Properties:
+      AccessPointTags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-EfsRoot
       FileSystemId:
         Ref: FileSystem
       PosixUser:

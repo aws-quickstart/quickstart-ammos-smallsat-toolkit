@@ -89,6 +89,9 @@ Resources:
   AerieFilestoreAccessPoint:
     Type: AWS::EFS::AccessPoint
     Properties:
+      AccessPointTags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-AerieFilestore
       RootDirectory:
         CreationInfo:
           OwnerUid: "1001"
@@ -99,6 +102,9 @@ Resources:
   PostgresInitAccessPoint:
     Type: AWS::EFS::AccessPoint
     Properties:
+      AccessPointTags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-PostgresInit
       RootDirectory:
         CreationInfo:
           OwnerUid: "1001"
@@ -109,6 +115,9 @@ Resources:
   HasuraInitAccessPoint:
     Type: AWS::EFS::AccessPoint
     Properties:
+      AccessPointTags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-HasuraInit
       RootDirectory:
         CreationInfo:
           OwnerUid: "1001"
@@ -119,6 +128,9 @@ Resources:
   PostgresDataAccessPoint:
     Type: AWS::EFS::AccessPoint
     Properties:
+      AccessPointTags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-PostgresData
       RootDirectory:
         CreationInfo:
           OwnerUid: "1001"
