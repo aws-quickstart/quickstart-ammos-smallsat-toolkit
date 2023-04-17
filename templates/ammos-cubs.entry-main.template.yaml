@@ -1,0 +1,123 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: (qs-1s6abjf8q)
+Parameters:
+  AITInstanceType:
+    Type: String
+    Default: m5.large
+  CloudWatchLogsRetentionPeriod:
+    Type: Number
+    Default: 30
+  KeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+  VPCCIDR:
+    Default: 10.0.0.0/16
+    Type: String
+  PublicSubnet1CIDR:
+    Default: 10.0.32.0/24
+    Type: String
+  PublicSubnet2CIDR:
+    Default: 10.0.64.0/24
+    Type: String
+  PublicSubnet3CIDR:
+    Default: 10.0.70.0/24
+    Type: String
+  PrivateSubnet1CIDR:
+    Default: 10.0.128.0/24
+    Type: String
+  PrivateSubnet2CIDR:
+    Default: 10.0.192.0/24
+    Type: String
+  PrivateSubnet3CIDR:
+    Default: 10.0.200.0/24
+    Type: String
+  AvailabilityZones:
+    Type: List<AWS::EC2::AvailabilityZone::Name>
+  QSS3BucketName:
+    Default: aws-quickstart
+    Type: String
+  QSS3BucketRegion:
+    Default: 'us-east-1'
+    Type: String
+  QSS3KeyPrefix:
+    Default: quickstart-ammos-smallsat-toolkit/
+    Type: String
+  RemoteAccessCIDR:
+    Type: String
+  SSLCertificateArn:
+    Type: String
+    Default: ''
+  HostedZoneID:
+    Type: String
+    Default: ''
+  FQDN:
+    Type: String
+  PermissionsBoundaryArn:
+    Type: String
+    Default: ''
+  RolePath:
+    Type: String
+    Default: ''
+  ProjectName:
+    Type: String
+  VpcId:
+    Type: String
+    Default: ''
+  PublicSubnet1ID:
+    Type: String
+    Default: ''
+  PublicSubnet2ID:
+    Type: String
+    Default: ''
+  PrivateSubnet1AID:
+    Type: String
+    Default: ''
+  PrivateSubnet2AID:
+    Type: String
+    Default: ''
+  PrivateSubnet3AID:
+    Type: String
+    Default: ''
+  AccessSgID:
+    Type: String
+    Default: ''
+  DeployIam:
+    Type: String
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
+Resources:
+  MainStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ammos-cubs-cognito.template.yaml'
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Parameters:
+        DeployIam: !REF DeployIam
+        FQDN: !REF FQDN
+        HostedZoneID: !REF HostedZoneID
+        KeyPairName: !REF KeyPairName
+        PermissionsBoundaryArn: !REF PermissionsBoundaryArn
+        PrivateSubnet1AID: !REF PrivateSubnet1AID
+        PrivateSubnet1CIDR: !REF PrivateSubnet1CIDR
+        PrivateSubnet2AID: !REF PrivateSubnet2AID
+        PrivateSubnet2CIDR: !REF PrivateSubnet2CIDR
+        PrivateSubnet3AID: !REF PrivateSubnet3AID
+        PrivateSubnet3CIDR: !REF PrivateSubnet3CIDR
+        ProjectName: !REF ProjectName
+        PublicSubnet1CIDR: !REF PublicSubnet1CIDR
+        PublicSubnet1ID: !REF PublicSubnet1ID
+        PublicSubnet2CIDR: !REF PublicSubnet2CIDR
+        PublicSubnet2ID: !REF PublicSubnet2ID
+        PublicSubnet3CIDR: !REF PublicSubnet3CIDR
+        QSS3BucketName: !REF QSS3BucketName
+        QSS3BucketRegion: !REF QSS3BucketRegion
+        QSS3KeyPrefix: !REF QSS3KeyPrefix
+        RemoteAccessCIDR: !REF RemoteAccessCIDR
+        RolePath: !REF RolePath
+        SSLCertificateArn: !REF SSLCertificateArn
+        VPCCIDR: !REF VPCCIDR
+        VpcId: !REF VpcId
