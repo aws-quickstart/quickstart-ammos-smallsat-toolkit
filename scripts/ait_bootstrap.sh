@@ -50,7 +50,7 @@ chmod +x /usr/bin/jq
 function bootstrap_data(){
 # Adding functionality to mount an EFS
 echo "Bootstrapping EFS and Mounting it"
-sudo yum -y update  
+sudo yum -y update
 sudo yum -y install nfs-utils
 
 # Installing EFS Amazon Utils
@@ -67,8 +67,8 @@ cd /
 pip3 install botocore
 # Define mount location and efs id
 DIR_TGT=/mnt/efs/ait/
-EFS_FILE_SYSTEM_ID=${FileSystem}
-AIT_EFS_ACCESSPOINT_ID=${AitAccessPoint}
+EFS_FILE_SYSTEM_ID=${EfsFileSystemID}
+AIT_EFS_ACCESSPOINT_ID=${EfsAitAccessPointID}
 mkdir -p $DIR_TGT
 echo "Mounting for  Access Point $AIT_EFS_ACCESSPOINT_ID from filesystem: $EFS_FILE_SYSTEM_ID to $DIR_TGT"
 sudo mount -t efs -o tls,accesspoint=$AIT_EFS_ACCESSPOINT_ID $EFS_FILE_SYSTEM_ID $DIR_TGT
@@ -77,6 +77,7 @@ EFS_FILE_SYSTEM_ID=$EFS_FILE_SYSTEM_ID
 AIT_EFS_ACCESSPOINT_ID=$AIT_EFS_ACCESSPOINT_ID
 DIR_TGT=$DIR_TGT
 EOM
+echo "$EFS_FILE_SYSTEM_ID:/ $DIR_TGT efs _netdev,noresvport,tls,iam,accesspoint=$AIT_EFS_ACCESSPOINT_ID 0 0" >> /etc/fstab
 }
 
 function install_ait_and_dependents(){
@@ -137,7 +138,7 @@ sed 's/<CFN_FQDN>/${FQDN}/g' /mnt/efs/ait/openmct/index.html.bak > /mnt/efs/ait/
 rm /mnt/efs/ait/openmct/index.html.bak
 
 # Install InfluxDB and data plugin
-curl https://repos.influxdata.com/rhel/6/amd64/stable/influxdb-1.2.4.x86_64.rpm -o /tmp/influxdb-1.2.4.x86_64.rpm
+curl https://repos.influxdata.com/rhel/8/x86_64/stable/influxdb-1.2.4.x86_64.rpm -o /tmp/influxdb-1.2.4.x86_64.rpm
 yum localinstall -y /tmp/influxdb-1.2.4.x86_64.rpm
 
 pip install influxdb
@@ -176,10 +177,13 @@ systemctl start ait-server.service
 # (for proxying requests to AIT server)
 setsebool -P httpd_can_network_connect 1
 
+# allow apache to serve web content from mounted NFS
+setsebool -P httpd_use_nfs 1
+
 systemctl start httpd
 
 # Configure and start the CloudWatch Agent
-mv $SETUP_DIR/cloudwatch-agent-ait.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+mv $SETUP_DIR/configs/cloudwatch-agent-ait.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
     -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 

@@ -35,7 +35,7 @@ class LOCAL:
 
 class EFS:
     ait = Path("/mnt/efs/ait")
-    ait_core = ait / "AIT-CORE"
+    ait_core = ait / "AIT-Core"
     ait_gui = ait / "AIT-GUI"
     ait_dsn = ait / "AIT-DSN/"
     setup = ait / "setup"
