@@ -219,6 +219,7 @@ Resources:
             - ','
             - - !Ref PrivateSubnet1AID
               - !Ref PrivateSubnet1BID
+        PublicSubnetId: !Ref PublicSubnet1ID
         SSLCertificateArn: !Ref SSLCertificateArn
         PrivateNamespaceUrl: !Sub aerie-services.${FQDN}
         EfsSecurityGroupId: !Ref EfsSecurityGroupId

@@ -77,73 +77,8 @@ Resources:
   AlbSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow Web connections to ALB from the JPL IP Space
+      GroupDescription: Allow Web connections to ALB
       VpcId: !Ref VpcId
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          CidrIp: 10.133.0.0/16 # JPL Network 1 https
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 10.133.0.0/16 # JPL Network 1 http
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          CidrIp: 128.149.0.0/16 # JPL Network 2 https
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 128.149.0.0/16 # JPL Network 2 http
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          CidrIp: 137.78.0.0/16 # JPL Network 3 https
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 137.78.0.0/16 # JPL Network 3 http
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          CidrIp: 137.79.0.0/16 # JPL Network 4 https
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 137.79.0.0/16 # JPL Network 4 http
-        - IpProtocol: tcp
-          FromPort: 9000
-          ToPort: 9000
-          CidrIp: 10.133.0.0/16 # JPL Network 1 https
-        - IpProtocol: tcp
-          FromPort: 9000
-          ToPort: 9000
-          CidrIp: 128.149.0.0/16 # JPL Network 2 https
-        - IpProtocol: tcp
-          FromPort: 9000
-          ToPort: 9000
-          CidrIp: 137.78.0.0/16 # JPL Network 3 https
-        - IpProtocol: tcp
-          FromPort: 9000
-          ToPort: 9000
-          CidrIp: 137.79.0.0/16 # JPL Network 4 https
-        - IpProtocol: tcp
-          FromPort: 8080
-          ToPort: 8080
-          CidrIp: 10.133.0.0/16 # JPL Network 1 https
-        - IpProtocol: tcp
-          FromPort: 8080
-          ToPort: 8080
-          CidrIp: 128.149.0.0/16 # JPL Network 2 https
-        - IpProtocol: tcp
-          FromPort: 8080
-          ToPort: 8080
-          CidrIp: 137.78.0.0/16 # JPL Network 3 https
-        - IpProtocol: tcp
-          FromPort: 8080
-          ToPort: 8080
-          CidrIp: 137.79.0.0/16 # JPL Network 4 https
 
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
