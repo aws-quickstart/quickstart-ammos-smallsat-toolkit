@@ -1,4 +1,4 @@
-#Templates
+# Templates
 
 ```
 .
@@ -18,8 +18,8 @@
 ```
 
 
-##Notes
+## Notes
 
-##Entry Template
+## Entry Template
 
 The Entry template is a script-generated
