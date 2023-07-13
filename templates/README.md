@@ -20,6 +20,4 @@
 
 ## Notes
 
-## Entry Template
-
-The Entry template is a script-generated
+- **ammos-cubs.entry-main.template.yaml**: The entry template is generated from a script in `scripts/entry`. It is an adaptor for the main stack for parameters passed in as a blob: either directly through command line cloudformation builds or through the AWS cloudformation quick-create link.
