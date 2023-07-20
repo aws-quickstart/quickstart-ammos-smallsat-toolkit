@@ -1,10 +1,8 @@
 import json
-import logging
 import boto3
 from crhelper import CfnResource
 import params
 
-logger = logging.getLogger(__name__)
 helper = CfnResource(
     json_logging=False,
     log_level="DEBUG",
