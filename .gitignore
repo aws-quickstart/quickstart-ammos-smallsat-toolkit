@@ -13,3 +13,8 @@ deploy_main.sh
 #Taskcat
 .taskcat/
 taskcat_outputs/
+
+
+#Python
+.venv
+__pycache__
