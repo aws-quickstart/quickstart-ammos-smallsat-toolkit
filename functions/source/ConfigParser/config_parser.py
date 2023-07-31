@@ -1,7 +1,7 @@
 import json
 import boto3
 from crhelper import CfnResource
-import params
+from params import Params
 
 helper = CfnResource(
     json_logging=False,
