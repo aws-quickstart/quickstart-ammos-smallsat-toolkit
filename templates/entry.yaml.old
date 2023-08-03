@@ -74,7 +74,7 @@ Resources:
             - RolePathProvided
             - !Ref 'RolePath'
             - /
-          - !Sub '${ProjectName}-ConfigParser"'
+          - !Sub '${ProjectName}-ConfigParser'
       Runtime: python3.9
       Code:
         S3Bucket: !If
@@ -82,6 +82,7 @@ Resources:
           - !Sub '${QSS3BucketName}-${AWS::Region}'
           - !Ref 'QSS3BucketName'
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/ConfigParser/lambda.zip'
+    DependsOn: ConfigParserRole
   Config:
     Type: AWS::CloudFormation::CustomResource
     Properties:
@@ -130,3 +131,43 @@ Resources:
         PrivateSubnet3AID: !GetAtt 'Config.PrivateSubnet3AID'
         AccessSgID: !GetAtt 'Config.AccessSgID'
         DeployIam: !GetAtt 'Config.DeployIam'
+Outputs:
+  AITInstanceType:
+    Value: !GetAtt 'Config.AITInstanceType'
+  CloudWatchLogsRetentionPeriod:
+    Value: !GetAtt 'Config.CloudWatchLogsRetentionPeriod'
+  KeyPairName:
+    Value: !GetAtt 'Config.KeyPairName'
+  VPCCIDR:
+    Value: !GetAtt 'Config.VPCCIDR'
+  PublicSubnet1CIDR:
+    Value: !GetAtt 'Config.PublicSubnet1CIDR'
+  PublicSubnet2CIDR:
+    Value: !GetAtt 'Config.PublicSubnet2CIDR'
+  PublicSubnet3CIDR:
+    Value: !GetAtt 'Config.PublicSubnet3CIDR'
+  PrivateSubnet1CIDR:
+    Value: !GetAtt 'Config.PrivateSubnet1CIDR'
+  PrivateSubnet2CIDR:
+    Value: !GetAtt 'Config.PrivateSubnet2CIDR'
+  PrivateSubnet3CIDR:
+    Value: !GetAtt 'Config.PrivateSubnet3CIDR'
+  AvailabilityZones: !GetAtt 'Config.AvailabilityZones'
+  QSS3BucketName: !GetAtt 'Config.QSS3BucketName'
+  QSS3BucketRegion: !GetAtt 'Config.QSS3BucketRegion'
+  QSS3KeyPrefix: !GetAtt 'Config.QSS3KeyPrefix'
+  RemoteAccessCIDR: !GetAtt 'Config.RemoteAccessCIDR'
+  SSLCertificateArn: !GetAtt 'Config.SSLCertificateArn'
+  HostedZoneID: !GetAtt 'Config.HostedZoneID'
+  FQDN: !GetAtt 'Config.FQDN'
+  PermissionsBoundaryArn: !GetAtt 'Config.PermissionsBoundaryArn'
+  RolePath: !GetAtt 'Config.RolePath'
+  ProjectName: !GetAtt 'Config.ProjectName'
+  VpcId: !GetAtt 'Config.VpcId'
+  PublicSubnet1ID: !GetAtt 'Config.PublicSubnet1ID'
+  PublicSubnet2ID: !GetAtt 'Config.PublicSubnet2ID'
+  PrivateSubnet1AID: !GetAtt 'Config.PrivateSubnet1AID'
+  PrivateSubnet2AID: !GetAtt 'Config.PrivateSubnet2AID'
+  PrivateSubnet3AID: !GetAtt 'Config.PrivateSubnet3AID'
+  AccessSgID: !GetAtt 'Config.AccessSgID'
+  DeployIam: !GetAtt 'Config.DeployIam'

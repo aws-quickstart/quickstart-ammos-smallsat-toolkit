@@ -421,6 +421,7 @@ Resources:
   CopyZipsRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub ${ProjectName}-CopyZipsRole
       Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
       PermissionsBoundary:
         !If [
