@@ -33,9 +33,7 @@ def get_from_http(url):
     return f.text
 
 def get_from_s3(uri):
-    bucket = uri.split("//")[1].split('/')[0]
-    key_list = uri.split("//")[1].split('/')[1:]
-    file_key = "/".join(key_list)
+    bucket, file_key = uri.split("//")[1].split("/", maxsplit=1)
     s3_client = boto3.client('s3')
     obj = s3_client.get_object(Bucket=bucket, Key=file_key)
     content = json.loads(obj['Body'].read().decode('utf-8'))
