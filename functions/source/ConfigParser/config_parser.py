@@ -5,7 +5,7 @@ from params import Params
 
 helper = CfnResource(
     json_logging=False,
-    log_level="DEBUG",
+    log_level=os.getenv("LOG_LEVEL", "DEBUG"),
     boto_level="CRITICAL",
     sleep_on_delete=120,
     ssl_verify=None,
