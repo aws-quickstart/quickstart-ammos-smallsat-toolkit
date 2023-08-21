@@ -72,7 +72,6 @@ Resources:
           - !Sub '${QSS3BucketName}-${AWS::Region}'
           - !Ref QSS3BucketName
         S3Key: !Sub '${QSS3KeyPrefix}functions/packages/ConfigParser/lambda.zip'
-    DependsOn: ConfigParserRole
   Config:
     Type: AWS::CloudFormation::CustomResource
     Properties:
