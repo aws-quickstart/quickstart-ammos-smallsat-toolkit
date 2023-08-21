@@ -54,12 +54,17 @@ Resources:
       Handler: config_parser.handler
       MemorySize: 256
       Timeout: 300
-      Role:
-        Fn::Join:
-          - ""
-          - - !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role
-            - !If [RolePathProvided, !Ref RolePath, /]
-            - !Sub ${ProjectName}-ConfigParser
+      Role: !If
+        - DeployIam
+        - !Ref ConfigParserRole
+        - !Join
+          - ''
+          - - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role'
+            - !If
+              - RolePathProvided
+              - !Ref 'RolePath'
+              - /
+            - !Sub '${ProjectName}-ConfigParser'
       Runtime: python3.9
       Code:
         S3Bucket: !If
