@@ -8,26 +8,36 @@ TODO:
 """
 
 from __future__ import print_function
-import threading
-from crhelper.utils import _send_response
-from crhelper import log_helper
-import logging
-import random
-import boto3
-import string
+
 import json
+import logging
 import os
+import random
+import string
+import threading
 from time import sleep
+
+import boto3
+
+from crhelper import log_helper
+from crhelper.utils import _send_response
 
 logger = logging.getLogger(__name__)
 
-SUCCESS = 'SUCCESS'
-FAILED = 'FAILED'
+SUCCESS = "SUCCESS"
+FAILED = "FAILED"
 
 
 class CfnResource(object):
-
-    def __init__(self, json_logging=False, log_level='DEBUG', boto_level='ERROR', polling_interval=2, sleep_on_delete=120, ssl_verify=None):
+    def __init__(
+        self,
+        json_logging=False,
+        log_level="DEBUG",
+        boto_level="ERROR",
+        polling_interval=2,
+        sleep_on_delete=120,
+        ssl_verify=None,
+    ):
         self._sleep_on_delete = sleep_on_delete
         self._create_func = None
         self._update_func = None
@@ -53,16 +63,24 @@ class CfnResource(object):
         self._event = {}
         self._context = None
         self._response_url = ""
-        self._sam_local = os.getenv('AWS_SAM_LOCAL')
-        self._region = os.getenv('AWS_REGION')
+        self._sam_local = os.getenv("AWS_SAM_LOCAL")
+        self._region = os.getenv("AWS_REGION")
         self._ssl_verify = ssl_verify
         try:
             if not self._sam_local:
-                self._lambda_client = boto3.client('lambda', region_name=self._region, verify=self._ssl_verify)
-                self._events_client = boto3.client('events', region_name=self._region, verify=self._ssl_verify)
-                self._logs_client = boto3.client('logs', region_name=self._region, verify=self._ssl_verify)
+                self._lambda_client = boto3.client(
+                    "lambda", region_name=self._region, verify=self._ssl_verify
+                )
+                self._events_client = boto3.client(
+                    "events", region_name=self._region, verify=self._ssl_verify
+                )
+                self._logs_client = boto3.client(
+                    "logs", region_name=self._region, verify=self._ssl_verify
+                )
             if json_logging:
-                log_helper.setup(log_level, boto_level=boto_level, RequestType='ContainerInit')
+                log_helper.setup(
+                    log_level, boto_level=boto_level, RequestType="ContainerInit"
+                )
             else:
                 log_helper.setup(log_level, formatter_cls=None, boto_level=boto_level)
         except Exception as e:
@@ -77,7 +95,9 @@ class CfnResource(object):
                 return
             # Check for polling functions
             if self._poll_enabled() and self._sam_local:
-                logger.info("Skipping poller functionality, as this is a local invocation")
+                logger.info(
+                    "Skipping poller functionality, as this is a local invocation"
+                )
             elif self._poll_enabled():
                 self._polling_init(event)
             # If polling is not enabled, then we should respond
@@ -86,7 +106,7 @@ class CfnResource(object):
                 self._send_response = True
             logger.debug("_send_response: %s" % self._send_response)
             if self._send_response:
-                if self.RequestType == 'Delete':
+                if self.RequestType == "Delete":
                     self._wait_for_cwlogs()
                 self._cfn_response(event)
         except Exception as e:
@@ -108,11 +128,19 @@ class CfnResource(object):
 
     def _log_setup(self, event, context):
         if self._json_logging:
-            log_helper.setup(self._log_level, boto_level=self._boto_level, RequestType=event['RequestType'],
-                             StackId=event['StackId'], RequestId=event['RequestId'],
-                             LogicalResourceId=event['LogicalResourceId'], aws_request_id=context.aws_request_id)
+            log_helper.setup(
+                self._log_level,
+                boto_level=self._boto_level,
+                RequestType=event["RequestType"],
+                StackId=event["StackId"],
+                RequestId=event["RequestId"],
+                LogicalResourceId=event["LogicalResourceId"],
+                aws_request_id=context.aws_request_id,
+            )
         else:
-            log_helper.setup(self._log_level, boto_level=self._boto_level, formatter_cls=None)
+            log_helper.setup(
+                self._log_level, boto_level=self._boto_level, formatter_cls=None
+            )
 
     def _crhelper_init(self, event, context):
         self._send_response = False
@@ -128,7 +156,7 @@ class CfnResource(object):
         self.RequestType = event["RequestType"]
         self._event = event
         self._context = context
-        self._response_url = event['ResponseURL']
+        self._response_url = event["ResponseURL"]
         if self._timer:
             self._timer.cancel()
         if self._init_failed:
@@ -141,7 +169,7 @@ class CfnResource(object):
     def _polling_init(self, event):
         # Setup polling on initial request
         logger.debug("pid1: %s" % self.PhysicalResourceId)
-        if 'CrHelperPoll' not in event.keys() and self.Status != FAILED:
+        if "CrHelperPoll" not in event.keys() and self.Status != FAILED:
             logger.info("Setting up polling")
             self.Data["PhysicalResourceId"] = self.PhysicalResourceId
             self._setup_polling()
@@ -155,17 +183,19 @@ class CfnResource(object):
             self._send_response = True
 
     def generate_physical_id(self, event):
-        return '_'.join([
-            event['StackId'].split('/')[1],
-            event['LogicalResourceId'],
-            self._rand_string(8)
-        ])
+        return "_".join(
+            [
+                event["StackId"].split("/")[1],
+                event["LogicalResourceId"],
+                self._rand_string(8),
+            ]
+        )
 
     def _cfn_response(self, event):
         # Use existing PhysicalResourceId if it's in the event and no ID was set
         if not self.PhysicalResourceId and "PhysicalResourceId" in event.keys():
             logger.info("PhysicalResourceId present in event, Using that for response")
-            self.PhysicalResourceId = event['PhysicalResourceId']
+            self.PhysicalResourceId = event["PhysicalResourceId"]
         # Generate a physical id if none is provided
         elif not self.PhysicalResourceId or self.PhysicalResourceId is True:
             logger.info("No physical resource id returned, generating one...")
@@ -173,7 +203,7 @@ class CfnResource(object):
         self._send()
 
     def _poll_enabled(self):
-        return getattr(self, "_poll_{}_func".format(self._event['RequestType'].lower()))
+        return getattr(self, "_poll_{}_func".format(self._event["RequestType"].lower()))
 
     def create(self, func):
         self._create_func = func
@@ -201,7 +231,7 @@ class CfnResource(object):
 
     def _wrap_function(self, func):
         try:
-            self.PhysicalResourceId = func(self._event, self._context) if func else ''
+            self.PhysicalResourceId = func(self._event, self._context) if func else ""
         except Exception as e:
             logger.error(str(e), exc_info=True)
             self.Reason = str(e)
@@ -212,33 +242,37 @@ class CfnResource(object):
         self._send(FAILED, "Execution timed out")
 
     def _set_timeout(self):
-        self._timer = threading.Timer((self._context.get_remaining_time_in_millis() / 1000.00) - 0.5,
-                                      self._timeout)
+        self._timer = threading.Timer(
+            (self._context.get_remaining_time_in_millis() / 1000.00) - 0.5,
+            self._timeout,
+        )
         self._timer.start()
 
     def _get_func(self):
         request_type = "_{}_func"
         if "CrHelperPoll" in self._event.keys():
             request_type = "_poll" + request_type
-        return getattr(self, request_type.format(self._event['RequestType'].lower()))
+        return getattr(self, request_type.format(self._event["RequestType"].lower()))
 
     def _send(self, status=None, reason="", send_response=_send_response):
         if len(str(str(self.Reason))) > 256:
-            self.Reason = "ERROR: (truncated) " + str(self.Reason)[len(str(self.Reason)) - 240:]
+            self.Reason = (
+                "ERROR: (truncated) " + str(self.Reason)[len(str(self.Reason)) - 240 :]
+            )
         if len(str(reason)) > 256:
-            reason = "ERROR: (truncated) " + str(reason)[len(str(reason)) - 240:]
+            reason = "ERROR: (truncated) " + str(reason)[len(str(reason)) - 240 :]
         response_body = {
-            'Status': self.Status,
-            'PhysicalResourceId': str(self.PhysicalResourceId),
-            'StackId': self.StackId,
-            'RequestId': self.RequestId,
-            'LogicalResourceId': self.LogicalResourceId,
-            'Reason': str(self.Reason),
-            'Data': self.Data,
-            'NoEcho': self.NoEcho,
+            "Status": self.Status,
+            "PhysicalResourceId": str(self.PhysicalResourceId),
+            "StackId": self.StackId,
+            "RequestId": self.RequestId,
+            "LogicalResourceId": self.LogicalResourceId,
+            "Reason": str(self.Reason),
+            "Data": self.Data,
+            "NoEcho": self.NoEcho,
         }
         if status:
-            response_body.update({'Status': status, 'Reason': reason})
+            response_body.update({"Status": status, "Reason": reason})
         send_response(self._response_url, response_body, self._ssl_verify)
 
     def init_failure(self, error):
@@ -252,83 +286,90 @@ class CfnResource(object):
 
     @staticmethod
     def _rand_string(l):
-        return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(l))
+        return "".join(
+            random.choice(string.ascii_uppercase + string.digits) for _ in range(l)
+        )
 
     def _add_permission(self, rule_arn):
-        sid = self._event['LogicalResourceId'] + self._rand_string(8)
+        sid = self._event["LogicalResourceId"] + self._rand_string(8)
         self._lambda_client.add_permission(
             FunctionName=self._context.function_name,
             StatementId=sid,
-            Action='lambda:InvokeFunction',
-            Principal='events.amazonaws.com',
-            SourceArn=rule_arn
+            Action="lambda:InvokeFunction",
+            Principal="events.amazonaws.com",
+            SourceArn=rule_arn,
         )
         return sid
 
     def _put_rule(self):
-        schedule_unit = 'minutes' if self._polling_interval != 1 else 'minute'
+        schedule_unit = "minutes" if self._polling_interval != 1 else "minute"
         response = self._events_client.put_rule(
-            Name=self._event['LogicalResourceId'] + self._rand_string(8),
-            ScheduleExpression='rate({} {})'.format(self._polling_interval, schedule_unit),
-            State='ENABLED',
+            Name=self._event["LogicalResourceId"] + self._rand_string(8),
+            ScheduleExpression="rate({} {})".format(
+                self._polling_interval, schedule_unit
+            ),
+            State="ENABLED",
         )
         return response["RuleArn"]
 
     def _put_targets(self, func_name):
-        region = self._event['CrHelperRule'].split(":")[3]
-        account_id = self._event['CrHelperRule'].split(":")[4]
-        partition = self._event['CrHelperRule'].split(":")[1]
-        rule_name = self._event['CrHelperRule'].split("/")[1]
+        region = self._event["CrHelperRule"].split(":")[3]
+        account_id = self._event["CrHelperRule"].split(":")[4]
+        partition = self._event["CrHelperRule"].split(":")[1]
+        rule_name = self._event["CrHelperRule"].split("/")[1]
         logger.debug(self._event)
         self._events_client.put_targets(
             Rule=rule_name,
             Targets=[
                 {
-                    'Id': '1',
-                    'Arn': 'arn:%s:lambda:%s:%s:function:%s' % (partition, region, account_id, func_name),
-                    'Input': json.dumps(self._event)
+                    "Id": "1",
+                    "Arn": "arn:%s:lambda:%s:%s:function:%s"
+                    % (partition, region, account_id, func_name),
+                    "Input": json.dumps(self._event),
                 }
-            ]
+            ],
         )
 
     def _remove_targets(self, rule_arn):
-        self._events_client.remove_targets(
-            Rule=rule_arn.split("/")[1],
-            Ids=['1']
-        )
+        self._events_client.remove_targets(Rule=rule_arn.split("/")[1], Ids=["1"])
 
     def _remove_permission(self, sid):
         self._lambda_client.remove_permission(
-            FunctionName=self._context.function_name,
-            StatementId=sid
+            FunctionName=self._context.function_name, StatementId=sid
         )
 
     def _delete_rule(self, rule_arn):
-        self._events_client.delete_rule(
-            Name=rule_arn.split("/")[1]
-        )
+        self._events_client.delete_rule(Name=rule_arn.split("/")[1])
 
     def _setup_polling(self):
-        self._event['CrHelperData'] = self.Data
-        self._event['CrHelperPoll'] = True
-        self._event['CrHelperRule'] = self._put_rule()
-        self._event['CrHelperPermission'] = self._add_permission(self._event['CrHelperRule'])
+        self._event["CrHelperData"] = self.Data
+        self._event["CrHelperPoll"] = True
+        self._event["CrHelperRule"] = self._put_rule()
+        self._event["CrHelperPermission"] = self._add_permission(
+            self._event["CrHelperRule"]
+        )
         self._put_targets(self._context.function_name)
 
     def _remove_polling(self):
-        if 'CrHelperData' in self._event.keys():
-            self._event.pop('CrHelperData')
+        if "CrHelperData" in self._event.keys():
+            self._event.pop("CrHelperData")
         if "PhysicalResourceId" in self.Data.keys():
             self.Data.pop("PhysicalResourceId")
-        if 'CrHelperRule' in self._event.keys():
-            self._remove_targets(self._event['CrHelperRule'])
+        if "CrHelperRule" in self._event.keys():
+            self._remove_targets(self._event["CrHelperRule"])
         else:
-            logger.error("Cannot remove CloudWatch events rule, Rule arn not available in event")
-        if 'CrHelperPermission' in self._event.keys():
-            self._remove_permission(self._event['CrHelperPermission'])
+            logger.error(
+                "Cannot remove CloudWatch events rule, Rule arn not available in event"
+            )
+        if "CrHelperPermission" in self._event.keys():
+            self._remove_permission(self._event["CrHelperPermission"])
         else:
-            logger.error("Cannot remove lambda events permission, permission id not available in event")
-        if 'CrHelperRule' in self._event.keys():
-            self._delete_rule(self._event['CrHelperRule'])
+            logger.error(
+                "Cannot remove lambda events permission, permission id not available in event"
+            )
+        if "CrHelperRule" in self._event.keys():
+            self._delete_rule(self._event["CrHelperRule"])
         else:
-            logger.error("Cannot remove CloudWatch events target, Rule arn not available in event")
+            logger.error(
+                "Cannot remove CloudWatch events target, Rule arn not available in event"
+            )

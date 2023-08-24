@@ -4,4 +4,6 @@
 $> pip install mypy
 $> stubgen ./crhelper -o .
 """
-from crhelper.resource_helper import CfnResource as CfnResource, FAILED as FAILED, SUCCESS as SUCCESS
+from crhelper.resource_helper import FAILED as FAILED
+from crhelper.resource_helper import SUCCESS as SUCCESS
+from crhelper.resource_helper import CfnResource as CfnResource
