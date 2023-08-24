@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Dict
 import cfn_flip
 import json
 import subprocess
@@ -16,9 +15,9 @@ class Utils:
 
 @dataclass
 class EntryTemplateFactory:
-    boilerplate: Dict
-    main:        Dict
-    entry:       Dict = None
+    boilerplate: dict
+    main:        dict
+    entry:       dict = None
 
 
     @staticmethod
