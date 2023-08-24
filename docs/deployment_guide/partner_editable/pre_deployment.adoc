@@ -1,3 +1,132 @@
-//Include any predeployment steps here, such as signing up for a Marketplace AMI or making any changes to a partner account. If there are no predeployment steps, leave this file empty.
-
 == Predeployment steps
+
+Before you launch the Partner Solution, prepare your AWS account by completing the following tasks.
+
+=== Create a service-linked role for Amazon OpenSearch Service
+
+Amazon OpenSearch Service uses a service-linked role to call other necessary AWS services on your behalf during the Amazon OpenSearch Service provisioning process. To create the role, follow the instructions under https://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html#create-service-linked-role[Creating a service-linked role^]. Specify the service name as `es.amazonaws.com`.
+
+For more information, see the https://docs.aws.amazon.com/opensearch-service/latest/developerguide/slr.html[Using service-linked roles to provide Amazon OpenSearch Service access to resources^].
+
+=== Deploy and customize the configuration files
+
+The preconfiguration (prerequisite) stack for this Partner Solution contains an S3 bucket that's populated with base configuration files for AIT, AIT Sequence Editor, and Open MCT. Deploy this stack and customize the configuration files as follows:
+
+. https://fwd.aws/jmp4j?[Deploy the preconfiguration stack^]. (https://fwd.aws/xb7vj?[View the template^].)
+
+. Sign in to the AWS Management Console, and open the https://console.aws.amazon.com/cloudformation/[AWS CloudFormation console^].
+. Select the preconfiguration stack, choose the *Outputs* tab, and note the S3 bucket name (the value of the *ConfigBucket* key).
+. Copy, customize, and overwrite files of the same name in the S3 configuration bucket.
++
+For details on customizing these files, see the following section: <<_about_the_configuration_files>>.
+
+WARNING: Use the correct syntax and format in your configuration files so that the applications deploy.
+
+==== About the configuration files
+The configuration files in the S3 bucket are organized by application with the following structure:
+
+----
+configs
+├── ait
+│   ├── cloudwatch-agent-ait.json
+│   ├── config
+│   │   ├── bsc.yaml
+│   │   ├── ccsds_header.yaml
+│   │   ├── cmd.yaml
+│   │   ├── config.yaml
+│   │   ├── core_set_op_mode.yaml
+│   │   ├── evr.yaml
+│   │   ├── leapseconds.dat
+│   │   ├── limits.yaml
+│   │   ├── table.yaml
+│   │   └── tlm.yaml
+│   └── httpd_proxy.conf
+├── editor
+│   └── cloudwatch-agent-editor.json
+└── modules
+    └── openmct-static.tgz
+----
+
+Review the descriptions in the following sections to determine which files you need to modify before you deploy the Partner Solution.
+
+During deployment, the Partner Solution retrieves the AIT configuration files (the ones in the `configs/ait/config` S3 folder) and places them in `/home/ec2-user/AIT-Core/config` on the AIT EC2 instance.
+
+For more information, see https://ait-core.readthedocs.io/en/latest/configuration_intro.html[Introduction to AIT Configuration^].
+
+===== configs/ait/
+This S3 folder contains configuration files for the AIT deployment within this Partner Solution.
+
+===== cloudwatch-agent-ait.json
+This file configures the CloudWatch agent that runs on the AIT EC2 instance. Modify this file if you need to add sources for logs to send to CloudWatch Logs.
+
+For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html[Manually create or edit the CloudWatch agent configuration file^].
+
+===== configs/ait/config/
+This S3 folder contains configuration files for the AIT application.
+
+===== config.yaml
+This is the main configuration file for AIT.
+
+During deployment, the Partner Solution retrieves this file along with the other AIT configuration files (the files in the `configs/ait/config` S3 folder) and places them in the folder `/home/ec2-user/AIT-Core/config` on the AIT EC2 instance.
+
+This file references other configuration files (file paths are relative) as well as enabling a default set of AIT plugins: AIT GUI, the Data Archive plugin for InfluxDB, and the AIT Open MCT plugin.
+
+For more information, see https://ait-core.readthedocs.io/en/latest/configuration_intro.html#config-yaml[config.yaml^] in the AIT documentation.
+
+===== httpd_proxy.conf
+This configuration file defines how Apache HTTP Server proxies requests to either AIT or Open MCT. Both applications are set up as virtual hosts in Apache. Requests to AIT get proxied to the AIT backend Python process. Requests to Open MCT are handled directly by the Apache web server that serves Open MCT's static files.
+
+Modify this file if you need a nonstandard configuration for routing traffic between applications.
+
+For more information, see https://httpd.apache.org/docs[Apache HTTP Server Project^].
+
+===== configs/editor/
+This S3 folder contains configuration files for the AIT Sequence Editor deployment within this Partner Solution.
+
+===== cloudwatch-agent-editor.json
+This file configures the CloudWatch agent that runs on the AIT Sequence Editor EC2 instance. Modify this file if you need to configure additional sources for logs to send to CloudWatch Logs.
+
+For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html[Manually create or edit the CloudWatch agent configuration file^].
+
+===== configs/modules/
+This S3 folder contains a tarball of the static files that are served by Apache HTTP Server for Open MCT.
+
+===== openmct-static.tgz
+This file is a tarball of the static files for Open MCT. The JavaScript files in the tarball have been minified and bundled.
+
+Modify these files if you need to edit the Open MCT framework or configure or install plugins for Open MCT. Make your changes, create a new tarball, and then upload the new file to overwrite the existing file in S3.
+
+=== (Optional) Configure Route 53 as your DNS service
+This deployment relies on a fully qualified domain name (FQDN) that you provide. This FQDN is used to discover the Application Load Balancer and subdomains to identify each application. If you configure Route 53 as your Domain Name System (DNS) service, the Partner Solution deploys the following records in your Route 53 hosted zone for each application (where <fqdn> represents your FQDN URL):
+
+[cols="1,3"]
+|===
+
+| <fqdn> | → Application Load Balancer
+| ait.<fqdn> | → AIT Auto Scaling group [Apache → AIT application]
+| mct.<fqdn> | → AIT Auto Scaling group [Apache → Open MCT static files]
+| editor.<fqdn> | → AIT Sequence Editor EC2 instance [Docker container]
+| logs.<fqdn> | → Amazon OpenSearch Service
+|===
+
+For more information, see https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html[Configuring Amazon Route 53 as your DNS service^].
+
+If you choose not to use Route 53, you are responsible for deploying the appropriate name records in your DNS. For details, see <<_optional_deploy_dns_records>> later in this guide.
+
+=== Import or generate an SSL certificate
+
+You must have a valid Secure Sockets Layer (SSL) certificate for your FQDN because HTTPS is enabled on the Application Load Balancer. The certificate needs to be available in AWS Certificate Manager (ACM) for attachment to the Application Load Balancer.
+
+You can import this certificate into ACM manually. Alternatively, you can generate it during deployment by populating both the `FQDN` and `HostedZoneID` parameters. The deployment method, which uses DNS validation, creates all the necessary DNS records related to the ACM certificate.
+
+Ensure that your certificate includes the following Subject Alternative Names (SANs). You can use `*.<fqdn>` (where <fqdn> represents your FQDN URL).
+
+- `ait.<fqdn>`
+- `mct.<fqdn>`
+- `editor.<fqdn>`
+- `logs.<fqdn>`
+
+For more information, see the following:
+
+- https://docs.aws.amazon.com/acm/latest/userguide/gs.html[Issuing and managing certificates^]
+- https://docs.aws.amazon.com/acm/latest/userguide/import-certificate.html[Importing certificates into AWS Certificate Manager^]

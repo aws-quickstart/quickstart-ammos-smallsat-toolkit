@@ -1,10 +1,13 @@
 This guide covers the information you need to deploy the {partner-product-name} Partner Solution in the AWS Cloud.
 
-// Fill in the info in <angle brackets> for use on the landing page only: 
-This Amazon Web Services (AWS) Partner Solution deploys [<product name>](<partner's marketing product page>) in the AWS Cloud so that <purpose>. This solution is for <target users> who want to <do what> so that <why>. For more information, refer to the [<product name> documentation](<URL>).
+This Amazon Web Services (AWS) Partner Solution deploys NASA's https://ammos.nasa.gov/[Advanced Multi-Mission Operations System (AMMOS)^] suite of capabilities for small satellite, CubeSat, and instrument missions. The AMMOS SmallSat Toolkit offers advanced sequence generation, command uplink and downlink, telemetry processing, and data visualization. Using this Partner Solution, your team can rapidly deploy a foundational ground data system (GDS) that is built on mission-proven capabilities and maintained by NASA. The AMMOS suite comprises open-source products that are available in the https://github.com/NASA-AMMOS[NASA-AMMOS GitHub repository^], where contributions are welcomed and encouraged. 
 
-// Deploying this solution does not guarantee an organization’s compliance with any laws, certifications, policies, or other regulations. [Uncomment this statement only for solutions that relate to compliance. We'll add the corresponding reference part to the landing page and get legal approval before publishing.]
+The toolkit includes the following:
 
-// For advanced information about the product, troubleshooting, or additional functionality, refer to the https://{partner-solution-github-org}.github.io/{partner-solution-project-name}/operational/index.html[Operational Guide^].
+* https://github.com/NASA-AMMOS/AIT-Core[AMMOS Instrument Toolkit (AIT)^], a Python-based software suite that handles GDS, electrical ground support equipment (EGSE), commanding, telemetry uplink and downlink, and sequencing.
+* https://github.com/nasa/openmct[Open Mission Control Technologies (Open MCT)^] software, providing visualization and dashboarding capabilities.
+* https://marketplace.visualstudio.com/items?itemName=NASA-AMMOS.ait-editor[AIT Sequence Editor^], a Microsoft Visual Studio Code (VS Code) extension that provides a centralized, browser-based environment for generating and editing spacecraft command sequence files.
+* A set of basic test data so you can test the software capabilities upon installation.
+* Instructions for adapting the deployment for your operation's needs both at launch and as your mission evolves.
 
-// For information about using this Partner Solution for migrations, refer to the https://{partner-solution-github-org}.github.io/{partner-solution-project-name}/migration/index.html[Migration Guide^].
+This Partner Solution is designed to meet the core demands of your mission with minimal adaptation.

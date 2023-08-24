@@ -1,3 +1,322 @@
 // Include any postdeployment steps here, such as steps necessary to test that the deployment was successful. If there are no postdeployment steps, leave this file empty.
 
 == Postdeployment steps
+
+Complete any of the following post-deployment tasks that are relevant your mission. You can do these tasks in any order.
+
+=== (Optional) Deploy DNS records
+If you aren't using Route 53 for domain management, as described under <<_prepare_your_aws_account>> earlier in this guide, you are responsible for deploying the appropriate name records to your DNS.
+
+Deploy the following records:
+
+    CNAME         fqdn            →    Application Load Balancer
+    Alias    |    ait.fqdn        →    fqdn
+    Alias    |    mct.fqdn        →    fqdn
+    Alias    |    editor.fqdn     →    fqdn
+    Alias    |    logs.fqdn       →    fqdn
+
+To view the Application Load Balancer DNS name, see the value displayed in the *Outputs* tab for the stack.
+
+The Application Load Balancer handles redirection based on the host header in request. It's sufficient to deploy a single CNAME record pointing to the Application Load Balancer and to deploy all subdomains as aliases that redirect to the Application Load Balancer CNAME record.
+
+For guidance on this process, see your DNS provider's documentation.
+
+=== Create Amazon Cognito user identities
+
+The Application Load Balancer defines an authentication action to protect the AIT, Open MCT, and AIT Sequence Editor applications. To access the applications, you authenticate using an identity that's managed by Amazon Cognito. Create user identities in the Amazon Cognito user pool or set up federation with an existing identity provider.
+
+For more information, see the following:
+
+* https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html[Creating User Accounts as Administrator^]
+* https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-federation.html[Adding User Pool Sign-in Through a Third Party^]
+
+=== Adapt AIT to your mission
+
+Adapt AIT for your operation's needs both at launch and as your mission evolves. You can make changes directly on the AIT EC2 instance over an SSH- or SSM-managed session.
+
+The following sections describe some common adaptations.
+
+==== Activate the virtual Python environment
+
+The Partner Solution deployment installs AIT-Core, several plugins, and various dependencies to a virtual Python environment on the AIT EC2 instance using the `virtualenvwrapper` Python tool.
+
+Activate the environment by running the command `workon ait`.
+
+For more information on installing and configuring AIT Core, see https://ait-core.readthedocs.io/en/master/installation.html[Installation and Environment Configuration^].
+
+
+==== Customize AIT with extensions and plugins
+
+AIT is an extensible framework that your mission team can adapt to your use cases. Use https://ait-core.readthedocs.io/en/master/extensions.html[extensions^] and https://ait-core.readthedocs.io/en/master/server_architecture.html#plugins[plugins^] as appropriate. You can install existing plugins or develop your own.
+
+For more information, see the following:
+
+* https://ait-core.readthedocs.io/en/master/extensions.html[Core Library Extensions^]
+* https://ait-core.readthedocs.io/en/master/databases.html#data-archive-plugin[Data Archive Plugin^]
+* https://ait-dsn.readthedocs.io/en/latest/index.html[AIT DSN documentation^]
+* https://ait-core.readthedocs.io/en/master/plugin_openmct.html[AIT OpenMCT Plugin^]
+
+==== Manage the configuration files
+The Partner Solution deployment retrieves configuration files from an S3 bucket and places them in `/home/ec2-user/AIT-Core/config`. You can modify configuration files directly on the AIT EC2 instance or replace them by uploading new files to the S3 bucket.
+
+After you modify AIT configuration files, you must restart the `ait-server` systemd service (as described under link:#_Adapt_the_systemd_services[Adapt the systemd services] later in this guide).
+
+To retrieve new files from the S3 bucket, run the following command with your bucket name in place of the bracketed text:
+
+    aws s3 sync s3://<bucket_name>/ait/config /home/ec2-user/AIT-Core/config
+
+For more information, see https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html[sync^] in the AWS CLI command reference.
+
+==== (Optional) Upgrade the deployed applications
+If you upgrade AIT-Core or any of the other deployed applications, you are responsible for any impact that upgrading may have. This Partner Solution supports only those versions listed under <<Software version requirements>>.
+
+To upgrade any of the applications, refer to that application's documentation. Back up the `config` folder and any modified files. Then update and reinstall the cloned application repositories to the virtual environment.
+
+==== Modify the Open MCT static built files
+The Open MCT framework is written in JavaScript. You can bundle it into a set of static assets that can be served from a web server. In this Partner Solution, the latest version of Open MCT has been packaged and uploaded to an S3 bucket as a .zip file. The Partner Solution deployment downloads the .zip file from the S3 bucket and extracts it so that it can be served by Apache HTTP Server. On the EC2 instance, the static files are extracted and located in `var/www/html/openmct`.
+
+Save any configuration changes and additional plugins for Open MCT to `var/www/html/openmct`.
+
+For more information, see https://github.com/nasa/openmct/blob/master/API.md#building-applications-with-open-mct[Building Applications With Open MCT^].
+
+==== Adapt the systemd services
+The `systemd` daemon on the AIT EC2 instance manages the following services:
+
+* Apache HTTPD Server (httpd.service)
+* InfluxDB (influxdb.service)
+* AIT-Core (ait-server.service)
+
+You can stop and restart the AIT EC2 instance as needed. When you restart, these systemd services come back online.
+
+For details on adapting these services, see the following sections.
+
+===== Apache HTTPD Server (httpd.service)
+
+Apache HTTP Server is installed and managed as a systemd service. It routes incoming traffic to both AIT and Open MCT. The service file can be found at`/usr/lib/systemd/system/httpd.service`. Apache configuration files are located at `/etc/httpd`. The base configuration can be found at `/etc/httpd/conf/httpd.conf`, and supplemental configuration files can be found at `/etc/httpd/conf.d`.
+
+To verify whether the service is running after deployment, use the command `sudo systemctl status httpd`.
+
+To adapt this service, modify the configuration files found in the locations noted here, and then restart the service with the command `sudo systemctl restart httpd`.
+
+===== InfluxDB (influxdb.service)
+
+InfluxDB is installed and managed as a systemd service. InfluxDB acts as a data-storage layer for the AIT application. The Partner Solution uses a default configuration of InfluxDB with a few changes. The service file can be found at `/usr/lib/systemd/system/influxdb.service`.
+
+To verify whether the service is running after deployment, use the command `sudo systemctl status influxdb`.
+
+To adapt this service, modify the InfluxDB service file identified here, and then restart the service with the command `sudo systemctl restart influxdb`.
+
+===== AIT-Core (ait-server.service)
+
+AIT-Core is installed and managed as a systemd service. It runs the AIT EC2 instance, listening for, processing, and exposing telemetry. Configured plugins, such as AIT-GUI, are run according to the main AIT configuration file. The service file is located at `/etc/systemd/system/ait-server.service`.
+
+To verify whether the service is running after deployment, use the command `sudo systemctl status ait-server`.
+
+To adapt this service, modify the main configuration file identified here or any associated files referenced from the main configuration file, and then restart the service with the command `sudo systemctl restart ait-server`.
+
+Whenever you change an AIT configuration file, you must restart this service using the command `sudo systemctl restart ait-server`.
+
+=== Set up the CloudWatch agent
+
+This Partner Solution installs an Amazon CloudWatch agent (cloudwatch-agent-ait.json) on all deployed EC2 instances. This agent is initialized by a default configuration file that tells the agent which files to monitor and where to direct the logs in CloudWatch. See <<About the configuration files>> earlier in this guide.
+
+Modify this file as detailed in the following section.
+
+For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent.html[Collecting metrics and logs from Amazon EC2 instances and on-premises servers with the CloudWatch agent^].
+
+==== (Optional) Modify the CloudWatch agent configuration file
+
+The CloudWatch agent monitors the specified log files and sends them to CloudWatch Logs. The CloudWatch agent configuration file is stored in `/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json`. To monitor additional files or change the configuration settings, modify the agent configuration file.
+
+After editing the file, restart the agent and apply your changes using the following command:
+[source,bash]
+----
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+    -a fetch-config -s -m ec2 \
+    -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+----
+
+For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html[Manually create or edit the CloudWatch agent configuration file^].
+
+==== (Optional) Change the log-retention period
+
+The CloudWatch Logs log groups that receive application logs are configured with the default log-retention period of 30 days. You can choose a different retention period during deployment using the `CloudWatchLogsRetentionPeriod` parameter. Increasing the log-retention period results in higher log-storage costs.
+
+For more information, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#SettingLogRetention[Change log data retention in CloudWatch Logs^].
+
+== Test the deployment
+
+Verify that all the components have been deployed by doing the following tests in the documented order.
+
+=== Verify the deployment of the application EC2 instances
+
+. Sign in to the AWS Management Console, and open the https://console.aws.amazon.com/ec2/[Amazon EC2 console^].
+. Choose *Instances* from the left navigation bar. Verify that the *AitAutoScalingGroup* and *EditorServer* EC2 instances appear.
+. For each instance, ensure that there are no failed checks in the *Status checks* column.
+. Use AWS Systems Manager (formerly known as SSM) to verify that you can connect to each instance.
+. On the AIT Sequence Editor instance, run `docker ps`. Verify that the Docker container is running.
+. On the AIT instance, verify that the Apache HTTPD Server and AIT-Core systemd services are active by running the following commands:
+* `service httpd status`
+* `service ait-server status`
+
+NOTE: In the AIT documentation, the core AIT functionality is sometimes called a "server," specifically https://ait-core.readthedocs.io/en/master/server_architecture.html#plugins[AIT Server^]. This is where the file `ait-server` gets its name.
+
+=== Verify the deployment of the applications
+
+. Open a web browser, and enter your FQDN URL.
++
+A landing page opens showing links to the AIT, Open MCT, and AIT Sequence Editor applications.
+
+. Choose each link. Verify that each application opens.
++
+You may be prompted for login credentials the first time you open the applications. Login credentials are managed by Amazon Cognito. For more information, see link:#_create_amazon_cognito_user_identities[Create Amazon Cognito user identities] later in this guide.
+
+=== Verify that telemetry is flowing
+The AIT software includes two scripts that generate sample telemetry: `ait-example` and `ait-tlm-simulate`. Verify the telemetry by running both of these command line interface (CLI) programs on the AIT EC2 instance as follows.
+
+. Connect to the AIT EC2 instance. For details, see link:#_verify_access_to_the_application_ec2_instances[Verify access to the application EC2 instances] earlier in this guide.
+. Activate the Python virtual environment where AIT and the sample telemetry scripts are installed.
++
+The scripts are installed in a virtual environment named `ait` on the AIT instance. As part of the activation, the virtual environment modifies your `PATH` variable to include a few AIT scripts that you can run.
+
+. Use the commands `ait-example` and `ait-tlm-simulate` to run each script.
++
+The two scripts generate sample telemetry. `ait-example`, which has a hardcoded packet structure, sends telemetry for 100 seconds. `ait-tlm-simulate`, which can simulate different packet types, emits telemetry once per second indefinitely.
+
+. Open the AIT application. In most cases, it's `ait.<fqdn>` (where <fqdn> represents your FQDN URL).
+
+. Choose the *Telemetry* tab.
++
+If you're using the default AIT configuration files, you see two graphs: one for voltages and one for currents.
+
+. While the scripts are running, verify that you see new data points on the graphs and a line plot forming. This indicates that telemetry is flowing through the AIT software.
+
+=== Verify that CloudWatch is receiving logs
+Partner Solution deployment installs CloudWatch agents on both application EC2 instances. The agents send `agent` and `syslog` logs to CloudWatch. Verify that CloudWatch is receiving logs as follows:
+
+. Open the https://console.aws.amazon.com/cloudwatch/[CloudWatch console^].
+. In the left navigation bar, under *Logs*, choose *Log groups*. Locate the following log groups:
++
+* `/cloudwatch-agent/ait-editor/agent`
+* `/cloudwatch-agent/ait-editor/syslog`
+* `/cloudwatch-agent/ait-server/agent`
+* `/cloudwatch-agent/ait-server/syslog`
+
+. Verify that each of these log groups contains a few log streams and that each stream contains log data. If you deployed the Partner Solution recently, you may see only a small amount of log data.
+
+== Security
+// Provide post-deployment best practices for using the technology on AWS, including considerations such as migrating data, backups, ensuring high performance, high availability, etc. Link to software documentation for detailed information.
+
+=== IAM
+
+To facilitate compliance with your organization's restrictions on IAM role creation, the following parameters are available on all stacks that create IAM roles. If the parameter is not supplied, these attributes are not set.
+
+* `PermissionsBoundaryArn`: Amazon Resource Name (ARN) of a managed policy in your account to be used as the permissions boundary for the created role. For more information, see https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html[Permissions boundaries for IAM entities^].
+
+* `RolePath`: String used as the path attribute for the created role. For more information, see https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-friendly-names[Friendly names and paths^].
+
+=== Security groups
+
+As part of the Partner Solution deployment, you specify security groups that define inbound and outbound network traffic rules. You create inbound rules for the security groups and define appropriate CIDR/IP ranges that are allowed for inbound access to various deployed resources.
+
+For more information, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security-groups.html[Amazon EC2 security groups for Linux instances^].
+
+=== Private subnets
+The Partner Solution deploys application EC2 instances to a private subnet in a VPC. An Application Load Balancer, which is deployed to a public subnet in the same VPC, routes requests to these instances, minimizing the publicly exposed footprint of deployed resources.
+
+To access the EC2 instances in the private subnets, see <<SSM,documentation section on SSM (Systems Manager)>> elsewhere in this guide.
+
+=== SELinux
+Security-Enhanced Linux (SELinux) is enabled and enforced on the application EC2 instances. Apache HTTP Server and the various application processes have been configured for SELinux compatibility and can be run without disabling SELinux.
+
+Side effects may occur if you modify or move settings or configuration files after the initial deployment of the application. If you have any issues with SELinux file and process contexts, refer to a fresh deployment of the Partner Solution or redeploy the Partner Solution.
+
+IMPORTANT: Do not disable SELinux unless you are aware of unintended security consequences or must disable SELinux for compatibility or debugging purposes.
+
+=== Amazon OpenSearch Service
+
+This Partner Solution deploys a domain under Amazon OpenSearch Service. This domain, which is deployed within a VPC, contains logging data that's received from application EC2 instances. All primary and data (secondary) nodes reside within private subnets. Encryption for data at rest is enabled by default.
+
+IMPORTANT: The Amazon OpenSearch Service domain uses an open-access policy with access controlled by an EC2 security group. For more security, use fine-grained access control or modify the access policy to specify IAM users or roles.
+
+For more information, see the following:
+
+* https://docs.aws.amazon.com/opensearch-service/latest/developerguide/vpc.html[Launching your Amazon OpenSearch Service domains within a VPC^]
+* https://docs.aws.amazon.com/opensearch-service/latest/developerguide/security.html[Security in Amazon OpenSearch Service^]
+
+=== Authentication
+
+The Application Load Balancer, which is deployed to a public subnet, brokers access to the application resources deployed in private subnets. Each application is accessible through a listener rule, which directs traffic according to the host header and performs an authentication action prior to forwarding the traffic to the appropriate target group.
+
+This authentication action is configured with the deployed Amazon Cognito user pool as an OpenID Connect (OIDC) provider. Access is granted on a full-access basis. Users who can authenticate as known identities are allowed through the Application Load Balancer to the underlying resource.
+
+For more information, see the following:
+
+- https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-authenticate-users.html[Authenticate users using an Application Load Balancer^]
+- https://aws.amazon.com/blogs/aws/built-in-authentication-in-alb/[Simplify Login with Application Load Balancer Built-in Authentication^]
+
+=== Code-server access
+
+The AIT Sequence Editor EC2 instance runs the `cdr/code-server` Docker image published on Docker Hub. When you use Visual Studio Code's integrated terminal, you can run system-level commands from a browser.
+
+The AIT Sequence Editor instance runs in a Docker container with volumes mounted to the following locations:
+
+- `$HOME/.ait-editor-config:/home/coder/.config`
+- `$HOME/project:/home/coder/project`
+- `$HOME/extensions:/home/coder/extra-extensions`
+
+Additionally, a simple password can be set to restrict interface access. For more information, see https://coder.com/docs/code-server/v3.11.1/FAQ#how-do-i-change-the-password[How do I change the password?^]
+
+=== SSL/TLS protocol
+Clients that access applications through the Application Load Balancer have their traffic encrypted using the SSL/TLS protocol. The Application Load Balancer uses HTTPS listeners. Any normal HTTP traffic going to the Application Load Balancer is redirected to the HTTPS listener.
+
+To configure the Application Load Balancer for SSL/TLS, you must provide an X.509 certificate during Partner Solution deployment.
+
+SSL termination occurs at the Application Load Balancer. Communication to the EC2 instance targets behind the Application Load Balancer is unencrypted, albeit through private VPC subnets.
+
+=== AWS Systems Manager
+For improved security and monitoring, use AWS Systems Manager to connect to the application EC2 instances. The deployment installs AWS Systems Manager Agent (SSM Agent) on all instances. Additionally, each instance profile is assigned the AWS managed service role `AmazonSSMManagedInstanceCore`.
+
+You can provide the `SshKeyName` parameter to the relevant templates to enable standard SSH connections. The EC2 instances are deployed in a private subnet and therefore not discoverable directly from the internet. To connect using SSH, you must provision a bastion host (jump server).
+
+For more information, see https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html[Start a session^].
+
+== Resources
+
+AIT:
+
+- https://ait-core.readthedocs.io/en/latest/[Welcome to the AMMOS Instrument Toolkit (AIT) documentation!^]
+- https://ait-gui.readthedocs.io/en/latest/index.html[Welcome to the AMMOS Instrument Toolkit GUI documentation!^]
+- https://ait-dsn.readthedocs.io/en/latest/index.html[Welcome to AIT DSN's documentation!^]
+
+Open MCT:
+
+- https://nasa.github.io/openmct/[Open MCT^]
+- https://nasa.github.io/openmct/docs/guide/index.html#open-mct-developer-guide[Open MCT Developer Guide^]
+- https://github.com/nasa/openmct-tutorial[Open MCT Integration Tutorials^]
+
+// AIT Sequence Editor:
+
+//TODO: @MF links to AIT Sequence Editor when available
+// ^ Request is pending final open source approval
+
+Community:
+
+- https://groups.google.com/g/ait-dev[AMMOS Instrument Toolkit Development and Users^] (mailing group)
+- https://github.com/nasa/openmct/discussions[NASA Open MCT^] (GitHub discussions)
+
+== Software version requirements
+
+=== Operating system and dependency versions
+The Partner Solution deploys AIT, Open MCT, and AIT Sequence Editor on EC2 instances running Red Hat Enterprise Linux 8 (RHEL8). These applications do not require RHEL8, but RHEL8 is the officially supported operating system for all AMMOS applications.
+
+The Partner Solution builds and installs Python 3.7.x on the application EC2 instances. This is the version that AIT software supports. Python 3.7 is not part of the official Red Hat Enterprise Linux 8 software repositories or Red Hat Software collections.
+
+For more information on installing and configuring AIT Core, see https://ait-core.readthedocs.io/en/latest/installation.html[Installation and Environment Configuration^].
+
+=== Supported application software versions
+This Partner Solution deploys and supports https://github.com/NASA-AMMOS/AIT-Core/releases/tag/2.3.5[AIT Core v2.3.5^] and https://github.com/nasa/openmct/releases/tag/1.6.2[OpenMCT v1.6.2^].
+
+=== InfluxDB versions
+
+This Partner Solution deploys InfluxDB version 1.2.4 on the AIT EC2 instance. The influxdb Python library that AIT uses to interface with InfluxDB is compatible only with InfluxDB versions 1.x.

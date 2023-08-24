@@ -3,26 +3,26 @@
 Deploying this Partner Solution with default parameters builds the following {partner-product-short-name} environment in the
 AWS Cloud.
 
-// Replace this example diagram with your own. Follow our wiki guidelines: https://w.amazon.com/bin/view/AWS_Quick_Starts/Process_for_PSAs/#HPrepareyourarchitecturediagram. Upload your source PowerPoint file to the GitHub {deployment name}/docs/images/ directory in its repository.
-
 [#architecture1]
 .Partner Solution architecture for {partner-product-short-name} on AWS
-image::../docs/deployment_guide/images/architecture_diagram.png[Architecture]
+image::../docs/deployment_guide/images/nasa-ammos-smallsat-toolkit-architecture-diagram.png[Architecture]
 
 As shown in <<architecture1>>, this Partner Solution sets up the following:
 
-* A highly available architecture that spans two Availability Zones.*
-* A virtual private cloud (VPC) configured with public and private subnets, according to AWS
-best practices, to provide you with your own virtual network on AWS.*
+* A highly available architecture that spans three Availability Zones.*
+* A VPC configured with public and private subnets, according to AWS best practices, to provide you with your own virtual network on AWS.*
 * In the public subnets:
-** Managed network address translation (NAT) gateways to allow outbound
-internet access for resources in the private subnets.*
-** A Linux bastion host in an Auto Scaling group to allow inbound Secure
-Shell (SSH) access to Amazon Elastic Compute Cloud (Amazon EC2) instances in public and private subnets.*
+** A Linux bastion host in an Auto Scaling group to allow inbound Secure Shell (SSH) access to Amazon Elastic Compute Cloud (Amazon EC2) instances in public and private subnets.*
+** An Application Load Balancer to route traffic from the web to the EC2 instances in the private subnets.
+** A managed network address translation (NAT) gateway to provide outbound internet access for resources in the private subnets.*
 * In the private subnets:
-** <item>.
-** <item>.
-// Add bullet points for any additional components that are included in the deployment. Ensure that the additional components are shown in the architecture diagram. End each bullet with a period.
-* <describe any additional components>.
+** An EC2 instance that serves the AIT and Open MCT applications using Apache HTTP Server. This instance runs in an Auto Scaling group.
+** An EC2 instance that serves the AIT Sequence Editor application. This application runs in a Docker container on the instance to mitigate the impact of system commands that are run from the VS Code–integrated terminal that's exposed in the browser.
+* Amazon Cognito to manage identities and authenticate users.
+* Amazon CloudWatch to receive log data from the EC2 instances in the private subnets using Amazon CloudWatch Logs agents.
+* AWS Lambda to process logs for Amazon Kinesis Data Firehose.
+* Kinesis Data Firehose to deliver log data from CloudWatch Logs to Amazon S3 and Amazon OpenSearch Service.
+* Amazon Route 53 to provide a canonical name (CNAME) record, an alias for the Application Load Balancer.
+* Two S3 buckets, one for long-term storage of log files and the other for application-configuration files.
 
 [.small]#* The template that deploys this Partner Solution into an existing VPC skips the components marked by asterisks and prompts you for your existing VPC configuration.#
