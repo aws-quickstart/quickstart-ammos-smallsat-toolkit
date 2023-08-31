@@ -1,6 +1,20 @@
+# Build Cloudformation files
 functions/source/*.zip
 functions/packages/*/*.zip
-.taskcat/
-taskcat_outputs/
+
+
 deploy_config.sh
 deploy_main.sh
+
+
+# VIM
+*.swp
+
+#Taskcat
+.taskcat/
+taskcat_outputs/
+
+
+#Python
+.venv
+__pycache__
