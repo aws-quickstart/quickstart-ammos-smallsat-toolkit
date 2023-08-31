@@ -1,0 +1,543 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: (qs-1s6abjf4a)
+Parameters:
+  ProjectName:
+    Description: Name of your project
+    Type: String
+  FQDN:
+    Description: Fully Qualified Domain Name to use for project resources root.
+    Type: String
+  ConfigBucketName:
+    Description: Name of the S3 bucket used to store project-specific configuration
+      files.
+    Type: String
+  QSS3BucketName:
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
+    ConstraintDescription: Quick Start bucket name can include numbers, lowercase
+      letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
+      (-).
+    Default: aws-quickstart
+    Description: S3 bucket name for the Quick Start assets. This string can include
+      numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start
+      or end with a hyphen (-).
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: ^[0-9a-zA-Z-/]*$
+    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slash (/).
+    Default: quickstart-ammos-smallsat-toolkit/
+    Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
+      can include numbers, lowercase letters, uppercase letters, hyphens (-), and
+      forward slash (/).
+    Type: String
+  PrivateSubnetIds:
+    Description: List of Private Subnet IDs for deploying the AIT Autoscaling Group
+    Type: List<AWS::EC2::Subnet::Id>
+  VpcId:
+    Description: VPC ID for deploying project resources
+    Type: AWS::EC2::VPC::Id
+  InstanceType:
+    Description: Instance type to be used for AIT Server instances; see deployment
+      guide for recommendations
+    Type: String
+    Default: m5.large
+  KeyPairName:
+    Description: Name of created SSH Key for instance access - must use SSM sessions
+      if no key supplied
+    Type: AWS::EC2::KeyPair::KeyName
+  SessionTimeout:
+    Description: The maximum duration of the authentication session, in seconds.
+    Type: Number
+    Default: 604800 # One day
+    MinValue: 60
+    MaxValue: 604800
+  IamRoleName:
+    Description: Name of the pre-deployed IAM Role to use with the AIT Server
+    Type: String
+  CognitoDomainName:
+    Type: String
+  AlbSecurityGroupId:
+    Type: String
+  CognitoClientID:
+    Type: String
+  CognitoClientSecret:
+    Type: String
+  CognitoProviderUrl:
+    Type: String
+  ALBHttpsListenerArn:
+    Type: String
+  ListenerCertificateArn:
+    Type: String
+  ALBArn:
+    Type: String
+  EfsSecurityGroupID:
+    Type: String
+  EfsFileSystemID:
+    Type: String
+  EfsRootAccessPointArn:
+    Type: String
+  BootstrapRoleArn:
+    Description: ARN of the IAM Role created for bootstrapping the EFS FileSystem
+    Type: String
+
+Conditions:
+  SshEnabled: !Not
+    - !Equals
+      - ''
+      - !Ref 'KeyPairName'
+  IsGovCloud: !Not [!Equals ['aws', !Ref AWS::Partition]]
+Mappings:
+  AWSAMIRegionMap:
+    us-east-1:
+      RHELHA84HVM: ami-02e0bb36c61bb9715
+    us-east-2:
+      RHELHA84HVM: ami-0b2e47f3b2e23d235
+    us-west-1:
+      RHELHA84HVM: ami-054965c6cd7c6e462
+    us-west-2:
+      RHELHA84HVM: ami-0b28dfc7adc325ef4
+    us-gov-west-1:
+      RHELHA84HVM: ami-0ac4e06a69870e5be
+    us-gov-east-1:
+      RHELHA84HVM: ami-0cca63ccd9a87f1b2
+
+Resources:
+  # ==================== EFS AIT Bootstrapping ==================== #
+  AitEfsAccessPoint:
+    Type: AWS::EFS::AccessPoint
+    Properties:
+      AccessPointTags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-Ait
+      FileSystemId: !Ref EfsFileSystemID
+      PosixUser:
+        Uid: '1001'
+        Gid: '1001'
+      RootDirectory:
+        CreationInfo:
+          OwnerGid: '1001'
+          OwnerUid: '1001'
+          Permissions: '755'
+        Path: '/efs/ait'
+  BootstrapLambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId
+      GroupDescription: "Bootstrap Lambda Security Group"
+  BootstrapEfsIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow connection from Lambda to EFS Security Group
+      IpProtocol: tcp
+      FromPort: 2049
+      ToPort: 2049
+      SourceSecurityGroupId: !Ref BootstrapLambdaSecurityGroup
+      GroupId: !Ref EfsSecurityGroupID
+  BootstrapEfsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: bootstrap_ait.handler
+      Code:
+        S3Bucket: !Ref QSS3BucketName
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/BootstrapAit/lambda.zip'
+      Description: Bootstrap an EFS Filesystem with the files needed for the Aerie Deployment
+      MemorySize: 512
+      Timeout: 600
+      # Need to change this to updated IAM
+      Role: !Ref BootstrapRoleArn
+      Runtime: python3.9
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref BootstrapLambdaSecurityGroup
+        SubnetIds:
+          - !Select ["0", !Ref PrivateSubnetIds]
+      FileSystemConfigs:
+        - Arn: !Ref EfsRootAccessPointArn
+          LocalMountPath: '/mnt/efs'
+  EfsBootstrap:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt BootstrapEfsFunction.Arn
+      BucketName: !Ref ConfigBucketName
+
+  # ==================== AIT Server ==================== #
+  AitServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId
+      GroupDescription: Security group to manage connections to ammos-ait-asg-deploy
+        AIT Server
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: '-1'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref AlbSecurityGroupId
+        - IpProtocol: tcp
+          FromPort: 8082
+          ToPort: 8082
+          SourceSecurityGroupId: !Ref AlbSecurityGroupId
+  AitEfsIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref EfsSecurityGroupID
+      IpProtocol: tcp
+      FromPort: 2049
+      ToPort: 2049
+      SourceSecurityGroupId: !Ref AitServerSecurityGroup
+
+  AitAutoScalingGroupInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref IamRoleName
+      Path: /account-managed/
+  AitAutoScalingGroupLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            DeleteOnTermination: true
+            VolumeSize: 64
+      IamInstanceProfile: !Ref 'AitAutoScalingGroupInstanceProfile'
+      ImageId: !FindInMap
+        - AWSAMIRegionMap
+        - !Ref AWS::Region
+        - RHELHA84HVM
+      InstanceType: !Ref 'InstanceType'
+      KeyName: !If
+        - SshEnabled
+        - !Ref 'KeyPairName'
+        - !Ref 'AWS::NoValue'
+      SecurityGroups:
+        - !GetAtt 'AitServerSecurityGroup.GroupId'
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+          function exitTrap(){
+          exitCode=$?
+          /opt/aws/bin/cfn-signal \
+          --stack ${AWS::StackName} \
+          --resource AitAutoScalingGroup \
+          --region ${AWS::Region} -e $exitCode || echo 'Failed to send Cloudformation Signal'
+          }
+          trap exitTrap EXIT
+          CONFIG_BUCKET_NAME=${ConfigBucketName}
+
+          function boostrap_aws_stuff(){
+          # rpms and stuff
+          yum install -y -q python3 wget unzip
+          wget -nv https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+          wget -nv https://s3.amazonaws.com/amazoncloudwatch-agent/redhat/amd64/latest/amazon-cloudwatch-agent.rpm
+          curl  "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip " -o  "awscliv2.zip"
+          pip3 install aws-cfn-bootstrap-py3-latest.tar.gz
+
+          # directories
+          mkdir -p /opt/aws/bin
+          ln -s /usr/local/bin/cfn-* /opt/aws/bin
+
+          # Cloudwatch and SSM agent
+          sudo rpm -U ./amazon-cloudwatch-agent.rpm
+          yum install -y -q https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+
+          # AWS CLI
+          unzip -qq awscliv2.zip
+          ./aws/install > /dev/null && echo "Installed AWS CLI"
+          }
+
+          function bootstrap_ait(){
+          # Install basic system tools needed for AIT Server
+          # install python 3.7
+          yum install -y -q @development gcc openssl-devel bzip2-devel libffi-devel sqlite-devel httpd mod_ssl vim policycoreutils-python-utils
+          cd /opt
+          wget -nv https://www.python.org/ftp/python/3.7.9/Python-3.7.9.tgz
+          tar xzf Python-3.7.9.tgz
+          cd Python-3.7.9
+          ./configure --enable-optimizations --enable-loadable-sqlite-extensions > /dev/null && echo "Configured Python 3.7"
+          make altinstall > /dev/null && echo "Installed Python 3.7"
+
+          systemctl enable httpd
+          curl -SL https://github.com/stedolan/jq/relepermanently/deleteases/download/jq-1.5/jq-linux64  -o /usr/bin/jq
+          chmod +x /usr/bin/jq
+          }
+
+          function bootstrap_data(){
+          # Adding functionality to mount an EFS
+          echo "Bootstrapping EFS and Mounting it"
+          sudo yum -y update
+          sudo yum -y install nfs-utils
+
+          # Installing EFS Amazon Utils
+          echo "Downloading and installing Amazon EFS Utils"
+          sudo yum -y install git rpm-build make
+          sudo git clone https://github.com/aws/efs-utils
+          cd efs-utils
+          sudo make rpm
+          sudo yum -y install build/amazon-efs-utils*rpm
+          # cd back to root dir
+          cd /
+
+          # Install botocore libraries
+          pip3 install botocore
+          # Define mount location and efs id
+          DIR_TGT=/mnt/efs/ait/
+          EFS_FILE_SYSTEM_ID=${EfsFileSystemID}
+          AIT_EFS_ACCESSPOINT_ID=${AitEfsAccessPoint}
+          mkdir -p $DIR_TGT
+          echo "Mounting for  Access Point $AIT_EFS_ACCESSPOINT_ID from filesystem: $EFS_FILE_SYSTEM_ID to $DIR_TGT"
+          sudo mount -t efs -o tls,accesspoint=$AIT_EFS_ACCESSPOINT_ID $EFS_FILE_SYSTEM_ID $DIR_TGT
+          tee -a /root/.efs-mount-info << EOM
+          EFS_FILE_SYSTEM_ID=$EFS_FILE_SYSTEM_ID
+          AIT_EFS_ACCESSPOINT_ID=$AIT_EFS_ACCESSPOINT_ID
+          DIR_TGT=$DIR_TGT
+          EOM
+          }
+
+          function install_ait_and_dependents(){
+          # Set variables for system install
+          PROJECT_HOME=/home/ec2-user
+          SETUP_DIR=/mnt/efs/ait/setup
+          AIT_DEPENDENTS_DIR=/mnt/efs/ait
+          USER=ec2-user
+          GROUP=ec2-user
+          AWS_REGION=${AWS::Region}
+          python3.7 -m pip install virtualenv virtualenvwrapper
+          cd $PROJECT_HOME
+
+          # Prepare python environment for AIT work
+          tee -a /root/.bashrc $PROJECT_HOME/.bashrc << EOM
+          export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3.7
+          export WORKON_HOME=$PROJECT_HOME/.virtualenvs
+          export PROJECT_HOME=$PROJECT_HOME
+          export CONFIG_BUCKET_NAME=$CONFIG_BUCKET_NAME
+          source /usr/local/bin/virtualenvwrapper.sh
+          EOM
+          source /root/.bashrc
+
+
+          tee -a > $PROJECT_HOME/.virtualenvs/postactivate << EOM
+          if [ \$VIRTUAL_ENV ==  "$PROJECT_HOME/.virtualenvs/ait" ]; then
+          export AIT_ROOT=$AIT_DEPENDENTS_DIR/AIT-Core
+          export AIT_CONFIG=$AIT_DEPENDENTS_DIR/AIT-Core/config/config.yaml
+          fi
+          EOM
+
+          mkvirtualenv ait
+          workon ait
+
+          # Install open-source AIT components
+          cd $AIT_DEPENDENTS_DIR/AIT-Core/
+          pip install .
+
+          cd $AIT_DEPENDENTS_DIR/AIT-GUI/
+          pip install .
+
+          cd $AIT_DEPENDENTS_DIR/AIT-DSN
+          pip install .
+
+          cd $PROJECT_HOME
+
+          # Copy necessary apache configs
+          cp $SETUP_DIR/configs/httpd_proxy.conf /etc/httpd/conf.d/proxy.conf
+
+          # Inject FQDN from Cloudformation for proper virtual host configuration
+          mv /etc/httpd/conf.d/proxy.conf{,.bak}
+          sed 's/<CFN_FQDN>/${FQDN}/g' /etc/httpd/conf.d/proxy.conf.bak > /etc/httpd/conf.d/proxy.conf
+          rm /etc/httpd/conf.d/proxy.conf.bak
+
+          # Inject FQDN from Cloudformation into OpenMCT file
+          mv /mnt/efs/ait/openmct/index.html{,.bak}
+          sed 's/<CFN_FQDN>/${FQDN}/g' /mnt/efs/ait/openmct/index.html.bak > /mnt/efs/ait/openmct/index.html
+          rm /mnt/efs/ait/openmct/index.html.bak
+
+          # Install InfluxDB and data plugin
+          curl https://repos.influxdata.com/rhel/6/amd64/stable/influxdb-1.2.4.x86_64.rpm -o /tmp/influxdb-1.2.4.x86_64.rpm
+          yum localinstall -y /tmp/influxdb-1.2.4.x86_64.rpm
+
+          pip install influxdb
+          systemctl enable influxdb
+          service influxdb start
+
+          # Start AIT Server
+          tee > /etc/systemd/system/ait-server.service << EOM
+          [Unit]
+          Description=AIT-Core Server
+          #After=influxdb.service
+
+          [Service]
+          Type=simple
+          User=root
+          Environment=AIT_ROOT=$AIT_DEPENDENTS_DIR/AIT-Core
+          Environment=AIT_CONFIG=$AIT_DEPENDENTS_DIR/AIT-Core/config/config.yaml
+          ExecStart=/home/ec2-user/.virtualenvs/ait/bin/ait-server
+
+          [Install]
+          WantedBy=multi-user.target
+          EOM
+          systemctl enable ait-server.service
+
+          # https://serverfault.com/questions/1006417/selinux-blocking-execution-in-systemd-unit
+          semanage fcontext -a -t bin_t '/home/ec2-user/.virtualenvs/ait/bin.*'
+          chcon -Rv -u system_u -t bin_t '/home/ec2-user/.virtualenvs/ait/bin'
+          restorecon -R -v /home/ec2-user/.virtualenvs/ait/bin
+
+          systemctl start ait-server.service
+
+          # change SELinux file context so that apache can read specific files (e.g certs)
+          # semanage fcontext -a -t httpd_sys_content_t "/ammos(/.*)?"
+
+          # allow apache to make outbound connections
+          # (for proxying requests to AIT server)
+          setsebool -P httpd_can_network_connect 1
+
+          systemctl start httpd
+
+          # Configure and start the CloudWatch Agent
+          mv $SETUP_DIR/cloudwatch-agent-ait.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+          /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+              -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
+          # Give user ownership of all the things placed in project home during this setup script
+          chown -R $USER $PROJECT_HOME
+          chgrp -R $GROUP $PROJECT_HOME
+
+          deactivate
+          }
+
+          boostrap_aws_stuff
+          bootstrap_data
+          bootstrap_ait
+          install_ait_and_dependents
+
+  # ==================== ALB Configuration ==================== #
+  AitWebTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      TargetType: instance
+      VpcId: !Ref VpcId
+  AitMctTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 8082
+      Protocol: HTTP
+      TargetType: instance
+      VpcId: !Ref VpcId
+  AitAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT30M
+    Properties:
+      LaunchConfigurationName: !Ref 'AitAutoScalingGroupLaunchConfig'
+      MaxSize: '1'
+      MinSize: '1'
+      Tags:
+        - Key: Name
+          PropagateAtLaunch: true
+          Value: !Sub '${ProjectName}/AitAutoScalingGroup'
+      TargetGroupARNs:
+        - !Ref 'AitWebTargetGroup'
+        - !Ref 'AitMctTargetGroup'
+      VPCZoneIdentifier: !Ref 'PrivateSubnetIds'
+    UpdatePolicy:
+      AutoScalingScheduledAction:
+        IgnoreUnmodifiedGroupSizeProperties: true
+  AitListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - Type: authenticate-oidc
+          Order: 1
+          AuthenticateOidcConfig:
+            ClientId: !Ref CognitoClientID
+            ClientSecret: !Ref CognitoClientSecret
+            Issuer: !Ref CognitoProviderUrl
+            UserInfoEndpoint:
+              Fn::Sub:
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/userInfo
+                - AuthSuffix: !If [IsGovCloud, 'auth-fips', 'auth']
+            AuthorizationEndpoint:
+              Fn::Sub:
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/authorize
+                - AuthSuffix: !If [IsGovCloud, 'auth-fips', 'auth']
+            TokenEndpoint:
+              Fn::Sub:
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/token
+                - AuthSuffix: !If [IsGovCloud, 'auth-fips', 'auth']
+            OnUnauthenticatedRequest: authenticate
+            Scope: openid
+            SessionTimeout: !Ref SessionTimeout
+        - Type: forward
+          Order: 2
+          TargetGroupArn: !Ref 'AitWebTargetGroup'
+      Conditions: # One day
+        - Field: host-header
+          HostHeaderConfig:
+            Values:
+              - !Sub 'ait.${FQDN}'
+      ListenerArn: !Ref ALBHttpsListenerArn
+      Priority: 75
+  MctListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - Type: authenticate-oidc
+          Order: 1
+          AuthenticateOidcConfig:
+            ClientId: !Ref CognitoClientID
+            ClientSecret: !Ref CognitoClientSecret
+            Issuer: !Ref CognitoProviderUrl
+            UserInfoEndpoint:
+              Fn::Sub:
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/userInfo
+                - AuthSuffix: !If [IsGovCloud, 'auth-fips', 'auth']
+            AuthorizationEndpoint:
+              Fn::Sub:
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/authorize
+                - AuthSuffix: !If [IsGovCloud, 'auth-fips', 'auth']
+            TokenEndpoint:
+              Fn::Sub:
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/token
+                - AuthSuffix: !If [IsGovCloud, 'auth-fips', 'auth']
+            OnUnauthenticatedRequest: authenticate
+            Scope: openid
+            SessionTimeout: !Ref SessionTimeout
+        - Type: forward
+          Order: 2
+          TargetGroupArn: !Ref 'AitWebTargetGroup'
+      Conditions:
+        - Field: host-header
+          HostHeaderConfig:
+            Values:
+              - !Sub 'mct.${FQDN}'
+      ListenerArn: !Ref ALBHttpsListenerArn
+      Priority: 100
+  AitMctIntListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn: !Ref AitMctTargetGroup
+                Weight: 1
+      LoadBalancerArn: !Ref ALBArn
+      Port: 8082
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: !Ref ListenerCertificateArn
+      SslPolicy: ELBSecurityPolicy-FS-1-2-2019-08
+
+Outputs:
+  GovCloudCondition:
+    Value: !If [IsGovCloud, 'yes', 'no']
+  AitSecurityGroupId:
+    Value: !GetAtt 'AitServerSecurityGroup.GroupId'

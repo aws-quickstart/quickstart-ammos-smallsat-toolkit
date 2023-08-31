@@ -24,7 +24,7 @@ def lambda_handler(event, context):
 
         if event["RequestType"] in ["Create", "Update"]:
             for name in role_names:
-                key = name.split("-")[-1]  # Strip the leading ProjectName from role name
+                key = "-".join(name.split("-")[-1:])  # Strip the leading ProjectName from role name
                 try:
                     logger.debug(f"Checking Account Roles for {name}")
                     role = client.get_role(RoleName=name)["Role"]

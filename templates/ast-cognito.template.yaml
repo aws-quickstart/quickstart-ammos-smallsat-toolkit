@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Cognito resources for an AMMOS Cubs Deployment (qs-1s6abjf7e)
+Description: Cognito resources for an AMMOS SmallSat Toolkit Deployment (qs-1s6abjf7e)
 Parameters:
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
@@ -24,7 +24,7 @@ Parameters:
     Description: Name of your project
     Type: String
   IamRoleArn:
-    Description: ARN of the pre-deployed IAM Role to use with the AIT Server
+    Description: ARN of the pre-deployed IAM Role with Cognito Admin permissions
     Type: String
     Default: ''
 
