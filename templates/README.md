@@ -3,15 +3,15 @@
 ```
 .
 ├── ammos-config.template.yaml
-├── ammos-cubs-ait.template.yaml
-├── ammos-cubs-alb.template.yaml
-├── ammos-cubs-cognito.template.yaml
-├── ammos-cubs-editor.template.yaml
-├── ammos-cubs-logging.template.yaml
-├── ammos-cubs.entry-main.template.yaml             # Entry Template for quick-create link
-├── ammos-cubs.main.template.yaml
-├── ammos-cubs.preconfig.template.yaml
-├── ammos-cubs.testing.template.yaml
+├── ast-ait.template.yaml
+├── ast-alb.template.yaml
+├── ast-cognito.template.yaml
+├── ast-editor.template.yaml
+├── ast-logging.template.yaml
+├── ast.entry-main.template.yaml             # Entry Template for quick-create link
+├── ast.main.template.yaml
+├── ast.preconfig.template.yaml
+├── ast.testing.template.yaml
 ├── ast-data.template.yaml
 └── ast-iam-roles.template.yaml
 
