@@ -69,7 +69,7 @@ Resources:
       Timeout: 300
       Role: !If
         - DeployIam
-        - !Ref 'ConfigParserRole'
+        - !GetAtt 'ConfigParserRole.Arn'
         - !Join
           - ''
           - - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role'
