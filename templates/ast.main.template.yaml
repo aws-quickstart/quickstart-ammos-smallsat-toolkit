@@ -237,6 +237,7 @@ Parameters:
     Description: Name of your project. Please use lowercase alphanumeric characters and hypens (-) only.
     Type: String
     AllowedPattern: ^[0-9a-z-]*$
+    MaxLength: 24
     ConstraintDescription: The ProjectName can include numbers, lowercase letters, and hyphens (-).
   VpcId:
     Description: (Optional) If you're deploying into an existing VPC, fill in the VPC ID.
