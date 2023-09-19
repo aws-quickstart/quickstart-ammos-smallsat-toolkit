@@ -69,7 +69,7 @@ Resources:
       Timeout: 300
       Role: !If
         - DeployIam
-        - !Ref ConfigParserRole
+        - !GetAtt 'ConfigParserRole.Arn'
         - !Join
           - ''
           - - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role'
@@ -129,7 +129,11 @@ Resources:
         PublicSubnet1ID: !GetAtt 'Config.PublicSubnet1ID'
         PublicSubnet2ID: !GetAtt 'Config.PublicSubnet2ID'
         PrivateSubnet1AID: !GetAtt 'Config.PrivateSubnet1AID'
-        PrivateSubnet2AID: !GetAtt 'Config.PrivateSubnet2AID'
-        PrivateSubnet3AID: !GetAtt 'Config.PrivateSubnet3AID'
+        PrivateSubnet1BID: !GetAtt 'Config.PrivateSubnet1BID'
+        PrivateSubnet1CID: !GetAtt 'Config.PrivateSubnet1CID'
         AccessSgID: !GetAtt 'Config.AccessSgID'
         DeployIam: !GetAtt 'Config.DeployIam'
+        DeployLogging: !GetAtt 'Config.DeployLogging'
+        DeployBastion: !GetAtt 'Config.DeployBastion'
+        DeployAerie: !GetAtt 'Config.DeployAerie'
+        EnableEfsBackups: !GetAtt 'Config.EnableEfsBackups'
