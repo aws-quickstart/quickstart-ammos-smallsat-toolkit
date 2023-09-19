@@ -85,7 +85,7 @@ Resources:
     Properties:
       Type: application
       IpAddressType: ipv4
-      Name: !Sub "${ProjectName}-AerieLoadBalancer"
+      Name: !Sub "${ProjectName}-AerieLB"
       Scheme: internet-facing
       LoadBalancerAttributes:
         - Key: access_logs.s3.enabled
