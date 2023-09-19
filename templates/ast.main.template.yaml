@@ -376,6 +376,7 @@ Resources:
         - !Sub ${ProjectName}-CognitoAdminRole
         - !Sub ${ProjectName}-DeploymentHelperRole
         - !Sub ${ProjectName}-BastionHostRole
+        - !Sub '${ProjectName}-ConfigParser'
         - !Sub ${ProjectName}-ECSTaskExecutionRole
         - !Sub ${ProjectName}-ECSTaskRole
   IamStack:

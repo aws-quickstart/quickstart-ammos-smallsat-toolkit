@@ -180,7 +180,7 @@ Resources:
     Properties:
       ServiceToken: !GetAtt BootstrapEfsFunction.Arn
       Name: !Sub "EFS Bootstrap for ${ProjectName}"
-      AerieVersion: "1.4.0"
+      AerieVersion: "v1.4.0"
 
   # ======================== Aerie Services ======================== #
   # TODO: Refactor to use main AST ALB
