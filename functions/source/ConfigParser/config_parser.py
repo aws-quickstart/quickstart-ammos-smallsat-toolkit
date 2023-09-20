@@ -1,11 +1,15 @@
 import json
 import logging
 import os
+import json
 
 import boto3
 
 from crhelper import CfnResource
 from params import Params
+
+with open("default.json","r") as f:
+    params_default_dict = json.load(f)
 
 logger = logging.getLogger(__name__)
 LOGLEVEL = os.getenv("LOGLEVEL", logging.DEBUG)
@@ -30,7 +34,11 @@ def parse_config(event, _):
             "Expect entry vars to be passed as 'MainStackParams' in 'ResourceProperties'"
         )
 
-    params_dict = Params.get_dict_from_params_input_agnostic(raw_params)
+    input_dict = Params.get_dict_from_params_input_agnostic(raw_params)
+
+    params_dict = params_default_dict.copy()
+    params_dict.update(input_dict)
+
     helper.Data.update(**params_dict)
     return None
 
