@@ -10,7 +10,7 @@ Parameters:
   SSLCertificateArn:
     Description: ARN to Certifictate in ACM valid for specified FQDN and relevant subdomains
     Type: String
-  VPCID:
+  VpcId:
     Description: VPC ID for deploying project resources
     Type: AWS::EC2::VPC::Id
   PublicSubnetIds:
@@ -43,7 +43,7 @@ Resources:
         - CidrIp: 0.0.0.0/0
           Description: Allow all outbound traffic by default
           IpProtocol: "-1"
-      VpcId: !Ref VPCID
+      VpcId: !Ref VpcId
 
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -154,12 +154,13 @@ Resources:
                     <meta charset="UTF-8">
                     <meta http-equiv="X-UA-Compatible" content="IE=edge">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>AMMOS CUBS</title>
+                    <title>AMMOS SmallSat Toolkit</title>
                 </head>
                 <body>
                     <p><a href="https://ait.${FQDN}">AIT</a></p>
                     <p><a href="https://mct.${FQDN}">OpenMCT</a></p>
                     <p><a href="https://editor.${FQDN}">Editor</a></p>
+                    <p><a href="https://aerie.${FQDN}">Aerie</a></p>
                 </body>
                 </html>
 

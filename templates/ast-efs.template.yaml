@@ -1,0 +1,160 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: EFS Configuration for AST Deployment
+
+Parameters:
+  ProjectName:
+    Description: Name of stack
+    Type: String
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  PrivateSubnet1AID:
+    Type: AWS::EC2::Subnet::Id
+  PrivateSubnet1BID:
+    Type: AWS::EC2::Subnet::Id
+  PrivateSubnet1CID:
+    Type: AWS::EC2::Subnet::Id
+  EnableBackups:
+    Description: Will enable AWS Backups for EFS if "true" (default), or skip if "false"
+    Type: String
+    Default: "true"
+    AllowedValues: ["false", "true"]
+  BackupRoleArn:
+    Description: ARN of the IAM Role created for enabling EFS Backups
+    Type: String
+    Default: ""
+  ScheduleExpression:
+    Type: String
+    Default: "cron(0 12 * * ? *)"
+  StartWindowMinutes:
+    Type: Number
+    Default: 60
+  CompletionWindowMinutes:
+    Type: Number
+    Default: 120
+  MoveToColdStorageAfterDays:
+    Type: Number
+    Default: 30
+  DeleteAfterDays:
+    Type: Number
+    Default: 120
+
+Conditions:
+  EnableBackup: !Equals [!Ref EnableBackups, "true"]
+
+Resources:
+  EfsBackupVault:
+    Condition: EnableBackup
+    Type: "AWS::Backup::BackupVault"
+    Properties:
+      BackupVaultName: !Sub "${ProjectName}-EfsBackupVault"
+
+  EfsBackupPlan:
+    Condition: EnableBackup
+    Type: "AWS::Backup::BackupPlan"
+    Properties:
+      BackupPlan:
+        BackupPlanName: !Sub "${ProjectName}-EfsBackupPlan"
+        BackupPlanRule:
+          - RuleName: EfsBackupRule
+            TargetBackupVault: !Ref EfsBackupVault
+            ScheduleExpression: !Ref ScheduleExpression
+            StartWindowMinutes: !Ref StartWindowMinutes
+            CompletionWindowMinutes: !Ref CompletionWindowMinutes
+            Lifecycle:
+              MoveToColdStorageAfterDays: !Ref MoveToColdStorageAfterDays
+              DeleteAfterDays: !Ref DeleteAfterDays
+
+  EfsBackupSelection:
+    Condition: EnableBackup
+    Type: "AWS::Backup::BackupSelection"
+    Properties:
+      BackupPlanId: !Ref EfsBackupPlan
+      BackupSelection:
+        SelectionName: "EfsBackupSelection"
+        IamRoleArn: !Ref BackupRoleArn
+        ListOfTags:
+          - ConditionType: STRINGEQUALS
+            ConditionKey: backupplan
+            ConditionValue: efs-backup-plan
+
+  EfsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId:
+        Ref: VpcId
+      GroupDescription: "EFS Security Group"
+  FileSystem:
+    Type: AWS::EFS::FileSystem
+    Properties:
+      Encrypted: true
+      PerformanceMode: generalPurpose
+      BackupPolicy:
+        Status: DISABLED
+      FileSystemTags:
+        - Key: Name
+          Value: !Sub '${ProjectName}-ait-efs'
+        - Key: backupplan
+          Value: efs-backup-plan
+
+  MountTargetPrivateA:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref FileSystem
+      SubnetId: !Ref PrivateSubnet1AID
+      SecurityGroups: [!Ref EfsSecurityGroup]
+  MountTargetPrivateB:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref FileSystem
+      SubnetId: !Ref PrivateSubnet1BID
+      SecurityGroups: [!Ref EfsSecurityGroup]
+  MountTargetPrivateC:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref FileSystem
+      SubnetId: !Ref PrivateSubnet1CID
+      SecurityGroups: [!Ref EfsSecurityGroup]
+
+  RootAccessPoint:
+    Type: AWS::EFS::AccessPoint
+    Properties:
+      AccessPointTags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-EfsRoot
+      FileSystemId:
+        Ref: FileSystem
+      PosixUser:
+        Uid: "1001"
+        Gid: "1001"
+      RootDirectory:
+        CreationInfo:
+          OwnerGid: "1001"
+          OwnerUid: "1001"
+          Permissions: "777"
+        Path: "/efs"
+
+Outputs:
+  # ==================== EFS Filesystem ==================== #
+  EfsLambdaMountTarget:
+    Description: "Mount target for lambda function"
+    Value: !Ref MountTargetPrivateA
+  EfsFileSystemId:
+    Description: "Filesystem-ID for EFS"
+    Value: !GetAtt FileSystem.FileSystemId
+  EfsFileSystemArn:
+    Description: "ARN for EFS Filesystem"
+    Value: !GetAtt FileSystem.Arn
+
+  # ==================== EFS Access Points ==================== #
+  EfsRootAccessPointArn:
+    Description: "Access Point for EFS Root Path (ARN)"
+    Value: !GetAtt RootAccessPoint.Arn
+    Export:
+      Name: !Sub "${ProjectName}-EfsRootAccessPointArn"
+  EfsRootAccessPointId:
+    Description: "Access Point for EFS Root Path (FS ID)"
+    Value: !Ref RootAccessPoint
+  EfsSecurityGroupId:
+    Description: "Security group ID for lambda function"
+    Value: !Ref EfsSecurityGroup

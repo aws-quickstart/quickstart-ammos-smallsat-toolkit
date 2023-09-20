@@ -44,6 +44,7 @@ Conditions:
   PermissionsBoundaryProvided: !Not [!Equals ['', !Ref PermissionsBoundaryArn]]
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
 Resources:
+  #====================== AST CORE ======================#
   LoggingLambdaRole:
     Metadata:
       cfn-lint:
@@ -165,6 +166,7 @@ Resources:
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy'
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonElasticFileSystemClientFullAccess"        
       Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
       PermissionsBoundary:
         !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
@@ -185,8 +187,8 @@ Resources:
                   - s3:ListBucket
                 Effect: Allow
                 Resource:
-                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-ConfigBucket'
-                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-ConfigBucket/*'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-config'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-config/*'
               - Action:
                   - 's3:GetObject'
                   - s3:ListBucket
@@ -194,6 +196,15 @@ Resources:
                   - arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}*
                   - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
                 Effect: Allow
+        - PolicyName: AitServerFilesystemMountPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Resource: !Sub 'arn:${AWS::Partition}:elasticfilesystem:${AWS::Region}:${AWS::AccountId}:file-system/*'
   EditorServerRole:
     Type: AWS::IAM::Role
     Properties:
@@ -229,8 +240,8 @@ Resources:
                   - s3:ListBucket
                 Effect: Allow
                 Resource:
-                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-ConfigBucket'
-                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-ConfigBucket/*'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-config'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-config/*'
               - Action:
                   - 's3:GetObject'
                   - s3:ListBucket
@@ -238,10 +249,69 @@ Resources:
                   - arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}*
                   - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
                 Effect: Allow
-  CognitoInspectRole:
+  BootstrapEfsRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub ${ProjectName}-BootstrapEfsRole
+      Description: Used by the Lambda Function which copies required files from S3 to EFS
+      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonElasticFileSystemClientFullAccess"
+      Policies:
+        - PolicyName: AstFilesystemMountPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Resource: !Sub 'arn:${AWS::Partition}:elasticfilesystem:${AWS::Region}:${AWS::AccountId}:file-system/*'
+        - PolicyName: ConfigBucketReadPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetObject*
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-config'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ProjectName}-config/*'
+  BackupEfsRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub ${ProjectName}-BackupEfsRole
+      Description: Enables backup for the EFS Filesystem
+      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [PermissionsBoundaryProvided, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "backup.amazonaws.com"
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup"
+  CognitoAdminRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${ProjectName}-CognitoInspectRole
+      RoleName: !Sub ${ProjectName}-CognitoAdminRole
       AssumeRolePolicyDocument:
         Statement:
           - Action: sts:AssumeRole
@@ -256,7 +326,9 @@ Resources:
       Policies:
         - PolicyDocument:
             Statement:
-              - Action: cognito-idp:DescribeUserPoolClient
+              - Action:
+                  - cognito-idp:DescribeUserPoolClient
+                  - cognito-idp:AdminCreateUser
                 Effect: Allow
                 Resource: !Sub arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*
             Version: "2012-10-17"
@@ -310,12 +382,68 @@ Resources:
                 - !Sub 'ec2.${AWS::URLSuffix}'
             Effect: Allow
         Version: 2012-10-17
+      Policies:
+      - PolicyName: BastionPolicy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Sid: GetAssetsS3
+            Action:
+              - 's3:GetObject'
+            Resource: !Sub
+              - arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}*
+              - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+            Effect: Allow
+          - Sid: Logging
+            Action:
+              - 'logs:CreateLogStream'
+              - 'logs:GetLogEvents'
+              - 'logs:PutLogEvents'
+              - 'logs:DescribeLogGroups'
+              - 'logs:DescribeLogStreams'
+              - 'logs:PutRetentionPolicy'
+              - 'logs:PutMetricFilter'
+              - 'logs:CreateLogGroup'
+            Resource: '*'
+            Effect: Allow
+          - Sid: DescribeAddress
+            Action:
+              - 'ec2:DescribeAddresses'
+            Resource: '*'
+            Effect: Allow
+          - Sid: AssociateAddress
+            Effect: Allow
+            Action:
+              - 'ec2:AssociateAddress'
+            Resource: '*'
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy'
+  ConfigParserRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ProjectName}-ConfigParser'
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+      Path: !If
+        - RolePathProvided
+        - !Ref 'RolePath'
+        - !Ref 'AWS::NoValue'
+      PermissionsBoundary: !If
+        - PermissionsBoundaryProvided
+        - !Ref 'PermissionsBoundaryArn'
+        - !Ref 'AWS::NoValue'
   CopyZipsRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub ${ProjectName}-CopyZipsRole
       Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
       PermissionsBoundary:
         !If [
@@ -384,7 +512,7 @@ Resources:
               - logs:DeleteDestination
               - logs:TestMetricFilter
               - logs:ListTagsLogGroup
-            Resource: !Sub arn:${AWS::Partition}:s3:::*
+            Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:*
           - Sid: S3Get
             Effect: Allow
             Action:
@@ -401,6 +529,100 @@ Resources:
             - arn:${AWS::Partition}:s3:::${DestBucket}/*
             - DestBucket: !Sub ${ProjectName}-config
 
+  #======================= Aerie ========================#
+  ECSTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: !Sub IAM Role for ECS Task execution - ${ProjectName}
+      RoleName: !Sub ${ProjectName}-ECSTaskExecutionRole
+      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [
+          PermissionsBoundaryProvided,
+          !Ref PermissionsBoundaryArn,
+          !Ref AWS::NoValue,
+        ]
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: SecretsManagerReadAccess
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*
+                Condition:
+                  StringLikeIfExists:
+                    secretsmanager:Name: "*AerieDb*"
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+  ECSTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: !Sub IAM Role for ECS Task Runtime - ${ProjectName}
+      RoleName: !Sub ${ProjectName}-ECSTaskRole
+      Path: !If [RolePathProvided, !Ref RolePath, !Ref AWS::NoValue]
+      PermissionsBoundary:
+        !If [
+          PermissionsBoundaryProvided,
+          !Ref PermissionsBoundaryArn,
+          !Ref AWS::NoValue,
+        ]
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: EnableEcsExecSsmPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ssmmessages:CreateControlChannel
+                  - ssmmessages:CreateDataChannel
+                  - ssmmessages:OpenControlChannel
+                  - ssmmessages:OpenDataChannel
+                Resource: "*"
+        - PolicyName: SecretsManagerReadAccess
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*
+                Condition:
+                  StringLikeIfExists:
+                    secretsmanager:Name: "*AerieDb*"
+        # TODO: Lock down the fs and fsap resources if we move to creating the EFS resources *before* IAM
+        - PolicyName: AerieFilesystemMountPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Condition:
+                  StringEquals:
+                    elasticfilesystem:AccessPointArn:
+                      - !Sub "arn:${AWS::Partition}:elasticfilesystem:${AWS::Region}:${AWS::AccountId}:access-point/*"
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:elasticfilesystem:${AWS::Region}:${AWS::AccountId}:file-system/*"
+
 Outputs:
   DeploymentHelperRoleArn:
     Export:
@@ -410,9 +632,12 @@ Outputs:
   LoggingLambdaRoleArn:
     Description: ARN of the LoggingLambdaRole created for AST deployment
     Value: !GetAtt LoggingLambdaRole.Arn
-  CognitoInspectRoleArn:
-    Description: ARN of the CognitoInspectRole created for AST deployment
-    Value: !GetAtt CognitoInspectRole.Arn
+  CognitoAdminRoleArn:
+    Description: ARN of the CognitoAdminRole created for AST deployment
+    Value: !GetAtt CognitoAdminRole.Arn
+  CognitoAdminRoleName:
+    Description: Name of the CognitoAdminRole created for AST deployment
+    Value: !Ref CognitoAdminRole
   AitServerRoleArn:
     Description: ARN of the AitServerRole created for AST deployment
     Value: !GetAtt AitServerRole.Arn
@@ -425,6 +650,18 @@ Outputs:
   EditorServerRoleName:
     Description: Name of the EditorServerRole created for AST deployment
     Value: !Ref EditorServerRole
+  BootstrapEfsRoleArn:
+    Description: ARN of the BootstrapEfsRole created for AST deployment
+    Value: !GetAtt BootstrapEfsRole.Arn
+  BootstrapEfsRoleName:
+    Description: Name of the BootstrapEfsRole created for AST deployment
+    Value: !Ref BootstrapEfsRole
+  BackupEfsRoleArn:
+    Description: ARN of the BackupEfsRole created for AST deployment
+    Value: !GetAtt BackupEfsRole.Arn
+  BackupEfsRoleName:
+    Description: Name of the BackupEfsRole created for AST deployment
+    Value: !Ref BackupEfsRole
   BastionHostRoleArn:
     Description: ARN of the BastionHostRole created for AST deployment
     Value: !GetAtt BastionHostRole.Arn
@@ -437,3 +674,10 @@ Outputs:
   CopyZipsRoleName:
     Description: Name of the CopyZipsRole created for AST deployment
     Value: !Ref CopyZipsRole
+
+  ECSTaskExecutionRoleArn:
+    Description: "Default Execution Role for ECS Tasks - uses managed policy for task execution"
+    Value: !GetAtt ECSTaskExecutionRole.Arn
+  ECSTaskRoleArn:
+    Description: "Default Task Role for ECS Tasks - uses managed policy for task execution"
+    Value: !GetAtt ECSTaskRole.Arn

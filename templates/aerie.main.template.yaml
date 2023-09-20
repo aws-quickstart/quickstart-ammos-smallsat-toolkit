@@ -1,0 +1,232 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: (qs-1s6abjf8q)
+Parameters:
+  ProjectName:
+    Type: String
+    Default: ammos-aerie
+
+  # ============== IAM ============== #
+  AerieBootstrapRoleArn:
+    Type: String
+  ECSTaskExecutionRoleArn:
+    Type: String
+  ECSTaskRoleArn:
+    Type: String
+
+  # =========== S3 Assets =========== #
+  QSS3BucketName:
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
+    ConstraintDescription: Quick Start bucket name can include numbers, lowercase
+      letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
+      (-).
+    Default: aws-quickstart
+    Description: Name of the S3 bucket for your copy of the Quick Start assets.
+      Keep the default name unless you are customizing the template.
+      Changing the name updates code references to point to a new Quick
+      Start location. This name can include numbers, lowercase letters,
+      uppercase letters, and hyphens, but do not start or end with a hyphen (-).
+      See https://aws-quickstart.github.io/option1.html.
+    Type: String
+  QSS3BucketRegion:
+    Default: 'us-east-1'
+    Description: 'AWS Region where the Quick Start S3 bucket (QSS3BucketName) is
+    hosted. Keep the default Region unless you are customizing the template.
+    Changing this Region updates code references to point to a new Quick Start location.
+    When using your own bucket, specify the Region.
+    See https://aws-quickstart.github.io/option1.html.'
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: ^[0-9a-zA-Z-/]*$
+    ConstraintDescription: The Quick Start S3 key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slashes (/). The prefix should
+      end with a forward slash (/).
+    Default: quickstart-ammos-aerie/
+    Description: S3 key prefix that is used to simulate a directory for your copy of the
+      Quick Start assets. Keep the default prefix unless you are customizing
+      the template. Changing this prefix updates code references to point to
+      a new Quick Start location. This prefix can include numbers, lowercase
+      letters, uppercase letters, hyphens (-), and forward slashes (/). End with
+      a forward slash. See https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html
+      and https://aws-quickstart.github.io/option1.html.
+    Type: String
+
+  # =============== Networking =============== #
+  FQDN: # Ex: aerie-demo.example.com
+    Description: URL to use for the project-resources root.
+    Type: String
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  PublicSubnet1ID:
+    Type: AWS::EC2::Subnet::Id
+  PublicSubnet2ID:
+    Type: AWS::EC2::Subnet::Id
+  PrivateSubnet1AID:
+    Type: AWS::EC2::Subnet::Id
+  PrivateSubnet1BID:
+    Type: AWS::EC2::Subnet::Id
+
+  # ============= EFS References ============= #
+  EfsSecurityGroupId:
+    Type: String
+    Description: ""
+  EfsRootAccessPointArn:
+    Type: String
+    Description: ""
+  EfsFileSystemId:
+    Type: String
+    Description: ""
+
+  # =============== Aerie Misc =============== #
+  SSLCertificateArn:
+    Description: ARN of the SSL Certificate in ACM for the Aerie ECS Load Balancer
+    Type: String
+
+Conditions:
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
+
+Resources:
+  # ==================== Aerie EFS Access Points ==================== #
+  AerieFilestoreAccessPoint:
+    Type: AWS::EFS::AccessPoint
+    Properties:
+      AccessPointTags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-AerieFilestore
+      RootDirectory:
+        CreationInfo:
+          OwnerUid: "1001"
+          OwnerGid: "1001"
+          Permissions: "777"
+        Path: /efs/aerie/filestore
+      FileSystemId: !Ref EfsFileSystemId
+  PostgresInitAccessPoint:
+    Type: AWS::EFS::AccessPoint
+    Properties:
+      AccessPointTags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-PostgresInit
+      RootDirectory:
+        CreationInfo:
+          OwnerUid: "1001"
+          OwnerGid: "1001"
+          Permissions: "777"
+        Path: /efs/aerie/init_postgres
+      FileSystemId: !Ref EfsFileSystemId
+  HasuraInitAccessPoint:
+    Type: AWS::EFS::AccessPoint
+    Properties:
+      AccessPointTags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-HasuraInit
+      RootDirectory:
+        CreationInfo:
+          OwnerUid: "1001"
+          OwnerGid: "1001"
+          Permissions: "777"
+        Path: /efs/aerie/init_hasura
+      FileSystemId: !Ref EfsFileSystemId
+  PostgresDataAccessPoint:
+    Type: AWS::EFS::AccessPoint
+    Properties:
+      AccessPointTags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-PostgresData
+      RootDirectory:
+        CreationInfo:
+          OwnerUid: "1001"
+          OwnerGid: "1001"
+          Permissions: "777"
+        Path: /efs/aerie/postgres
+      FileSystemId: !Ref EfsFileSystemId
+
+  # ====================== Aerie EFS Bootstrap ====================== #
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId:
+        Ref: VpcId
+      GroupDescription: "Bootstrap Lambda Security Group"
+  BootstrapEfsIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow connection from Lambda to EFS Security Group
+      IpProtocol: tcp
+      FromPort: 2049
+      ToPort: 2049
+      SourceSecurityGroupId: !Ref LambdaSecurityGroup
+      GroupId: !Ref EfsSecurityGroupId
+  BootstrapEfsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: bootstrap_aerie.handler
+      Code:
+        S3Bucket: !Ref QSS3BucketName
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/BootstrapAerie/lambda.zip'
+      Description: Bootstrap an EFS Filesystem with the files needed for the Aerie Deployment
+      MemorySize: 128
+      Timeout: 180
+      Role: !Ref AerieBootstrapRoleArn
+      Runtime: python3.8
+      VpcConfig:
+        SecurityGroupIds:
+        - !Ref LambdaSecurityGroup
+        SubnetIds:
+        - Ref: PrivateSubnet1AID
+      FileSystemConfigs:
+      - Arn: !Ref EfsRootAccessPointArn
+        LocalMountPath: "/mnt/efs"
+  EfsBootstrap:
+    Type: 'Custom::AerieBootstrap'
+    Properties:
+      ServiceToken: !GetAtt BootstrapEfsFunction.Arn
+      Name: !Sub "EFS Bootstrap for ${ProjectName}"
+      AerieVersion: "v1.4.0"
+
+  # ======================== Aerie Services ======================== #
+  # TODO: Refactor to use main AST ALB
+  AerieAlbStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/aerie-alb.template.yaml'
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Parameters:
+        ProjectName: !Ref ProjectName
+        VpcId: !Ref VpcId
+        PublicSubnetIds:
+          Fn::Join:
+            - ','
+            - - !Ref PublicSubnet1ID
+              - !Ref PublicSubnet2ID
+  AerieEcsStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - EfsBootstrap
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/aerie-ecs.template.yaml'
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Parameters:
+        ProjectName: !Ref ProjectName
+        VpcId: !Ref VpcId
+        ALBArn: !GetAtt AerieAlbStack.Outputs.ApplicationLoadBalancerArn
+        ApplicationLoadBalancerDns: !GetAtt AerieAlbStack.Outputs.ApplicationLoadBalancerDns
+        AlbSecurityGroupId: !GetAtt AerieAlbStack.Outputs.AlbSecurityGroupId
+        PrivateSubnetIds:
+          Fn::Join:
+            - ','
+            - - !Ref PrivateSubnet1AID
+              - !Ref PrivateSubnet1BID
+        PublicSubnetId: !Ref PublicSubnet1ID
+        SSLCertificateArn: !Ref SSLCertificateArn
+        PrivateNamespaceUrl: !Sub aerie-services.${FQDN}
+        EfsSecurityGroupId: !Ref EfsSecurityGroupId
+        ECSTaskExecutionRoleArn: !Ref ECSTaskExecutionRoleArn
+        ECSTaskRoleArn: !Ref ECSTaskRoleArn
+        AerieFileSystemId: !Ref EfsFileSystemId
+        AerieFilestoreAccessPointId: !Ref AerieFilestoreAccessPoint
+        PostgresDataAccessPointId: !Ref PostgresDataAccessPoint
+        PostgresInitAccessPointId: !Ref PostgresInitAccessPoint
+        HasuraInitAccessPointId: !Ref HasuraInitAccessPoint

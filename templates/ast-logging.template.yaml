@@ -12,16 +12,16 @@ Parameters:
     Description: ARN of the pre-deployed IAM Role to use with the AIT Server
     Type: String
     Default: ''
-  VPCID:
+  VpcId:
     Type: AWS::EC2::VPC::Id
     Description: The ID of your existing VPC.
-  PrivateSubnet1ID:
+  PrivateSubnet1AID:
     Type: AWS::EC2::Subnet::Id
     Description: The ID of the private subnet in Availability Zone 1 in your existing VPC.
-  PrivateSubnet2ID:
+  PrivateSubnet1BID:
     Type: AWS::EC2::Subnet::Id
     Description: The ID of the private subnet in Availability Zone 2 in your existing VPC.
-  PrivateSubnet3ID:
+  PrivateSubnet1CID:
     Type: AWS::EC2::Subnet::Id
     Description: The ID of the private subnet in Availability Zone 3 in your existing VPC.
   QSS3BucketName:
@@ -49,24 +49,8 @@ Resources:
   ElasticsearchSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      VpcId: !Ref VPCID
-      GroupDescription: Security group for access to AMMOS Cubs Elasticsearch domain.
-      SecurityGroupIngress:
-        - CidrIp: 128.149.0.0/16
-          Description: JPL Internal
-          IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-        - CidrIp: 137.78.0.0/16
-          Description: JPL Internal
-          IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-        - CidrIp: 137.79.0.0/16
-          Description: JPL Internal
-          IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
+      VpcId: !Ref VpcId
+      GroupDescription: Security group for access to AST Elasticsearch domain.
 
   ElasticsearchSecurityGroupIngress:
     Type: AWS::EC2::SecurityGroupIngress
@@ -104,8 +88,8 @@ Resources:
         TLSSecurityPolicy: Policy-Min-TLS-1-2-2019-07
       VPCOptions:
         SubnetIds:
-          - !Ref PrivateSubnet1ID
-          - !Ref PrivateSubnet2ID
+          - !Ref PrivateSubnet1AID
+          - !Ref PrivateSubnet1BID
         SecurityGroupIds:
           - !GetAtt ElasticsearchSecurityGroup.GroupId
       AccessPolicies:
@@ -252,9 +236,9 @@ Resources:
           SecurityGroupIds:
             - !GetAtt ElasticsearchSecurityGroup.GroupId
           SubnetIds:
-            - !Ref PrivateSubnet1ID
-            - !Ref PrivateSubnet2ID
-            - !Ref PrivateSubnet3ID
+            - !Ref PrivateSubnet1AID
+            - !Ref PrivateSubnet1BID
+            - !Ref PrivateSubnet1CID
 
   AitEditorAgentSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
@@ -295,15 +279,15 @@ Resources:
       Description: An Amazon Kinesis Firehose stream processor that extracts individual log events from records sent by Cloudwatch Logs subscription filters.
       Handler: index.handler
       Role: !Ref IamRoleArn
-      Runtime: nodejs12.x
+      Runtime: nodejs16.x
       Timeout: 60
       VpcConfig:
         SecurityGroupIds:
           - !GetAtt ElasticsearchSecurityGroup.GroupId
         SubnetIds:
-          - !Ref PrivateSubnet1ID
-          - !Ref PrivateSubnet2ID
-          - !Ref PrivateSubnet3ID
+          - !Ref PrivateSubnet1AID
+          - !Ref PrivateSubnet1BID
+          - !Ref PrivateSubnet1CID
       Code:
         S3Bucket: !If
           - UsingDefaultBucket
