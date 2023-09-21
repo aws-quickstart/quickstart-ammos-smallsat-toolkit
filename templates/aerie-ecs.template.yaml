@@ -557,7 +557,7 @@ Resources:
               Value: !Sub "{{resolve:secretsmanager:${ProjectName}-RootUserDbSecretAerieDb:SecretString:username}}"
             - Name: AERIE_USERNAME
               Value: aerie
-            - Name: AERIE_PASSSWORD
+            - Name: AERIE_PASSWORD
               Value: aerie
             - Name: HEALTHCHECK_DB
               Value: aerie_merlin
