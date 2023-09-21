@@ -1,0 +1,139 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  ProjectName:
+    Type: String
+  QSS3BucketName:
+    Type: String
+    Default: aws_quickstart
+  QSS3KeyPrefix:
+    Type: String
+    Default: quickstart-ammos-smallsat-toolkit/
+  QSS3BucketRegion:
+    Type: String
+    Default: ''
+  MainStackParams:
+    Type: String
+  RolePath:
+    Type: String
+    Default: ''
+  PermissionsBoundaryArn:
+    Type: String
+    Default: ''
+  DeployIam:
+    Type: String
+    Default: 'true'
+Conditions:
+  DeployIam: !Equals
+    - !Ref 'DeployIam'
+    - 'true'
+  RolePathProvided: !Not
+    - !Equals
+      - ''
+      - !Ref 'RolePath'
+  UsingDefaultBucket: !Equals
+    - !Ref 'QSS3BucketName'
+    - aws-quickstart
+  PermissionsBoundaryProvided: !Not
+    - !Equals
+      - ''
+      - !Ref 'PermissionsBoundaryArn'
+Resources:
+  ConfigParserRole:
+    Type: AWS::IAM::Role
+    Condition: DeployIam
+    Properties:
+      RoleName: !Sub '${ProjectName}-ConfigParser'
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+      Path: !If
+        - RolePathProvided
+        - !Ref 'RolePath'
+        - !Ref 'AWS::NoValue'
+      PermissionsBoundary: !If
+        - PermissionsBoundaryProvided
+        - !Ref 'PermissionsBoundaryArn'
+        - !Ref 'AWS::NoValue'
+  ConfigParser:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-ConfigParser'
+      Handler: config_parser.handler
+      MemorySize: 256
+      Timeout: 300
+      Role: !If
+        - DeployIam
+        - !GetAtt 'ConfigParserRole.Arn'
+        - !Join
+          - ''
+          - - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role'
+            - !If
+              - RolePathProvided
+              - !Ref 'RolePath'
+              - /
+            - !Sub '${ProjectName}-ConfigParser'
+      Runtime: python3.9
+      Code:
+        S3Bucket: !If
+          - UsingDefaultBucket
+          - !Sub '${QSS3BucketName}-${AWS::Region}'
+          - !Ref 'QSS3BucketName'
+        S3Key: !Sub '${QSS3KeyPrefix}functions/packages/ConfigParser/lambda.zip'
+  Config:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt 'ConfigParser.Arn'
+      MainStackParams: !Ref 'MainStackParams'
+  MainStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/ast.main.template.yaml
+        - S3Region: !If
+            - UsingDefaultBucket
+            - !Ref 'AWS::Region'
+            - !Ref 'QSS3BucketRegion'
+          S3Bucket: !If
+            - UsingDefaultBucket
+            - !Sub '${QSS3BucketName}-${AWS::Region}'
+            - !Ref 'QSS3BucketName'
+      Parameters:
+        AITInstanceType: !GetAtt 'Config.AITInstanceType'
+        CloudWatchLogsRetentionPeriod: !GetAtt 'Config.CloudWatchLogsRetentionPeriod'
+        KeyPairName: !GetAtt 'Config.KeyPairName'
+        VPCCIDR: !GetAtt 'Config.VPCCIDR'
+        PublicSubnet1CIDR: !GetAtt 'Config.PublicSubnet1CIDR'
+        PublicSubnet2CIDR: !GetAtt 'Config.PublicSubnet2CIDR'
+        PublicSubnet3CIDR: !GetAtt 'Config.PublicSubnet3CIDR'
+        PrivateSubnet1CIDR: !GetAtt 'Config.PrivateSubnet1CIDR'
+        PrivateSubnet2CIDR: !GetAtt 'Config.PrivateSubnet2CIDR'
+        PrivateSubnet3CIDR: !GetAtt 'Config.PrivateSubnet3CIDR'
+        AvailabilityZones: !GetAtt 'Config.AvailabilityZones'
+        QSS3BucketName: !GetAtt 'Config.QSS3BucketName'
+        QSS3BucketRegion: !GetAtt 'Config.QSS3BucketRegion'
+        QSS3KeyPrefix: !GetAtt 'Config.QSS3KeyPrefix'
+        RemoteAccessCIDR: !GetAtt 'Config.RemoteAccessCIDR'
+        SSLCertificateArn: !GetAtt 'Config.SSLCertificateArn'
+        HostedZoneID: !GetAtt 'Config.HostedZoneID'
+        FQDN: !GetAtt 'Config.FQDN'
+        PermissionsBoundaryArn: !GetAtt 'Config.PermissionsBoundaryArn'
+        RolePath: !GetAtt 'Config.RolePath'
+        ProjectName: !GetAtt 'Config.ProjectName'
+        VpcId: !GetAtt 'Config.VpcId'
+        PublicSubnet1ID: !GetAtt 'Config.PublicSubnet1ID'
+        PublicSubnet2ID: !GetAtt 'Config.PublicSubnet2ID'
+        PrivateSubnet1AID: !GetAtt 'Config.PrivateSubnet1AID'
+        PrivateSubnet1BID: !GetAtt 'Config.PrivateSubnet1BID'
+        PrivateSubnet1CID: !GetAtt 'Config.PrivateSubnet1CID'
+        AccessSgID: !GetAtt 'Config.AccessSgID'
+        DeployIam: !GetAtt 'Config.DeployIam'
+        DeployLogging: !GetAtt 'Config.DeployLogging'
+        DeployBastion: !GetAtt 'Config.DeployBastion'
+        DeployAerie: !GetAtt 'Config.DeployAerie'
+        EnableEfsBackups: !GetAtt 'Config.EnableEfsBackups'

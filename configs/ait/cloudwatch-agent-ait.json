@@ -24,6 +24,12 @@
             "log_group_name": "/<PROJECT_NAME>/cloudwatch-agent/ait-server/syslog",
             "log_stream_name": "{instance_id}/messages.log",
             "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/user-data.log",
+            "log_group_name": "/<PROJECT_NAME>/cloudwatch-agent/ait-server/user-data",
+            "log_stream_name": "{instance_id}/user-data.log",
+            "timezone": "UTC"
           }
         ]
       }

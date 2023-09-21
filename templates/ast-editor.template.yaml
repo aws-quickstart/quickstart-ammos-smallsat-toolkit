@@ -1,0 +1,286 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: (qs-1s6abjf7k)
+Parameters:
+  ProjectName:
+    Description: Name of your project
+    Type: String
+  ConfigBucketName:
+    Description: Name of the S3 bucket used to store project-specific configuration files.
+    Type: String
+    Default: ''
+  FQDN:
+    Description: Fully Qualified Domain Name to use for project resources root.
+    Type: String
+  PrivateSubnetIds:
+    Description: Private Subnet IDs for deploying application server Instances
+    Type: List<AWS::EC2::Subnet::Id>
+  VpcId:
+    Description: VPC ID for deploying project resources
+    Type: AWS::EC2::VPC::Id
+  InstanceType:
+    Description: Instance type to be used for AIT Server instances; see deployment guide for recommendations
+    Type: String
+    Default: m5.large
+  KeyPairName:
+    Description: Name of created SSH Key for instance access - must use SSM sessions if no key supplied
+    Type: AWS::EC2::KeyPair::KeyName
+  SessionTimeout:
+    Description: The maximum duration of the authentication session, in seconds.
+    Type: Number
+    Default: 604800  # One day
+    MinValue: 60
+    MaxValue: 604800
+  IamRoleName:
+    Description: Name of the pre-deployed IAM Role to use with the Editor Server
+    Type: String
+  AlbSecurityGroupId:
+    Description: ID of Pre-configured Security Group attached to the ALB
+    Type: String
+  CognitoClientID:
+    Description: Client ID from pre-configured cognito environment
+    Type: String
+    NoEcho: true
+  CognitoClientSecret:
+    Description: Client Secret from pre-configured cognito environment
+    Type: String
+    NoEcho: true
+  CognitoProviderUrl:
+    Description: Provider URL from pre-configured cognito environment
+    Type: String
+  CognitoDomainName:
+    Description: Domain Name from pre-configured cognito environment
+    Type: String
+  ALBHttpsListenerArn:
+    Description: ALB HTTPS Listener ARN
+    Type: String
+Mappings:
+  AWSAMIRegionMap:
+    us-east-1:
+      RHELHA84HVM: ami-02e0bb36c61bb9715
+    us-east-2:
+      RHELHA84HVM: ami-0b2e47f3b2e23d235
+    us-west-1:
+      RHELHA84HVM: ami-054965c6cd7c6e462
+    us-west-2:
+      RHELHA84HVM: ami-0b28dfc7adc325ef4
+    us-gov-west-1:
+      RHELHA84HVM: ami-0ac4e06a69870e5be
+    us-gov-east-1:
+      RHELHA84HVM: ami-0cca63ccd9a87f1b2
+Conditions:
+  SshEnabled: !Not [!Equals ['', !Ref KeyPairName]]
+  IsGovCloud: !Not [!Equals ['aws', !Ref AWS::Partition]]
+Resources:
+  AitEditorSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group to manage connections to ammos-ait-editor AIT
+        Editor
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: '-1'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref AlbSecurityGroupId
+      VpcId: !Ref VpcId
+  EditorTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      TargetType: instance
+      Targets:
+        - Id: !Ref Instance
+          Port: 80
+      VpcId: !Ref VpcId
+  EditorListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - Type: authenticate-oidc
+          Order: 1
+          AuthenticateOidcConfig:
+            ClientId: !Ref CognitoClientID
+            ClientSecret: !Ref CognitoClientSecret
+            Issuer: !Ref CognitoProviderUrl
+            UserInfoEndpoint:
+              Fn::Sub:
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/userInfo
+                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
+            AuthorizationEndpoint:
+              Fn::Sub:
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/authorize
+                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
+            TokenEndpoint:
+              Fn::Sub:
+                - https://${CognitoDomainName}.${AuthSuffix}.${AWS::Region}.amazoncognito.com/oauth2/token
+                - AuthSuffix: !If [IsGovCloud, "auth-fips", "auth"]
+            OnUnauthenticatedRequest: authenticate
+            Scope: openid
+            SessionTimeout: !Ref SessionTimeout
+        - Type: forward
+          Order: 2
+          TargetGroupArn:
+            Ref: EditorTargetGroup
+      Conditions:
+        - Field: host-header
+          HostHeaderConfig:
+            Values:
+              - !Sub 'editor.${FQDN}'
+      ListenerArn: !Ref ALBHttpsListenerArn
+      Priority: 125
+  Instance:
+    Type: AWS::EC2::Instance
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT1H
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}/EditorServer"
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            DeleteOnTermination: true
+            VolumeSize: 32
+      IamInstanceProfile: !Ref InstanceOneInstanceProfile
+      ImageId: !FindInMap
+        - AWSAMIRegionMap
+        - !Ref AWS::Region
+        - RHELHA84HVM
+      InstanceType: !Ref InstanceType
+      KeyName: !If [SshEnabled, !Ref KeyPairName, !Ref AWS::NoValue]
+      SecurityGroupIds:
+        - !GetAtt AitEditorSecurityGroup.GroupId
+      SubnetId: !Select [0, !Ref PrivateSubnetIds]
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+          echo "Starting user data"
+
+          function exitTrap(){
+            exitCode=$?
+            /opt/aws/bin/cfn-signal \
+              --stack ${AWS::StackName} \
+              --resource Instance \
+              --region ${AWS::Region} -e $exitCode || echo 'Failed to send Cloudformation Signal'
+          }
+          trap exitTrap EXIT
+          CONFIG_BUCKET_NAME=${ConfigBucketName}
+
+          yum install -y -q python3 wget unzip
+          mkdir -p /opt/aws/bin
+          wget -nv https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+          pip3 install aws-cfn-bootstrap-py3-latest.tar.gz
+          ln -s /usr/local/bin/cfn-* /opt/aws/bin
+          wget -nv https://s3.amazonaws.com/amazoncloudwatch-agent/redhat/amd64/latest/amazon-cloudwatch-agent.rpm
+          rpm -U ./amazon-cloudwatch-agent.rpm
+          yum install -y -q https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+
+          # Set variables for system install
+          USER=ec2-user
+          PROJECT_HOME=/home/$USER
+          SETUP_DIR=$PROJECT_HOME/setup
+          AWS_REGION=${AWS::Region}
+          AWS_ACCOUNT_ID=${AWS::AccountId}
+          CODER_IMAGE_URI=codercom/code-server
+          CODER_IMAGE_TAG=3.11.0
+          AIT_EDITOR_VERSION=0.0.3
+          AIT_EDITOR_LINK=https://NASA-AMMOS.gallery.vsassets.io/_apis/public/gallery/publisher/NASA-AMMOS/extension/ait-editor/$AIT_EDITOR_VERSION/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage
+          PORT=80
+
+          # General tools
+          yum install -y -q yum-utils git vim
+          curl -SL https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 -o /usr/bin/jq
+          chmod +x /usr/bin/jq
+
+          # Install AWS CLI
+          echo "Installing AWS CLI"
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip -qq awscliv2.zip
+          ./aws/install
+
+          # File Structure
+          mkdir -p $PROJECT_HOME/.ait-editor-config/code-server
+          mkdir -p $PROJECT_HOME/project/ait-config
+          mkdir -p $PROJECT_HOME/project/sequences
+          mkdir -p $PROJECT_HOME/extensions
+          mkdir -p $SETUP_DIR
+
+          cat > $PROJECT_HOME/project/sequences/example.ait << EOF
+          # comment
+          0 NO_OP
+          1 BAD_CMD
+          1 CORE_SET_OP_MODE 1
+          EOF
+
+          echo "pulling config from $CONFIG_BUCKET_NAME"
+          # Pull assets, config, and secrets from s3/sm
+          /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 sync \
+            s3://$CONFIG_BUCKET_NAME/configs/ait/config \
+            $PROJECT_HOME/project/ait-config
+
+          # Pull assets, config, and secrets from s3/sm
+          /usr/local/aws-cli/v2/current/bin/aws --region $AWS_REGION s3 cp \
+            s3://$CONFIG_BUCKET_NAME/configs/editor/cloudwatch-agent-editor.json \
+            $SETUP_DIR/cloudwatch-agent-editor.json
+
+          # Inject ProjectName from Cloudformation into cloudwatch agent files
+          mv $SETUP_DIR/cloudwatch-agent-editor.json{,.bak}
+          sed 's/<PROJECT_NAME>/${ProjectName}/g' $SETUP_DIR/cloudwatch-agent-editor.json.bak > $SETUP_DIR/cloudwatch-agent-editor.json
+          rm $SETUP_DIR/cloudwatch-agent-editor.json.bak
+          mv $SETUP_DIR/cloudwatch-agent-editor.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
+          # Docker + Docker-Compose
+          echo "Installing Docker components"
+          yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+          yum install -y -q docker-ce docker-ce-cli containerd.io
+          groupadd docker
+          usermod -aG docker $USER
+          systemctl enable docker
+          systemctl start docker
+
+          # AIT Editor Config
+          wget -nv $AIT_EDITOR_LINK -O $PROJECT_HOME/extensions/ait-editor-$AIT_EDITOR_VERSION.vsix
+
+          tee $PROJECT_HOME/.ait-editor-config/code-server/config.yaml << EOF
+          auth: none
+          bind-addr: 127.0.0.1:8080
+          cert: false
+          disable-telemetry: true
+          disable-update-check: true
+          extra-extensions-dir: ['/home/coder/extra-extensions']
+          EOF
+          chown -R $USER: $PROJECT_HOME
+
+          # AIT Editor startup
+          docker run --name ait-editor-$USER -d -p $PORT:8080 \
+            -v $PROJECT_HOME/.ait-editor-config:/home/coder/.config \
+            -v $PROJECT_HOME/project:/home/coder/project \
+            -v $PROJECT_HOME/extensions:/home/coder/extra-extensions \
+            -u $(id -u $USER):$(id -g $USER) \
+            -e AIT_CONFIG=/home/coder/project/ait-config/config.yaml \
+            $CODER_IMAGE_URI:$CODER_IMAGE_TAG;
+
+          docker exec ait-editor-$USER code-server --install-extension ./extra-extensions/ait-editor-$AIT_EDITOR_VERSION.vsix
+
+          /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+              -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+  InstanceOneInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref IamRoleName
+      Path: /account-managed/
+Outputs:
+  InstanceId:
+    Value: !Ref Instance
+  InstancePrivateIp:
+    Value: !GetAtt Instance.PrivateIp
+  SecurityGroupId:
+    Value: !GetAtt AitEditorSecurityGroup.GroupId

@@ -1,0 +1,890 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Service and Task definitions for the Aerie ECS Deployment
+
+Parameters:
+  ProjectName:
+    Type: String
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  ALBArn:
+    Type: String
+  ApplicationLoadBalancerDns:
+    Type: String
+  AlbSecurityGroupId:
+    Type: String
+  PrivateSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  PublicSubnetId:
+    Type: AWS::EC2::Subnet::Id
+  SSLCertificateArn:
+    Type: String
+  PrivateNamespaceUrl:
+    Description: URL to use for the project-resources root.
+    Type: String
+  EfsSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+  ECSTaskExecutionRoleArn:
+    Type: String
+  ECSTaskRoleArn:
+    Type: String
+  AerieFileSystemId:
+    Type: String
+  AerieFilestoreAccessPointId:
+    Type: String
+  PostgresDataAccessPointId:
+    Type: String
+  PostgresInitAccessPointId:
+    Type: String
+  HasuraInitAccessPointId:
+    Type: String
+
+Resources:
+  RootUserDbSecret:
+    Type: "AWS::SecretsManager::Secret"
+    Properties:
+      Name: !Sub ${ProjectName}-RootUserDbSecretAerieDb
+      Description: Superuser credentials for Aerie database.
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "postgres"}'
+        GenerateStringKey: password
+        PasswordLength: 32
+
+  AerieUserDbSecret:
+    Type: "AWS::SecretsManager::Secret"
+    Properties:
+      Name: !Sub ${ProjectName}-AerieUserDbSecretAerieDb
+      Description: Credentials for Aerie database.
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "aerie"}'
+        GenerateStringKey: password
+        PasswordLength: 32
+
+  PrivateNamespace:
+    Type: AWS::ServiceDiscovery::PrivateDnsNamespace
+    Properties:
+      Name: !Ref PrivateNamespaceUrl
+      Vpc: !Ref VpcId
+
+  EcsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SG to allow communication to services within the ECS Cluster
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref AlbSecurityGroupId
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          SourceSecurityGroupId: !Ref AlbSecurityGroupId
+        - IpProtocol: tcp
+          FromPort: 9000
+          ToPort: 9000
+          SourceSecurityGroupId: !Ref AlbSecurityGroupId
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          SourceSecurityGroupId: !Ref AlbSecurityGroupId
+
+  EcsInternalSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SG for internal ECS communication
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: "-1"
+          SourceSecurityGroupId: !Ref EcsSecurityGroup
+
+  EfsFromEcsIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow connection from Lambda to EFS Security Group
+      IpProtocol: tcp
+      FromPort: 2049
+      ToPort: 2049
+      SourceSecurityGroupId: !Ref EcsSecurityGroup
+      GroupId:
+        !Ref EfsSecurityGroupId
+
+  UiTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /health
+      HealthCheckTimeoutSeconds: 5
+      UnhealthyThresholdCount: 2
+      HealthyThresholdCount: 2
+      Matcher:
+        HttpCode: 200,302
+      Name: !Sub "${ProjectName}-UiTargetGroup"
+      Port: 80
+      Protocol: HTTP
+      TargetType: ip
+      VpcId: !Ref VpcId
+
+  GtwyTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /health
+      HealthCheckTimeoutSeconds: 5
+      UnhealthyThresholdCount: 2
+      HealthyThresholdCount: 2
+      Name: !Sub "${ProjectName}-GtwyTargetGroup"
+      Port: 9000
+      Protocol: HTTP
+      TargetType: ip
+      VpcId: !Ref VpcId
+
+  HasuraTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /healthz
+      HealthCheckTimeoutSeconds: 5
+      UnhealthyThresholdCount: 2
+      HealthyThresholdCount: 2
+      Name: !Sub "${ProjectName}-HsraTgtGroup"
+      Port: 8080
+      Protocol: HTTP
+      ProtocolVersion: HTTP1
+      TargetType: ip
+      VpcId: !Ref VpcId
+
+  ListenerHTTPS:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref UiTargetGroup
+          Type: forward
+      LoadBalancerArn: !Ref ALBArn
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: !Ref SSLCertificateArn
+
+  ListenerHTTP:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref UiTargetGroup
+          Type: forward
+      LoadBalancerArn: !Ref ALBArn
+      Port: 80
+      Protocol: HTTP
+
+  ListenerGateway:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref GtwyTargetGroup
+          Type: forward
+      LoadBalancerArn: !Ref ALBArn
+      Port: 9000
+      Protocol: HTTP
+
+  ListenerHasura:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref HasuraTargetGroup
+          Type: forward
+      LoadBalancerArn: !Ref ALBArn
+      Port: 8080
+      Protocol: HTTP
+
+  FargateCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub "${ProjectName}-cluster"
+      Tags:
+        - Key: ProjectName
+          Value: !Ref ProjectName
+        - Key: Name
+          Value: !Sub "${ProjectName} ECS Cluster"
+
+  GatewayTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Name: aerie-gateway
+          Image: ghcr.io/nasa-ammos/aerie-gateway:v1.4.0
+          PortMappings:
+            - ContainerPort: 9000
+          Environment:
+            - Name: AUTH_TYPE
+              Value: None
+            - Name: GQL_API_URL
+              Value: !Sub http://${PrivateNamespaceUrl}:8080/v1/graphql
+            - Name: LOG_FILE
+              Value: console
+            - Name: LOG_LEVEL
+              Value: warn
+            - Name: PORT
+              Value: "9000"
+            - Name: POSTGRES_AERIE_MERLIN_DB
+              Value: aerie_merlin
+            - Name: POSTGRES_HOST
+              Value: !Sub postgres.${PrivateNamespaceUrl}
+            - Name: POSTGRES_PASSWORD
+              Value: aerie
+            - Name: POSTGRES_PORT
+              Value: "5432"
+            - Name: POSTGRES_USER
+              Value: aerie
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: aerie-gateway
+          Essential: True
+          MountPoints:
+            - ContainerPath: /app/files
+              SourceVolume: aerie_file_store
+      Cpu: "2048"
+      Memory: "4096"
+      Volumes:
+        - Name: aerie_file_store
+          EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId:
+                !Ref AerieFilestoreAccessPointId
+              IAM: ENABLED
+            FilesystemId:
+              !Ref AerieFileSystemId
+            TransitEncryption: ENABLED
+      ExecutionRoleArn: !Ref ECSTaskExecutionRoleArn
+      TaskRoleArn: !Ref ECSTaskRoleArn
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+
+  MerlinTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Name: aerie-merlin
+          Image: ghcr.io/nasa-ammos/aerie-merlin:v1.4.0
+          PortMappings:
+            - ContainerPort: 27183
+          Environment:
+            - Name: MERLIN_DB
+              Value: "aerie_merlin"
+            - Name: MERLIN_DB_PASSWORD
+              Value: "aerie"
+            - Name: MERLIN_DB_PORT
+              Value: "5432"
+            - Name: MERLIN_DB_SERVER
+              Value: !Sub postgres.${PrivateNamespaceUrl}
+            - Name: MERLIN_DB_USER
+              Value: "aerie"
+            - Name: MERLIN_LOCAL_STORE
+              Value: /usr/src/app/merlin_file_store
+            - Name: MERLIN_PORT
+              Value: "27183"
+            - Name: JAVA_OPTS
+              Value: >
+                -Dorg.slf4j.simpleLogger.defaultLogLevel=WARN
+                -Dorg.slf4j.simpleLogger.logFile=System.err
+            - Name: UNTRUE_PLAN_START
+              Value: "2000-01-01T11:58:55.816Z"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: aerie-merlin
+          MountPoints:
+            - ContainerPath: /usr/src/app/merlin_file_store
+              SourceVolume: aerie_file_store
+          Essential: True
+      Cpu: "2048"
+      Memory: "4096"
+      Volumes:
+        - Name: aerie_file_store
+          EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId:
+                !Ref AerieFilestoreAccessPointId
+              IAM: ENABLED
+            FilesystemId:
+              !Ref AerieFileSystemId
+            TransitEncryption: ENABLED
+      ExecutionRoleArn: !Ref ECSTaskExecutionRoleArn
+      TaskRoleArn: !Ref ECSTaskRoleArn
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+
+  SchedulerTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Name: aerie-scheduler
+          Image: ghcr.io/nasa-ammos/aerie-scheduler:v1.4.0
+          PortMappings:
+            - ContainerPort: 27193
+          Environment:
+            - Name: MERLIN_GRAPHQL_URL
+              Value: !Sub http://hasura.${PrivateNamespaceUrl}:8080/v1/graphql
+            - Name: SCHEDULER_DB_PASSWORD
+              Value: "aerie"
+            - Name: SCHEDULER_DB_PORT
+              Value: "5432"
+            - Name: SCHEDULER_DB_SERVER
+              Value: !Sub postgres.${PrivateNamespaceUrl}
+            - Name: SCHEDULER_DB_USER
+              Value: "aerie"
+            - Name: SCHEDULER_DB
+              Value: "aerie_scheduler"
+            - Name: SCHEDULER_PORT
+              Value: "27185"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: aerie-scheduler
+          MountPoints:
+            - ContainerPath: /usr/src/app/merlin_file_store
+              SourceVolume: aerie_file_store
+          Essential: True
+      Cpu: "2048"
+      Memory: "4096"
+      Volumes:
+        - Name: aerie_file_store
+          EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId:
+                !Ref AerieFilestoreAccessPointId
+              IAM: ENABLED
+            FilesystemId:
+              !Ref AerieFileSystemId
+            TransitEncryption: ENABLED
+      ExecutionRoleArn: !Ref ECSTaskExecutionRoleArn
+      TaskRoleArn: !Ref ECSTaskRoleArn
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+
+  SequencingTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Name: aerie-sequencing
+          Image: ghcr.io/nasa-ammos/aerie-sequencing:v1.4.0
+          PortMappings:
+            - ContainerPort: 27184
+          Environment:
+            - Name: LOG_FILE
+              Value: console
+            - Name: LOG_LEVEL
+              Value: warn
+            - Name: MERLIN_GRAPHQL_URL
+              Value: !Sub http://hasura.${PrivateNamespaceUrl}:8080/v1/graphql
+            - Name: SEQUENCING_SERVER_PORT
+              Value: "27184"
+            - Name: SEQUENCING_DB
+              Value: aerie_sequencing
+            - Name: SEQUENCING_DB_PASSWORD
+              Value: "aerie"
+            - Name: SEQUENCING_DB_PORT
+              Value: "5432"
+            - Name: SEQUENCING_DB_SERVER
+              Value: !Sub postgres.${PrivateNamespaceUrl}
+            - Name: SEQUENCING_DB_USER
+              Value: "aerie"
+            - Name: SEQUENCING_LOCAL_STORE
+              Value: /usr/src/app/sequencing_file_store
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: aerie-sequencing
+          MountPoints:
+            - ContainerPath: /usr/src/app/sequencing_file_store
+              SourceVolume: aerie_file_store
+          Essential: True
+      Cpu: "2048"
+      Memory: "4096"
+      Volumes:
+        - Name: aerie_file_store
+          EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId:
+                !Ref AerieFilestoreAccessPointId
+              IAM: ENABLED
+            FilesystemId:
+              !Ref AerieFileSystemId
+            TransitEncryption: ENABLED
+      ExecutionRoleArn: !Ref ECSTaskExecutionRoleArn
+      TaskRoleArn: !Ref ECSTaskRoleArn
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+  AerieUiTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Name: aerie-ui
+          Image: ghcr.io/nasa-ammos/aerie-ui:v1.4.0
+          PortMappings:
+            - ContainerPort: 80
+          Environment:
+            - Name: PUBLIC_AUTH_TYPE
+              Value: none
+            - Name: PUBLIC_GATEWAY_CLIENT_URL
+              Value: !Sub
+                - "http://${DomainName}:${GtwyPort}"
+                - DomainName: !Ref ApplicationLoadBalancerDns
+                  GtwyPort: "9000"
+            - Name: PUBLIC_GATEWAY_SERVER_URL
+              Value: !Sub http://aerie-gateway.${PrivateNamespaceUrl}:9000
+            - Name: PUBLIC_HASURA_CLIENT_URL
+              Value: !Sub
+                - "http://${DomainName}:8080"
+                - DomainName: !Ref ApplicationLoadBalancerDns
+            - Name: PUBLIC_HASURA_SERVER_URL
+              Value: !Sub http://hasura.${PrivateNamespaceUrl}:8080/v1/graphql
+            - Name: PUBLIC_HASURA_WEB_SOCKET_URL
+              Value: !Sub
+                - "ws://${DomainName}:8080/v1/graphql"
+                - DomainName: !Ref ApplicationLoadBalancerDns
+            - Name: ORIGIN
+              Value: !Sub
+                - "http://${DomainName}"
+                - DomainName: !Ref ApplicationLoadBalancerDns
+            # - Name: PUBLIC_NODE_TLS_REJECT_UNAUTHORIZED
+            #   Value: "0"
+            # - Name: SCHEDULER_CLIENT_URL
+            #   Value: !Sub http://aerie-scheduler.${PrivateNamespaceUrl}:27193
+            # - Name: SCHEDULER_SERVER_URL
+            #   Value: !Sub http://aerie-scheduler.${PrivateNamespaceUrl}:27193
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: aerie-ui
+          Essential: True
+      Cpu: "2048"
+      Memory: "4096"
+      ExecutionRoleArn: !Ref ECSTaskExecutionRoleArn
+      TaskRoleArn: !Ref ECSTaskRoleArn
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+
+  HasuraTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Name: hasura
+          Image: hasura/graphql-engine:v2.12.1.cli-migrations-v3
+          PortMappings:
+            - ContainerPort: 8080
+          Environment:
+            - Name: AERIE_MERLIN_DATABASE_URL
+              Value: !Sub postgres://aerie:aerie@postgres.${PrivateNamespaceUrl}:5432/aerie_merlin
+            - Name: AERIE_SCHEDULER_DATABASE_URL
+              Value: !Sub postgres://aerie:aerie@postgres.${PrivateNamespaceUrl}:5432/aerie_scheduler
+            - Name: AERIE_SEQUENCING_DATABASE_URL
+              Value: !Sub postgres://aerie:aerie@postgres.${PrivateNamespaceUrl}:5432/aerie_sequencing
+            - Name: AERIE_UI_DATABASE_URL
+              Value: !Sub postgres://aerie:aerie@postgres.${PrivateNamespaceUrl}:5432/aerie_ui
+            - Name: HASURA_GRAPHQL_DEV_MODE
+              Value: "true"
+            - Name: HASURA_GRAPHQL_ENABLE_CONSOLE
+              Value: "true"
+            - Name: HASURA_GRAPHQL_ENABLED_LOG_TYPES
+              Value: startup, http-log, webhook-log, websocket-log, query-log
+            - Name: HASURA_GRAPHQL_LOG_LEVEL
+              Value: warn
+            - Name: HASURA_GRAPHQL_METADATA_DATABASE_URL
+              Value: !Sub postgres://aerie:aerie@postgres.${PrivateNamespaceUrl}:5432/aerie_hasura
+            - Name: HASURA_GRAPHQL_METADATA_DIR
+              Value: /hasura-metadata
+            - Name: HASURA_GRAPHQL_CORS_DOMAIN
+              Value: "*"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: hasura
+          MountPoints:
+            - ContainerPath: /hasura-metadata
+              SourceVolume: init_hasura
+          Essential: True
+      Cpu: "2048"
+      Memory: "4096"
+      Volumes:
+        - Name: init_hasura
+          EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId: !Ref HasuraInitAccessPointId
+              IAM: ENABLED
+            FilesystemId: !Ref AerieFileSystemId
+            TransitEncryption: ENABLED
+      ExecutionRoleArn: !Ref ECSTaskExecutionRoleArn
+      TaskRoleArn: !Ref ECSTaskRoleArn
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+
+  PostgresTask:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn:
+      - RootUserDbSecret
+      - AerieUserDbSecret
+    Properties:
+      ContainerDefinitions:
+        - Name: postgres
+          Image: postgres:14.1
+          PortMappings:
+            - ContainerPort: 5432
+          Environment:
+            - Name: POSTGRES_DB
+              Value: postgres
+            - Name: POSTGRES_PASSWORD
+              Value: !Sub "{{resolve:secretsmanager:${ProjectName}-RootUserDbSecretAerieDb:SecretString:password}}"
+            - Name: POSTGRES_USER
+              Value: !Sub "{{resolve:secretsmanager:${ProjectName}-RootUserDbSecretAerieDb:SecretString:username}}"
+            - Name: AERIE_USERNAME
+              Value: aerie
+            - Name: AERIE_PASSWORD
+              Value: aerie
+            - Name: HEALTHCHECK_DB
+              Value: aerie_merlin
+          # Secrets:
+          #   - Name: POSTGRES_PASSWORD_S
+          #     ValueFrom: !Sub "${RootUserDbSecret}:password::"
+          #   - Name: POSTGRES_USER_S
+          #     ValueFrom: !Sub "${RootUserDbSecret}:username::"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: postgres
+          HealthCheck:
+            Command:
+              [
+                "CMD-SHELL",
+                "pg_isready -U ${POSTGRES_USER} -d ${HEALTHCHECK_DB} || exit 1",
+              ]
+          MountPoints:
+            - ContainerPath: /var/lib/postgresql/data
+              SourceVolume: postgres_data
+            - ContainerPath: /docker-entrypoint-initdb.d
+              SourceVolume: init_postgres
+          Essential: True
+      Cpu: "2048"
+      Memory: "4096"
+      Volumes:
+        - Name: postgres_data
+          EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId: !Ref PostgresDataAccessPointId
+              IAM: ENABLED
+            FilesystemId:
+              !Ref AerieFileSystemId
+            TransitEncryption: ENABLED
+        - Name: init_postgres
+          EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId: !Ref PostgresInitAccessPointId
+              IAM: ENABLED
+            FilesystemId: !Ref AerieFileSystemId
+            TransitEncryption: ENABLED
+      ExecutionRoleArn: !Ref ECSTaskExecutionRoleArn
+      TaskRoleArn: !Ref ECSTaskRoleArn
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /ecs/${ProjectName}/aerie-ecs
+
+  GatewayDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Description: Discovery Service for the Aerie Gateway
+      DnsConfig:
+        RoutingPolicy: MULTIVALUE
+        DnsRecords:
+          - TTL: 60
+            Type: A
+          - TTL: 60
+            Type: SRV
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: aerie-gateway
+      NamespaceId: !Ref PrivateNamespace
+
+  SequencingDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Description: Discovery Service for Aerie Sequencing
+      DnsConfig:
+        RoutingPolicy: MULTIVALUE
+        DnsRecords:
+          - TTL: 60
+            Type: A
+          - TTL: 60
+            Type: SRV
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: aerie-sequencing
+      NamespaceId: !Ref PrivateNamespace
+
+  SequencingService:
+    Type: AWS::ECS::Service
+    DependsOn: PostgresService
+    Properties:
+      LaunchType: FARGATE
+      Cluster: !Ref FargateCluster
+      ServiceName: aerie-sequencing
+      DesiredCount: 1
+      TaskDefinition: !Ref SequencingTask
+      EnableExecuteCommand: true
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: !Ref PrivateSubnetIds
+          SecurityGroups:
+            - !Ref EcsInternalSecurityGroup
+            - !Ref EcsSecurityGroup
+      ServiceRegistries:
+        - RegistryArn: !GetAtt SequencingDiscoveryService.Arn
+          Port: 27184
+
+  GatewayService:
+    Type: AWS::ECS::Service
+    DependsOn: PostgresService
+    Properties:
+      LaunchType: FARGATE
+      Cluster: !Ref FargateCluster
+      ServiceName: aerie-gateway
+      DesiredCount: 1
+      TaskDefinition: !Ref GatewayTask
+      EnableExecuteCommand: true
+      HealthCheckGracePeriodSeconds: 10
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: !Ref PrivateSubnetIds
+          SecurityGroups:
+            - !Ref EcsInternalSecurityGroup
+            - !Ref EcsSecurityGroup
+      LoadBalancers:
+        - TargetGroupArn: !Ref GtwyTargetGroup
+          ContainerPort: 9000
+          ContainerName: aerie-gateway
+      ServiceRegistries:
+        - RegistryArn: !GetAtt GatewayDiscoveryService.Arn
+          Port: 9000
+
+  AerieUiDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Description: Discovery Service for the Aerie UI
+      DnsConfig:
+        RoutingPolicy: MULTIVALUE
+        DnsRecords:
+          - TTL: 60
+            Type: A
+          - TTL: 60
+            Type: SRV
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: aerie-ui
+      NamespaceId: !Ref PrivateNamespace
+
+  AerieUiService:
+    Type: AWS::ECS::Service
+    DependsOn: PostgresService
+    Properties:
+      LaunchType: FARGATE
+      Cluster: !Ref FargateCluster
+      ServiceName: aerie-ui
+      DesiredCount: 1
+      TaskDefinition: !Ref AerieUiTask
+      EnableExecuteCommand: true
+      HealthCheckGracePeriodSeconds: 10
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: [!Ref PublicSubnetId]
+          SecurityGroups:
+            - !Ref EcsInternalSecurityGroup
+            - !Ref EcsSecurityGroup
+      LoadBalancers:
+        - TargetGroupArn: !Ref UiTargetGroup
+          ContainerPort: 80
+          ContainerName: aerie-ui
+      ServiceRegistries:
+        - RegistryArn: !GetAtt AerieUiDiscoveryService.Arn
+          Port: 80
+
+  SchedulerDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Description: Discovery Service for the Aerie Scheduler
+      DnsConfig:
+        RoutingPolicy: MULTIVALUE
+        DnsRecords:
+          - TTL: 60
+            Type: A
+          - TTL: 60
+            Type: SRV
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: aerie-scheduler
+      NamespaceId: !Ref PrivateNamespace
+
+  SchedulerService:
+    Type: AWS::ECS::Service
+    DependsOn:
+      - PostgresService
+      - MerlinService
+    Properties:
+      LaunchType: FARGATE
+      Cluster: !Ref FargateCluster
+      ServiceName: aerie-scheduler
+      DesiredCount: 1
+      TaskDefinition: !Ref SchedulerTask
+      EnableExecuteCommand: true
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: !Ref PrivateSubnetIds
+          SecurityGroups:
+            - !Ref EcsInternalSecurityGroup
+            - !Ref EcsSecurityGroup
+      ServiceRegistries:
+        - RegistryArn: !GetAtt SchedulerDiscoveryService.Arn
+          Port: 27193
+
+  MerlinDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Description: Discovery Service for the Aerie Merlin Engine
+      DnsConfig:
+        RoutingPolicy: MULTIVALUE
+        DnsRecords:
+          - TTL: 60
+            Type: A
+          - TTL: 60
+            Type: SRV
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: aerie-merlin
+      NamespaceId: !Ref PrivateNamespace
+
+  MerlinService:
+    Type: AWS::ECS::Service
+    DependsOn:
+      - PostgresService
+    Properties:
+      LaunchType: FARGATE
+      Cluster: !Ref FargateCluster
+      ServiceName: aerie-merlin
+      DesiredCount: 1
+      TaskDefinition: !Ref MerlinTask
+      EnableExecuteCommand: true
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: !Ref PrivateSubnetIds
+          SecurityGroups:
+            - !Ref EcsInternalSecurityGroup
+            - !Ref EcsSecurityGroup
+      ServiceRegistries:
+        - RegistryArn: !GetAtt MerlinDiscoveryService.Arn
+          Port: 27183
+
+  PostgresDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Description: Discovery Service for the Postgres DB
+      DnsConfig:
+        RoutingPolicy: MULTIVALUE
+        DnsRecords:
+          - TTL: 60
+            Type: A
+          - TTL: 60
+            Type: SRV
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: postgres
+      NamespaceId: !Ref PrivateNamespace
+
+  PostgresService:
+    Type: AWS::ECS::Service
+    DependsOn: ListenerHTTP
+    Properties:
+      LaunchType: FARGATE
+      Cluster: !Ref FargateCluster
+      ServiceName: postgres
+      DesiredCount: 1
+      TaskDefinition: !Ref PostgresTask
+      EnableExecuteCommand: true
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: !Ref PrivateSubnetIds
+          SecurityGroups:
+            - !Ref EcsInternalSecurityGroup
+            - !Ref EcsSecurityGroup
+      ServiceRegistries:
+        - RegistryArn: !GetAtt PostgresDiscoveryService.Arn
+          Port: 5432
+
+  HasuraDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Description: Discovery Service for Hasura
+      DnsConfig:
+        RoutingPolicy: MULTIVALUE
+        DnsRecords:
+          - TTL: 60
+            Type: A
+          - TTL: 60
+            Type: SRV
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: hasura
+      NamespaceId: !Ref PrivateNamespace
+
+  HasuraService:
+    Type: AWS::ECS::Service
+    DependsOn: PostgresService
+    Properties:
+      LaunchType: FARGATE
+      Cluster: !Ref FargateCluster
+      ServiceName: hasura
+      DesiredCount: 1
+      TaskDefinition: !Ref HasuraTask
+      EnableExecuteCommand: true
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: !Ref PrivateSubnetIds
+          SecurityGroups:
+            - !Ref EcsInternalSecurityGroup
+            - !Ref EcsSecurityGroup
+      LoadBalancers:
+        - TargetGroupArn: !Ref HasuraTargetGroup
+          ContainerPort: 8080
+          ContainerName: hasura
+      ServiceRegistries:
+        - RegistryArn: !GetAtt HasuraDiscoveryService.Arn
+          Port: 8080

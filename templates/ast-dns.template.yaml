@@ -1,0 +1,128 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: DNS for AST Records
+Parameters:
+  HostedZoneID:
+    Description: ID of the Hosted Zone where DNS Records will be deployed
+    Type: AWS::Route53::HostedZone::Id
+  FQDN:
+    Description: Fully Qualified Domain Name to be used for the Application Load Balancer
+    Type: String
+  AlbDnsName:
+    Description: AWS-Provided DNS Name for the AST Application Load Balancer
+    Type: String
+  AerieAlbDnsName:
+    Description: AWS-Provided DNS Name for the Aerie Application Load Balancer
+    Type: String
+Resources:
+  AlbCNAME:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Ref FQDN
+      Type: CNAME
+      HostedZoneId: !Ref HostedZoneID
+      TTL: 300
+      ResourceRecords:
+        - !Ref AlbDnsName
+
+  HomeAlias:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Sub "home.${FQDN}"
+      Type: CNAME
+      AliasTarget:
+        DNSName: !Ref FQDN
+        HostedZoneId: !Ref HostedZoneID
+      HostedZoneId: !Ref HostedZoneID
+  LoginAlias:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Sub "login.${FQDN}"
+      Type: CNAME
+      AliasTarget:
+        DNSName: !Ref FQDN
+        HostedZoneId: !Ref HostedZoneID
+      HostedZoneId: !Ref HostedZoneID
+  SsoAlias:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Sub "sso.${FQDN}"
+      Type: CNAME
+      AliasTarget:
+        DNSName: !Ref FQDN
+        HostedZoneId: !Ref HostedZoneID
+      HostedZoneId: !Ref HostedZoneID
+  LogsAlias:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Sub "logs.${FQDN}"
+      Type: CNAME
+      AliasTarget:
+        DNSName: !Ref FQDN
+        HostedZoneId: !Ref HostedZoneID
+      HostedZoneId: !Ref HostedZoneID
+
+  AitAlias:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Sub "ait.${FQDN}"
+      Type: CNAME
+      AliasTarget:
+        DNSName: !Ref FQDN
+        HostedZoneId: !Ref HostedZoneID
+      HostedZoneId: !Ref HostedZoneID
+  MctAlias:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Sub "mct.${FQDN}"
+      Type: CNAME
+      AliasTarget:
+        DNSName: !Ref FQDN
+        HostedZoneId: !Ref HostedZoneID
+      HostedZoneId: !Ref HostedZoneID
+  EditorAlias:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Sub "editor.${FQDN}"
+      Type: CNAME
+      AliasTarget:
+        DNSName: !Ref FQDN
+        HostedZoneId: !Ref HostedZoneID
+      HostedZoneId: !Ref HostedZoneID
+
+  AerieAlbCNAME:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Sub "aerie.${FQDN}"
+      Type: CNAME
+      HostedZoneId: !Ref HostedZoneID
+      TTL: 300
+      ResourceRecords:
+        - !Ref AerieAlbDnsName
+
+  AerieUiAlias:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Sub "ui.aerie.${FQDN}"
+      Type: CNAME
+      AliasTarget:
+        DNSName: !Sub aerie.${FQDN}
+        HostedZoneId: !Ref HostedZoneID
+      HostedZoneId: !Ref HostedZoneID
+  AerieGatewayAlias:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Sub "gateway.aerie.${FQDN}"
+      Type: CNAME
+      AliasTarget:
+        DNSName: !Sub aerie.${FQDN}
+        HostedZoneId: !Ref HostedZoneID
+      HostedZoneId: !Ref HostedZoneID
+  AerieGraphQlAlias:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Sub "graphql.aerie.${FQDN}"
+      Type: CNAME
+      AliasTarget:
+        DNSName: !Sub aerie.${FQDN}
+        HostedZoneId: !Ref HostedZoneID
+      HostedZoneId: !Ref HostedZoneID

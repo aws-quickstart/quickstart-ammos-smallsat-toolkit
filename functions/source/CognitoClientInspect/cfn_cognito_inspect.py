@@ -1,8 +1,10 @@
-import sys
-import cfnresponse
-import boto3
 import json
 import logging
+import sys
+
+import boto3
+
+import cfnresponse
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -40,8 +42,9 @@ def lambda_handler(event, context):
         logger.error("Error: {}".format(e))
         result = cfnresponse.FAILED
 
-    logger.info("Returning response of: {}, with result of: {}".format(
-        result, responseData))
+    logger.info(
+        "Returning response of: %s, with result of: %s", result, responseData
+    )
     sys.stdout.flush()
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-lambda-function-code-cfnresponsemodule.html
     cfnresponse.send(event, context, result, responseData)

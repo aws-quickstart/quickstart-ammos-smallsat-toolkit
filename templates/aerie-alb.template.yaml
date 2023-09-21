@@ -1,0 +1,120 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Service and Task definitions for the Aerie ECS Deployment
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: ast-aerie
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  PublicSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  EnableAlbAccessLogs:
+    Type: String
+    Default: "false"
+    AllowedValues:
+      - "true"
+      - "false"
+
+Mappings:
+  ElbAccountIds:
+    us-east-1: {AccountId: "127311923021"}
+    us-east-2: {AccountId: "033677994240"}
+    us-west-1: {AccountId: "027434742980"}
+    us-west-2: {AccountId: "797873946194"}
+    af-south-1: {AccountId: "098369216593"}
+    ca-central-1: {AccountId: "985666609251"}
+    eu-central-1: {AccountId: "054676820928"}
+    eu-west-1: {AccountId: "156460612806"}
+    eu-west-2: {AccountId: "652711504416"}
+    eu-south-1: {AccountId: "635631232127"}
+    eu-west-3: {AccountId: "009996457667"}
+    eu-north-1: {AccountId: "897822967062"}
+    ap-east-1: {AccountId: "754344448648"}
+    ap-northeast-1: {AccountId: "582318560864"}
+    ap-northeast-2: {AccountId: "600734575887"}
+    ap-northeast-3: {AccountId: "383597477331"}
+    ap-southeast-1: {AccountId: "114774131450"}
+    ap-southeast-2: {AccountId: "783225319266"}
+    ap-southeast-3: {AccountId: "589379963580"}
+    ap-south-1: {AccountId: "718504428378"}
+    me-south-1: {AccountId: "076674570225"}
+    sa-east-1: {AccountId: "507241528517"}
+    us-gov-west-1: {AccountId: "048591011584"}
+    us-gov-east-1: {AccountId: "190560391635"}
+
+Conditions:
+  AlbAccessLogs: !Equals [!Ref EnableAlbAccessLogs, "true"]
+
+Resources:
+  AerieAlbLogsBucket:
+    Condition: AlbAccessLogs
+    Type: AWS::S3::Bucket
+
+  AlbBucketPolicy:
+    Condition: AlbAccessLogs
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AerieAlbLogsBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            AWS: !Sub
+              - "arn:${Partition}:iam::${ElbAccountId}:root"
+              - Partition: !Ref AWS::Partition
+                ElbAccountId: !FindInMap [ElbAccountIds, !Ref AWS::Region, AccountId]
+          Action: s3:PutObject
+          Resource: !Sub "arn:${AWS::Partition}:s3:::${AerieAlbLogsBucket}/ecs/aerie-alb/AWSLogs/${AWS::AccountId}/*"
+        - Effect: Allow
+          Principal:
+            Service: logdelivery.elb.amazonaws.com
+          Action: s3:GetBucketAcl
+          Resource: !Sub "arn:${AWS::Partition}:s3:::${AerieAlbLogsBucket}"
+
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow Web connections to ALB
+      VpcId: !Ref VpcId
+
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: application
+      IpAddressType: ipv4
+      Name: !Sub "${ProjectName}-AerieLB"
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+        - Key: access_logs.s3.enabled
+          Value: !If [AlbAccessLogs, "true", "false"]
+        - !If
+          - AlbAccessLogs
+          - Key: access_logs.s3.bucket
+            Value: !Ref AerieAlbLogsBucket
+          - !Ref AWS::NoValue
+        - !If
+          - AlbAccessLogs
+          - Key: access_logs.s3.prefix
+            Value: ecs/aerie-alb
+          - !Ref AWS::NoValue
+        - Key: routing.http2.enabled
+          Value: "false"
+        - Key: routing.http.desync_mitigation_mode
+          Value: monitor
+      SecurityGroups:
+        - !Ref AlbSecurityGroup
+      Subnets: !Ref PublicSubnetIds
+
+Outputs:
+  ApplicationLoadBalancerArn:
+    Description: ARN of the Application Load Balancer for the Aerie app
+    Value: !Ref ApplicationLoadBalancer
+  ApplicationLoadBalancerDns:
+    Description: DNS Name of the Application Load Balancer for the Aerie app
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+  AlbSecurityGroupId:
+    Description: SG ID for the deployed Load Balancer's attached security group
+    Value: !GetAtt AlbSecurityGroup.GroupId
